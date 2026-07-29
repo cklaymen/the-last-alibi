@@ -8,12 +8,14 @@ import {
   Post,
 } from "@nestjs/common";
 import { createRoomSchema, joinRoomSchema } from "@mystery-game/contracts";
+import { LobbyGateway } from "./lobby.gateway.js";
 import { RoomsService } from "./rooms.service.js";
 
 @Controller()
 export class RoomsController {
   public constructor(
     @Inject(RoomsService) private readonly roomsService: RoomsService,
+    @Inject(LobbyGateway) private readonly lobbyGateway: LobbyGateway,
   ) {}
 
   @Get("health")
@@ -29,6 +31,8 @@ export class RoomsController {
   @Post("rooms/join")
   @HttpCode(HttpStatus.OK)
   public join(@Body() body: unknown) {
-    return this.roomsService.join(joinRoomSchema.parse(body));
+    const room = this.roomsService.join(joinRoomSchema.parse(body));
+    this.lobbyGateway.publish(room);
+    return room;
   }
 }

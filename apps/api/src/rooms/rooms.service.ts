@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
@@ -20,6 +24,7 @@ export class RoomsService {
       hostName: request.playerName,
       playerCount: 1,
       maxPlayers: 6,
+      phase: "LOBBY",
       playerNames: [request.playerName],
     };
     this.rooms.set(room.code, room);
@@ -29,7 +34,7 @@ export class RoomsService {
   public join(request: JoinRoomRequest): RoomSummary {
     const room = this.rooms.get(request.roomCode);
     if (!room) {
-      throw new NotFoundException("Nie znaleziono pokoju o tym kodzie.");
+      throw new NotFoundException("No room exists with that code.");
     }
     if (
       !room.playerNames.includes(request.playerName) &&
@@ -41,10 +46,38 @@ export class RoomsService {
     return this.summary(room);
   }
 
+  public get(roomCode: string): RoomSummary {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      throw new NotFoundException("No room exists with that code.");
+    }
+    return this.summary(room);
+  }
+
+  public start(roomCode: string, playerName: string): RoomSummary {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      throw new NotFoundException("No room exists with that code.");
+    }
+    if (room.hostName !== playerName) {
+      throw new BadRequestException("Only the room host can start the game.");
+    }
+    if (room.playerCount < 2) {
+      throw new BadRequestException(
+        "At least 2 players are required to start.",
+      );
+    }
+    room.phase = "IN_PROGRESS";
+    return this.summary(room);
+  }
+
   private createCode(): string {
-    const randomValue = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
-    const digits = randomValue % 100;
-    return `MYST-${digits.toString().padStart(2, "0")}`;
+    let code = "";
+    do {
+      const randomValue = crypto.getRandomValues(new Uint32Array(1))[0] ?? 0;
+      code = `MYST-${(randomValue % 100).toString().padStart(2, "0")}`;
+    } while (this.rooms.has(code));
+    return code;
   }
 
   private summary(room: Room): RoomSummary {

@@ -1,5 +1,6 @@
-import { DoorOpen, Plus, Users } from "lucide-react";
-import { useState } from "react";
+import { DoorOpen, Play, Plus, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 import type { RoomSummary } from "@mystery-game/contracts";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
@@ -28,22 +29,20 @@ export function App() {
         },
       );
       const payload: unknown = await response.json();
-      if (!response.ok) {
-        throw new Error(readMessage(payload));
-      }
+      if (!response.ok) throw new Error(readMessage(payload));
       setRoom(payload as RoomSummary);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Nie udało się połączyć z serwerem.",
+          : "Unable to connect to the server.",
       );
     } finally {
       setIsLoading(false);
     }
   }
 
-  if (room) {
+  if (room)
     return (
       <Lobby
         room={room}
@@ -51,25 +50,25 @@ export function App() {
         onLeave={() => setRoom(null)}
       />
     );
-  }
 
   return (
     <main className="welcome-shell">
       <header className="brand">
-        <p className="eyebrow">Wspólna tajemnica</p>
+        <p className="eyebrow">A shared mystery</p>
         <h1>The Last Alibi</h1>
         <p className="lead">
-          Zbierz tropy, wyklucz podejrzanych i wskaż sprawcę przed pozostałymi.
+          Gather clues, eliminate suspects, and name the culprit before anyone
+          else.
         </p>
       </header>
-      <section className="entry-panel" aria-label="Dołącz do rozgrywki">
-        <label htmlFor="player-name">Twój pseudonim</label>
+      <section className="entry-panel" aria-label="Join a game">
+        <label htmlFor="player-name">Your nickname</label>
         <input
           id="player-name"
           autoComplete="nickname"
           maxLength={24}
           onChange={(event) => setPlayerName(event.target.value)}
-          placeholder="np. Alex"
+          placeholder="e.g. Alex"
           value={playerName}
         />
         <button
@@ -78,12 +77,12 @@ export function App() {
           onClick={() => void submit("create")}
           type="button"
         >
-          <Plus aria-hidden="true" /> Utwórz pokój
+          <Plus aria-hidden="true" /> Create room
         </button>
         <div className="join-divider">
-          <span>albo</span>
+          <span>or</span>
         </div>
-        <label htmlFor="room-code">Kod pokoju</label>
+        <label htmlFor="room-code">Room code</label>
         <div className="join-row">
           <input
             id="room-code"
@@ -93,7 +92,7 @@ export function App() {
             value={roomCode}
           />
           <button
-            aria-label="Dołącz do pokoju"
+            aria-label="Join room"
             className="icon-action"
             disabled={
               playerName.trim().length < 2 || roomCode.length < 6 || isLoading
@@ -123,32 +122,86 @@ function Lobby({
   playerName: string;
   onLeave: () => void;
 }) {
+  const [currentRoom, setCurrentRoom] = useState(room);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+  const isHost = currentRoom.hostName === playerName;
+  const canStart =
+    isHost && currentRoom.playerCount >= 2 && currentRoom.phase === "LOBBY";
+
+  useEffect(() => {
+    const socket = io(apiUrl);
+    socketRef.current = socket;
+    socket.on("connect", () =>
+      socket.emit("room:subscribe", { roomCode: room.code }),
+    );
+    socket.on("room:state", (nextRoom: RoomSummary) => {
+      setCurrentRoom(nextRoom);
+      setConnectionError(null);
+    });
+    socket.on("connect_error", () =>
+      setConnectionError("Live updates are unavailable. Reconnecting..."),
+    );
+    return () => {
+      socket.close();
+    };
+  }, [room.code]);
+
+  function startGame() {
+    socketRef.current?.emit("room:start", {
+      roomCode: currentRoom.code,
+      playerName,
+    });
+  }
+
   return (
     <main className="lobby-shell">
       <header className="lobby-header">
-        <p className="eyebrow">Poczekalnia</p>
-        <h1>Pokój {room.code}</h1>
-        <p>Udostępnij kod znajomym. Gospodarz rozpocznie po zebraniu ekipy.</p>
+        <p className="eyebrow">Waiting room</p>
+        <h1>Room {currentRoom.code}</h1>
+        <p>
+          Share the code with your friends. The host can start with two or more
+          players.
+        </p>
       </header>
-      <section className="room-status" aria-label="Uczestnicy pokoju">
+      <section className="room-status" aria-label="Players in this room">
         <Users aria-hidden="true" />
         <div>
           <strong>
-            {room.playerCount} / {room.maxPlayers}
+            {currentRoom.playerCount} / {currentRoom.maxPlayers}
           </strong>
-          <span> graczy w pokoju</span>
+          <span> players in room</span>
         </div>
       </section>
       <section className="player-card">
-        <img alt="Portret detektywa" src="/miss_scarlett.jpg" />
+        <img alt="Detective portrait" src="/miss_scarlett.jpg" />
         <div>
-          <p>Ty</p>
+          <p>You</p>
           <h2>{playerName}</h2>
-          <span>Wybór postaci wkrótce</span>
+          <span>
+            {currentRoom.phase === "IN_PROGRESS"
+              ? "Game started"
+              : "Waiting for the host"}
+          </span>
         </div>
       </section>
+      {connectionError ? (
+        <p className="error" role="alert">
+          {connectionError}
+        </p>
+      ) : null}
+      {isHost ? (
+        <button
+          className="primary-action"
+          disabled={!canStart}
+          onClick={startGame}
+          type="button"
+        >
+          <Play aria-hidden="true" /> Start game
+        </button>
+      ) : null}
       <button className="secondary-action" onClick={onLeave} type="button">
-        Opuść poczekalnię
+        Leave waiting room
       </button>
     </main>
   );
@@ -160,8 +213,7 @@ function readMessage(payload: unknown): string {
     payload !== null &&
     "message" in payload &&
     typeof payload.message === "string"
-  ) {
+  )
     return payload.message;
-  }
-  return "Nie udało się wykonać tej akcji.";
+  return "Unable to complete this action.";
 }
