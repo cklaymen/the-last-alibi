@@ -6,6 +6,8 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import {
+  chooseCharacterSchema,
+  setReadySchema,
   startRoomSchema,
   subscribeRoomSchema,
   type RoomSummary,
@@ -36,6 +38,41 @@ export class LobbyGateway {
     const room = this.roomsService.start(roomCode, playerName);
     this.publish(room);
     client.emit("room:started", room);
+  }
+
+  @SubscribeMessage("character:choose")
+  public chooseCharacter(client: Socket, payload: unknown): void {
+    try {
+      const { roomCode, playerName, characterId } =
+        chooseCharacterSchema.parse(payload);
+      const room = this.roomsService.chooseCharacter(
+        roomCode,
+        playerName,
+        characterId,
+      );
+      this.publish(room);
+    } catch (err) {
+      client.emit("room:error", {
+        message: err instanceof Error ? err.message : "Action failed.",
+      });
+    }
+  }
+
+  @SubscribeMessage("player:ready")
+  public setReady(client: Socket, payload: unknown): void {
+    try {
+      const { roomCode, playerName, isReady } = setReadySchema.parse(payload);
+      const room = this.roomsService.setPlayerReady(
+        roomCode,
+        playerName,
+        isReady,
+      );
+      this.publish(room);
+    } catch (err) {
+      client.emit("room:error", {
+        message: err instanceof Error ? err.message : "Action failed.",
+      });
+    }
   }
 
   public publish(room: RoomSummary): void {

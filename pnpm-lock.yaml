@@ -23,6 +23,9 @@ importers:
       '@mystery-game/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@mystery-game/game':
+        specifier: workspace:*
+        version: link:../../packages/game
       '@nestjs/common':
         specifier: ^11.1.0
         version: 11.1.28(reflect-metadata@0.2.2)(rxjs@7.8.2)

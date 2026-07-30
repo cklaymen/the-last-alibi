@@ -1,7 +1,12 @@
 import { DoorOpen, Play, Plus, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { RoomSummary } from "@mystery-game/contracts";
+import {
+  characterIds,
+  type CharacterId,
+  type RoomSummary,
+} from "@mystery-game/contracts";
+import { t } from "../i18n/index.js";
 
 const apiUrl = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -22,9 +27,7 @@ export function App() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(
-            action === "create"
-              ? { playerName }
-              : { playerName, roomCode: roomCode.toUpperCase() },
+            action === "create" ? { playerName } : { playerName, roomCode },
           ),
         },
       );
@@ -33,9 +36,7 @@ export function App() {
       setRoom(payload as RoomSummary);
     } catch (requestError) {
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : "Unable to connect to the server.",
+        requestError instanceof Error ? requestError.message : t("err_connect"),
       );
     } finally {
       setIsLoading(false);
@@ -54,21 +55,18 @@ export function App() {
   return (
     <main className="welcome-shell">
       <header className="brand">
-        <p className="eyebrow">A shared mystery</p>
-        <h1>The Last Alibi</h1>
-        <p className="lead">
-          Gather clues, eliminate suspects, and name the culprit before anyone
-          else.
-        </p>
+        <p className="eyebrow">{t("welcome_eyebrow")}</p>
+        <h1>{t("welcome_title")}</h1>
+        <p className="lead">{t("welcome_lead")}</p>
       </header>
       <section className="entry-panel" aria-label="Join a game">
-        <label htmlFor="player-name">Your nickname</label>
+        <label htmlFor="player-name">{t("your_nickname")}</label>
         <input
           id="player-name"
           autoComplete="nickname"
           maxLength={24}
           onChange={(event) => setPlayerName(event.target.value)}
-          placeholder="e.g. Alex"
+          placeholder={t("nickname_placeholder")}
           value={playerName}
         />
         <button
@@ -77,25 +75,28 @@ export function App() {
           onClick={() => void submit("create")}
           type="button"
         >
-          <Plus aria-hidden="true" /> Create room
+          <Plus aria-hidden="true" /> {t("create_room")}
         </button>
         <div className="join-divider">
-          <span>or</span>
+          <span>{t("or")}</span>
         </div>
-        <label htmlFor="room-code">Room code</label>
+        <label htmlFor="room-code">{t("room_code")}</label>
         <div className="join-row">
           <input
             id="room-code"
-            maxLength={7}
-            onChange={(event) => setRoomCode(event.target.value)}
-            placeholder="MYST-42"
+            inputMode="numeric"
+            maxLength={6}
+            onChange={(event) =>
+              setRoomCode(event.target.value.replace(/\D/g, ""))
+            }
+            placeholder={t("room_code_placeholder")}
             value={roomCode}
           />
           <button
-            aria-label="Join room"
+            aria-label={t("join_room")}
             className="icon-action"
             disabled={
-              playerName.trim().length < 2 || roomCode.length < 6 || isLoading
+              playerName.trim().length < 2 || roomCode.length < 4 || isLoading
             }
             onClick={() => void submit("join")}
             type="button"
@@ -125,9 +126,17 @@ function Lobby({
   const [currentRoom, setCurrentRoom] = useState(room);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
-  const isHost = currentRoom.hostName === playerName;
-  const canStart =
-    isHost && currentRoom.playerCount >= 2 && currentRoom.phase === "LOBBY";
+
+  const isHost =
+    currentRoom.players.find((p) => p.name === playerName)?.id ===
+    currentRoom.players.find((p) => p.name === currentRoom.hostName)?.id;
+  const myCharacter = currentRoom.players.find(
+    (p) => p.name === playerName,
+  )?.characterId;
+  const allHaveCharacters =
+    currentRoom.players.length >= 2 &&
+    currentRoom.players.every((p) => p.characterId != null);
+  const canStart = isHost && currentRoom.phase === "LOBBY" && allHaveCharacters;
 
   useEffect(() => {
     const socket = io(apiUrl);
@@ -139,9 +148,7 @@ function Lobby({
       setCurrentRoom(nextRoom);
       setConnectionError(null);
     });
-    socket.on("connect_error", () =>
-      setConnectionError("Live updates are unavailable. Reconnecting..."),
-    );
+    socket.on("connect_error", () => setConnectionError(t("err_live_updates")));
     return () => {
       socket.close();
     };
@@ -154,54 +161,115 @@ function Lobby({
     });
   }
 
+  function chooseCharacter(characterId: CharacterId) {
+    socketRef.current?.emit("character:choose", {
+      roomCode: currentRoom.code,
+      playerName,
+      characterId,
+    });
+  }
+
   return (
     <main className="lobby-shell">
       <header className="lobby-header">
-        <p className="eyebrow">Waiting room</p>
-        <h1>Room {currentRoom.code}</h1>
-        <p>
-          Share the code with your friends. The host can start with two or more
-          players.
-        </p>
+        <p className="eyebrow">{t("waiting_room")}</p>
+        <h1>
+          {t("room_heading")} {currentRoom.code}
+        </h1>
+        <p>{t("share_code_hint")}</p>
       </header>
+
       <section className="room-status" aria-label="Players in this room">
         <Users aria-hidden="true" />
         <div>
           <strong>
             {currentRoom.playerCount} / {currentRoom.maxPlayers}
           </strong>
-          <span> players in room</span>
+          <span> {t("players_in_room")}</span>
         </div>
       </section>
-      <section className="player-card">
-        <img alt="Detective portrait" src="/miss_scarlett.jpg" />
-        <div>
-          <p>You</p>
-          <h2>{playerName}</h2>
-          <span>
-            {currentRoom.phase === "IN_PROGRESS"
-              ? "Game started"
-              : "Waiting for the host"}
-          </span>
-        </div>
+
+      {currentRoom.phase === "LOBBY" ? (
+        <section
+          className="character-selection"
+          aria-label={t("choose_character")}
+        >
+          <p className="section-label">{t("choose_character")}</p>
+          <div className="character-grid">
+            {characterIds.map((id) => {
+              const takenBy = currentRoom.players.find(
+                (p) => p.characterId === id,
+              );
+              const isMine = myCharacter === id;
+              const isTakenByOther =
+                takenBy !== undefined && takenBy.name !== playerName;
+              return (
+                <button
+                  key={id}
+                  className={`character-card char-${id}${
+                    isMine ? " selected" : ""
+                  }${isTakenByOther ? " taken" : ""}`}
+                  disabled={isTakenByOther}
+                  onClick={() => chooseCharacter(id)}
+                  type="button"
+                  aria-pressed={isMine}
+                >
+                  <span className="char-name">{t(`character_${id}`)}</span>
+                  {isTakenByOther && takenBy ? (
+                    <span className="char-taken-by">{takenBy.name}</span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="players-list" aria-label="Players">
+        {currentRoom.players.map((player) => (
+          <div key={player.id} className="player-row">
+            <span className="player-row-name">
+              {player.name}
+              {player.name === playerName ? (
+                <span className="you-badge">{t("you_label")}</span>
+              ) : null}
+            </span>
+            <span
+              className={`player-row-char${
+                player.characterId ? ` char-${player.characterId}` : ""
+              }`}
+            >
+              {player.characterId
+                ? t(`character_${player.characterId}`)
+                : t("no_character")}
+            </span>
+          </div>
+        ))}
       </section>
+
+      {currentRoom.phase === "IN_PROGRESS" ? (
+        <p className="phase-banner">{t("game_in_progress")}</p>
+      ) : null}
+
       {connectionError ? (
         <p className="error" role="alert">
           {connectionError}
         </p>
       ) : null}
-      {isHost ? (
+
+      {isHost && currentRoom.phase === "LOBBY" ? (
         <button
           className="primary-action"
           disabled={!canStart}
           onClick={startGame}
           type="button"
         >
-          <Play aria-hidden="true" /> Start game
+          <Play aria-hidden="true" /> {t("start_game")}
         </button>
       ) : null}
+
       <button className="secondary-action" onClick={onLeave} type="button">
-        Leave waiting room
+        {t("leave_waiting_room")}
       </button>
     </main>
   );
@@ -215,5 +283,5 @@ function readMessage(payload: unknown): string {
     typeof payload.message === "string"
   )
     return payload.message;
-  return "Unable to complete this action.";
+  return t("err_action");
 }
