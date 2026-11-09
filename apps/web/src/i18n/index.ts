@@ -14,6 +14,7 @@ const en = {
   waiting_for_host: "Waiting for host",
   game_in_progress: "Game in progress",
   enter: "Enter",
+  players_label: "Players",
   choose_character: "Select character",
   character_scarlet: "Miss Scarlett",
   character_mustard: "Col. Mustard",

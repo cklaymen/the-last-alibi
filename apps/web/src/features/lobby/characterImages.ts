@@ -9,3 +9,6 @@ export const characterTiles: { id: CharacterId; image: string }[] = [
   { id: "scarlet", image: "/miss_scarlett.jpg" },
   { id: "orchid", image: "/dr_orchid.jpg" },
 ];
+
+export const characterImage = (id: CharacterId): string =>
+  characterTiles.find((tile) => tile.id === id)!.image;

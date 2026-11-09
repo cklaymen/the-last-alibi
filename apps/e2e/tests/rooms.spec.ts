@@ -33,11 +33,19 @@ test("two players can create and join the same private room", async ({
 
   const { page: secondPage, context } = await joinRoom(browser, "Jan", code);
 
+  // Both players are listed; nobody has an avatar yet
+  const list = page.getByRole("region", { name: "Players" });
+  await expect(list.getByText("Ada")).toBeVisible();
+  await expect(list.getByText("Jan")).toBeVisible();
+  await expect(list.getByRole("img")).toHaveCount(0);
+
   // Enter stays disabled until both players choose a character
   await page.getByRole("button", { name: "Miss Scarlett" }).click();
   await expect(page.getByRole("button", { name: "Enter" })).toBeDisabled();
 
   await secondPage.getByRole("button", { name: "Col. Mustard" }).click();
+  await expect(list.getByRole("img", { name: "Miss Scarlett" })).toBeVisible();
+  await expect(list.getByRole("img", { name: "Col. Mustard" })).toBeVisible();
 
   // Now the host (Ada) can start
   await expect(page.getByRole("button", { name: "Enter" })).toBeEnabled();

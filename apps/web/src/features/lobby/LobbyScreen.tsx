@@ -5,6 +5,7 @@ import { Logo } from "../../shared/ui/Logo.js";
 import { ScreenLayout } from "../../shared/ui/ScreenLayout.js";
 import { t } from "../../i18n/index.js";
 import { CharacterPicker } from "./CharacterPicker.js";
+import { PlayerList } from "./PlayerList.js";
 import { useRoomSocket } from "./useRoomSocket.js";
 
 type Props = { room: RoomSummary; playerName: string };
@@ -50,6 +51,7 @@ export function LobbyScreen({ room: initialRoom, playerName }: Props) {
     >
       {isLobby ? (
         <>
+          <PlayerList players={room.players} playerName={playerName} />
           <CharacterPicker
             players={room.players}
             playerName={playerName}
