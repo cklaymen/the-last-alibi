@@ -36,6 +36,8 @@ const en = {
   no_character: "No character",
   err_connect: "Unable to connect to the server.",
   err_action: "Unable to complete this action.",
+  join_game_label: "Join a game",
+  players_label: "Players",
   err_live_updates: "Live updates are unavailable. Reconnecting…",
 } as const;
 

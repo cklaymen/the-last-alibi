@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "DM Mono", monospace;
+  --font-serif: "Fraunces", serif;
+  --color-brand: #84bc87;
+  --color-brand-hover: #9bd79d;
+  --color-brand-dark: #38643d;
+  --color-brand-soft: #eaf5ea;
+  --color-accent: #66946a;
+  --color-ink: #1d3024;
+  --color-muted: #69766d;
+  --color-line: #dfe7df;
+  --color-field: #aec9af;
+  --color-danger: #a23737;
+}
+
+@layer base {
+  body { @apply m-0 min-w-80 bg-white font-sans text-ink; }
+  button, input { font: inherit; }
+  button { @apply cursor-pointer; }
+  button:focus-visible, input:focus-visible { @apply outline-[3px] outline-offset-3 outline-[#e0a13a]; }
+  h1, h2 { @apply font-serif; }
+}
