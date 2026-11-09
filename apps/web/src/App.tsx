@@ -9,13 +9,7 @@ export function App() {
   const [session, setSession] = useState<Session | null>(null);
 
   if (session)
-    return (
-      <LobbyScreen
-        room={session.room}
-        playerName={session.playerName}
-        onLeave={() => setSession(null)}
-      />
-    );
+    return <LobbyScreen room={session.room} playerName={session.playerName} />;
 
   return (
     <JoinScreen

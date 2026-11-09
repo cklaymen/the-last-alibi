@@ -1,73 +1,64 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "@playwright/test";
+
+async function createRoom(page: Page, nickname: string): Promise<string> {
+  await page.goto("/");
+  await page.getByLabel("Your nickname").fill(nickname);
+  await page.getByRole("button", { name: "Create room" }).click();
+  const label = page.getByText(/room: \d{6}/);
+  await expect(label).toBeVisible();
+  const code = (await label.textContent())?.replace("room:", "").trim();
+  expect(code).toMatch(/^\d{6}$/);
+  return code ?? "";
+}
+
+async function joinRoom(browser: Browser, nickname: string, code: string) {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await page.goto("/");
+  await page.getByLabel("Your nickname").fill(nickname);
+  await page.getByRole("button", { name: "Join room" }).click();
+  await page.getByLabel("Room code").fill(code);
+  await page.getByRole("button", { name: "Join room" }).click();
+  await expect(page.getByText(`room: ${code}`)).toBeVisible();
+  return { page, context };
+}
 
 test("two players can create and join the same private room", async ({
   browser,
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("Your nickname").fill("Ada");
-  await page.getByRole("button", { name: "Create room" }).click();
+  const code = await createRoom(page, "Ada");
+  const start = page.getByRole("button", { name: /Select character|Enter/ });
+  await expect(start).toBeDisabled();
 
-  const heading = page.getByRole("heading", { level: 1 });
-  await expect(heading).toHaveText(/Room \d{6}/);
-  const headingText = await heading.textContent();
-  const roomCode = headingText?.replace("Room ", "").trim();
-  expect(roomCode).toMatch(/^\d{6}$/);
-  await expect(page.getByRole("button", { name: "Start game" })).toBeDisabled();
+  const { page: secondPage, context } = await joinRoom(browser, "Jan", code);
 
-  const secondContext = await browser.newContext();
-  const secondPage = await secondContext.newPage();
-  await secondPage.goto("/");
-  await secondPage.getByLabel("Your nickname").fill("Jan");
-  await secondPage.getByLabel("Room code").fill(roomCode ?? "");
-  await secondPage.getByRole("button", { name: "Join room" }).click();
-
-  await expect(page.getByText("2 / 6", { exact: false })).toBeVisible();
-  await expect(secondPage.getByText("2 / 6", { exact: false })).toBeVisible();
-
-  // Start button stays disabled until both players choose a character
-  await expect(page.getByRole("button", { name: "Start game" })).toBeDisabled();
-
-  // Ada chooses Miss Scarlett
+  // Enter stays disabled until both players choose a character
   await page.getByRole("button", { name: "Miss Scarlett" }).click();
-  await expect(page.getByRole("button", { name: "Start game" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Enter" })).toBeDisabled();
 
-  // Jan chooses Col. Mustard
   await secondPage.getByRole("button", { name: "Col. Mustard" }).click();
 
   // Now the host (Ada) can start
-  await expect(page.getByRole("button", { name: "Start game" })).toBeEnabled();
-  await page.getByRole("button", { name: "Start game" }).click();
+  await expect(page.getByRole("button", { name: "Enter" })).toBeEnabled();
+  await page.getByRole("button", { name: "Enter" }).click();
   await expect(page.getByText("Game in progress")).toBeVisible();
   await expect(secondPage.getByText("Game in progress")).toBeVisible();
-  await secondContext.close();
+  await context.close();
 });
 
 test("a taken character cannot be chosen by another player", async ({
   browser,
   page,
 }) => {
-  await page.goto("/");
-  await page.getByLabel("Your nickname").fill("Ada");
-  await page.getByRole("button", { name: "Create room" }).click();
+  const code = await createRoom(page, "Ada");
+  const { page: secondPage, context } = await joinRoom(browser, "Jan", code);
 
-  const heading = page.getByRole("heading", { level: 1 });
-  await expect(heading).toHaveText(/Room \d{6}/);
-  const headingText = await heading.textContent();
-  const roomCode = headingText?.replace("Room ", "").trim();
-
-  const secondContext = await browser.newContext();
-  const secondPage = await secondContext.newPage();
-  await secondPage.goto("/");
-  await secondPage.getByLabel("Your nickname").fill("Jan");
-  await secondPage.getByLabel("Room code").fill(roomCode ?? "");
-  await secondPage.getByRole("button", { name: "Join room" }).click();
-
-  // Ada picks Scarlett — Jan's Scarlett button should become disabled
+  // Ada picks Scarlett — Jan's Scarlett tile should become disabled
   await page.getByRole("button", { name: "Miss Scarlett" }).click();
   await expect(
     secondPage.getByRole("button", { name: "Miss Scarlett" }),
   ).toBeDisabled();
 
-  await secondContext.close();
+  await context.close();
 });

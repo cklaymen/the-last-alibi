@@ -1,21 +1,18 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "icon";
+type Variant = "primary" | "icon";
 
 const base =
-  "inline-flex min-h-12 items-center justify-center font-medium disabled:cursor-not-allowed disabled:bg-[#e2e2e2] disabled:text-white";
+  "flex h-22.25 items-center justify-center rounded bg-brand text-white disabled:cursor-not-allowed disabled:bg-disabled";
 
 const variants: Record<Variant, string> = {
-  primary:
-    "mt-5 w-full gap-2 rounded-[10px] bg-brand px-4.5 tracking-[.08em] text-white transition-colors enabled:hover:bg-brand-hover",
-  secondary:
-    "w-fit rounded-lg border border-accent bg-transparent px-4.5 text-brand-dark",
-  icon: "rounded-lg bg-brand text-white",
+  primary: "w-full text-2xl font-bold tracking-[3.6px]",
+  icon: "w-21.75 shrink-0 rounded-none focus-visible:-outline-offset-6 focus-visible:outline-white",
 };
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant: Variant };
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant };
 
-export function Button({ variant, className = "", ...props }: Props) {
+export function Button({ variant = "primary", className = "", ...props }: Props) {
   return (
     <button
       type="button"
