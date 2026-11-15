@@ -1,30 +1,25 @@
-import type { RoomSummary } from "@mystery-game/contracts";
-import { Logo } from "../../shared/ui/Logo.js";
+import { useT } from "../../shared/i18n/index.js";
 import { ScreenLayout } from "../../shared/ui/ScreenLayout.js";
+import { roomsApi } from "../session/index.js";
+import { joinMessages } from "./i18n.js";
 import { JoinForm } from "./JoinForm.js";
-import { createRoom, joinRoom } from "./roomsApi.js";
 import { useJoinRoom } from "./useJoinRoom.js";
 
-type Props = { onJoined: (room: RoomSummary, playerName: string) => void };
-
-export function JoinScreen({ onJoined }: Props) {
-  const { error, isLoading, submit } = useJoinRoom();
-
-  async function run(
-    playerName: string,
-    request: () => Promise<RoomSummary>,
-  ) {
-    const room = await submit(request);
-    if (room) onJoined(room, playerName);
-  }
+export function JoinScreen() {
+  const t = useT(joinMessages);
+  const { errorCode, isLoading, submit } = useJoinRoom();
 
   return (
-    <ScreenLayout header={<Logo />}>
+    <ScreenLayout
+      header={
+        <p className="m-0 text-center text-2xl text-brand-strong">{t("tagline")}</p>
+      }
+    >
       <JoinForm
         isLoading={isLoading}
-        error={error}
-        onCreate={(name) => void run(name, () => createRoom(name))}
-        onJoin={(name, code) => void run(name, () => joinRoom(name, code))}
+        errorCode={errorCode}
+        onCreate={(name) => void submit(() => roomsApi.create(name))}
+        onJoin={(name, code) => void submit(() => roomsApi.join(name, code))}
       />
     </ScreenLayout>
   );

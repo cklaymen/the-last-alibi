@@ -5,7 +5,8 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   bare?: boolean;
 };
 
-const base = "h-22.25 w-full bg-white px-5 text-2xl font-bold text-brand placeholder:text-brand/20";
+const base =
+  "h-22.25 w-full bg-surface px-5 text-2xl font-bold text-brand-strong placeholder:text-muted/50";
 const boxed = "rounded border border-line transition-colors focus:border-brand";
 
 export function TextField({ bare = false, className = "", ...props }: Props) {

@@ -12,11 +12,18 @@ export default defineConfig({
       name: "mobile-chromium",
       use: { ...devices["iPhone 13"], browserName: "chromium" },
     },
+    {
+      name: "desktop-chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
   webServer: [
     {
       command: "pnpm --filter @mystery-game/api dev",
-      env: { PORT: "3100", WEB_ORIGIN: "http://127.0.0.1:5174" },
+      env: { PORT: "3100", WEB_ORIGIN: "http://127.0.0.1:5174", ENABLE_TEST_API: "1" },
       port: 3100,
       reuseExistingServer: false,
     },

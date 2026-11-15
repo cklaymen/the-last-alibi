@@ -1,27 +1,24 @@
 import { useState } from "react";
-import type { RoomSummary } from "@mystery-game/contracts";
-import { t } from "../../i18n/index.js";
+import type { RoomSessionResponse } from "@mystery-game/contracts";
+import { ApiError, useSession } from "../session/index.js";
 
+/** Runs a create/join request; on success begins the session, otherwise keeps the error code. */
 export function useJoinRoom() {
-  const [error, setError] = useState<string | null>(null);
+  const { begin } = useSession();
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function submit(
-    request: () => Promise<RoomSummary>,
-  ): Promise<RoomSummary | null> {
-    setError(null);
+  async function submit(request: () => Promise<RoomSessionResponse>) {
+    setErrorCode(null);
     setIsLoading(true);
     try {
-      return await request();
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error ? requestError.message : t("err_connect"),
-      );
-      return null;
+      begin(await request());
+    } catch (error) {
+      setErrorCode(error instanceof ApiError ? error.code : "connect");
     } finally {
       setIsLoading(false);
     }
   }
 
-  return { error, isLoading, submit };
+  return { errorCode, isLoading, submit };
 }

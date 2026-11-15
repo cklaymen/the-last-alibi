@@ -1,29 +1,23 @@
-import type { RoomSummary } from "@mystery-game/contracts";
-import { t } from "../../i18n/index.js";
-import { characterImage } from "./characterImages.js";
+import type { PlayerSummary } from "@mystery-game/contracts";
+import { useT } from "../../shared/i18n/index.js";
+import { CharacterAvatar } from "../cards/index.js";
+import { lobbyMessages } from "./i18n.js";
 
-type Props = { player: RoomSummary["players"][number]; isMe: boolean };
+type Props = { player: PlayerSummary; isMe: boolean; isHost: boolean };
 
 /** Nick with a round avatar; an empty ring means no character chosen yet. */
-export function PlayerRow({ player, isMe }: Props) {
-  const { characterId } = player;
+export function PlayerRow({ player, isMe, isHost }: Props) {
+  const t = useT(lobbyMessages);
   return (
     <li className="flex min-w-0 items-center gap-2 text-lg">
-      {characterId ? (
-        <img
-          src={characterImage(characterId)}
-          alt={t(`character_${characterId}`)}
-          className="size-7 shrink-0 rounded-full object-cover object-[50%_12.5%]"
-        />
+      {player.characterId ? (
+        <CharacterAvatar id={player.characterId} />
       ) : (
-        <span
-          className="size-7 shrink-0 rounded-full border border-line"
-          aria-hidden="true"
-        />
+        <span className="size-7 shrink-0 rounded-full border border-line" aria-hidden="true" />
       )}
-      <span className={`truncate ${isMe ? "font-bold" : ""}`}>
-        {player.name}
-      </span>
+      <span className={`truncate ${isMe ? "font-bold" : ""}`}>{player.name}</span>
+      {isMe ? <span className="text-sm text-muted">{t("you")}</span> : null}
+      {isHost ? <span className="text-sm text-brand-strong">{t("host")}</span> : null}
     </li>
   );
 }

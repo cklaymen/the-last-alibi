@@ -1,41 +1,40 @@
 import type { CharacterId } from "@mystery-game/contracts";
-import check from "../../shared/assets/check.svg";
-import { t } from "../../i18n/index.js";
+import { Check } from "lucide-react";
+import { useT } from "../../shared/i18n/index.js";
+import { CharacterAvatar, cardMessages } from "../cards/index.js";
 
 type Props = {
   id: CharacterId;
-  image: string;
   isMine: boolean;
   isTaken: boolean;
   onChoose: (id: CharacterId) => void;
 };
 
-export function CharacterCard({ id, image, isMine, isTaken, onChoose }: Props) {
+/** Button named by the character; pressed when mine, disabled when taken by someone else. */
+export function CharacterCard({ id, isMine, isTaken, onChoose }: Props) {
+  const t = useT(cardMessages);
   return (
     <button
       type="button"
-      aria-label={t(`character_${id}`)}
+      aria-label={t(id)}
       aria-pressed={isMine}
       disabled={isTaken}
       onClick={() => onChoose(id)}
-      className={`relative h-36.5 w-22 shrink-0 rounded border border-white p-0 ${
-        isTaken ? "cursor-not-allowed opacity-50" : ""
-      }`}
+      className={`relative flex min-h-28 flex-col items-center justify-center gap-2 rounded border p-2 text-center text-sm ${
+        isMine
+          ? "border-brand bg-brand/20 text-fg"
+          : "border-line bg-surface text-fg hover:border-brand"
+      } ${isTaken ? "cursor-not-allowed opacity-40" : ""}`}
     >
-      <img
-        src={image}
-        alt=""
-        className="absolute inset-[-1px] size-[calc(100%+2px)] rounded object-cover"
-      />
+      <span aria-hidden="true">
+        <CharacterAvatar id={id} size={44} />
+      </span>
+      <span className="leading-tight">{t(id)}</span>
       {isMine ? (
-        <>
-          <span className="absolute inset-[-1px] rounded bg-brand/50" />
-          <img
-            src={check}
-            alt=""
-            className="absolute top-11.25 left-4 size-13.5 max-w-none"
-          />
-        </>
+        <Check
+          aria-hidden="true"
+          className="absolute top-1 right-1 size-5 rounded-full bg-brand p-0.5 text-on-brand"
+        />
       ) : null}
     </button>
   );

@@ -1,11 +1,26 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#173f3d" />
     <link rel="icon" href="data:," />
     <title>The Last Alibi</title>
+    <script>
+      // Apply the theme before first paint (keep in sync with src/features/theme/theme.ts).
+      (function () {
+        var pref = "system";
+        try {
+          var stored = localStorage.getItem("theme");
+          if (stored === "light" || stored === "dark") pref = stored;
+        } catch (e) {}
+        var dark =
+          pref === "dark" ||
+          (pref === "system" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

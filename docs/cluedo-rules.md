@@ -85,3 +85,18 @@ Online-specific rules
 - The host sets a turn time limit in the lobby (none / 60 / 90 / 120 / 180 s, default 120 s). When it runs out, the turn ends automatically. A disprover has 30 s; after that the server shows one of their matching cards at random.
 - A disconnected player keeps their seat. If it is their turn or they must disprove, they get a 60 s grace period, after which their turn is skipped or a matching card is shown automatically.
 - After the game the host can restart the room: everybody returns to the lobby with the same players and characters.
+
+## Character mapping (in-game identity)
+
+The app uses neutral, colour-based ids; display names live only in `apps/web/src/features/cards/i18n.ts` and artwork in `cardArt.ts`.
+
+| id | Classic equivalent | EN name | PL name |
+|---|---|---|---|
+| `red` | Miss Scarlett | Ms. Red | Pani Czerwona |
+| `yellow` | Colonel Mustard | Col. Yellow | Pułkownik Żółty |
+| `white` | Mrs. White / Dr. Orchid | Mrs. White | Pani Biała |
+| `green` | Reverend Green | Mr. Green | Pan Zielony |
+| `blue` | Mrs. Peacock | Mrs. Blue | Pani Niebieska |
+| `purple` | Professor Plum | Prof. Purple | Profesor Fioletowy |
+
+Weapons: `candlestick`, `dagger`, `lead_pipe`, `revolver`, `rope`, `wrench`. Seat/turn order: red, yellow, white, green, blue, purple (`SEAT_ORDER`).

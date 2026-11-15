@@ -1,0 +1,38 @@
+import { defineMessages } from "../../shared/i18n/index.js";
+
+export const eventLogMessages = defineMessages({
+  en: {
+    region: "Event log",
+    empty: "Nothing has happened yet.",
+    game_started: "The game has started. {name} goes first.",
+    rolled: "{name} rolled {sum} ({a} + {b}).",
+    moved_room: "{name} entered the {room}.",
+    moved_cell: "{name} moved.",
+    passage_used: "{name} took the secret passage from the {from} to the {to}.",
+    suggested: "{name} suggests {suspect} with the {weapon} in the {room}.",
+    cannot_disprove: "{name} cannot disprove.",
+    card_shown: "{name} showed a card to {name2}.",
+    no_one_disproved: "Nobody could disprove.",
+    accused_correct: "{name} accuses {suspect} with the {weapon} in the {room} – correct!",
+    accused_wrong: "{name} accuses {suspect} with the {weapon} in the {room} – wrong. {name} is out.",
+    turn_ended: "{name} ended the turn.",
+    game_won: "{name} wins!",
+  },
+  pl: {
+    region: "Dziennik zdarzeń",
+    empty: "Jeszcze nic się nie wydarzyło.",
+    game_started: "Gra się rozpoczęła. Zaczyna {name}.",
+    rolled: "{name} wyrzuca {sum} ({a} + {b}).",
+    moved_room: "{name} wchodzi do pokoju: {room}.",
+    moved_cell: "{name} wykonuje ruch.",
+    passage_used: "{name} przechodzi tajnym przejściem z pokoju {from} do pokoju {to}.",
+    suggested: "{name} podejrzewa: {suspect}, narzędzie: {weapon}, miejsce: {room}.",
+    cannot_disprove: "{name} nie może obalić podejrzenia.",
+    card_shown: "{name} pokazuje kartę graczowi {name2}.",
+    no_one_disproved: "Nikt nie obalił podejrzenia.",
+    accused_correct: "{name} oskarża: {suspect}, narzędzie: {weapon}, miejsce: {room} – trafnie!",
+    accused_wrong: "{name} oskarża: {suspect}, narzędzie: {weapon}, miejsce: {room} – błędnie. {name} odpada z gry.",
+    turn_ended: "{name} kończy turę.",
+    game_won: "{name} wygrywa!",
+  },
+});

@@ -1,207 +1,191 @@
 import { describe, expect, it } from "vitest";
 import {
-  BOARD,
+  CELLS,
+  CENTER_RECT,
   COLS,
-  ROOM_DOORS,
+  DOORS,
+  ROOM_RECTS,
   ROWS,
-  reachableCells,
-  roomAt,
-} from "../src/board.js";
+  SEAT_ORDER,
+  SECRET_PASSAGES,
+  START_POSITIONS,
+  characterIds,
+  isCorridor,
+  roomIds,
+  type CharacterId,
+  type Location,
+  type RoomId,
+} from "../src/index.js";
+import { reachableLocations } from "../src/movement/index.js";
 
-// ── roomAt ─────────────────────────────────────────────────────────────────
+/** Every other pawn parked in a room so the mover has a free board. */
+function soloPawns(mover: CharacterId, at: Location): Record<CharacterId, Location> {
+  return Object.fromEntries(
+    characterIds.map((c) => [c, c === mover ? at : { kind: "room", roomId: "hall" }]),
+  ) as Record<CharacterId, Location>;
+}
 
-describe("roomAt", () => {
-  it("returns null for a corridor cell", () => {
-    // Row 7 is entirely corridor
-    expect(roomAt({ row: 7, col: 7 }, BOARD)).toBeNull();
+function ascii(): string {
+  const doorAt = new Map(DOORS.map((d) => [`${d.inside.row},${d.inside.col}`, d]));
+  const startAt = new Map(
+    Object.entries(START_POSITIONS).map(([c, p]) => [`${p.row},${p.col}`, c]),
+  );
+  const letter: Record<RoomId, string> = {
+    kitchen: "K",
+    ballroom: "B",
+    conservatory: "C",
+    dining_room: "D",
+    billiard_room: "I",
+    library: "L",
+    lounge: "O",
+    hall: "H",
+    study: "S",
+  };
+  return CELLS.map((row, r) =>
+    row
+      .map((cell, c) => {
+        const k = `${r},${c}`;
+        if (startAt.has(k)) return (startAt.get(k) as string).charAt(0).toUpperCase();
+        if (doorAt.has(k)) return "#";
+        if (cell.kind === "void") return "X";
+        if (cell.kind === "room") return letter[cell.roomId as RoomId].toLowerCase();
+        return ".";
+      })
+      .join(""),
+  ).join("\n");
+}
+
+describe("board layout", () => {
+  it("has 25 rows of 24 cells", () => {
+    expect(CELLS).toHaveLength(ROWS);
+    for (const row of CELLS) expect(row).toHaveLength(COLS);
   });
 
-  it("returns the room for an interior room cell", () => {
-    // Kitchen interior: rows 1-6, cols 0-5
-    expect(roomAt({ row: 3, col: 2 }, BOARD)).toBe("kitchen");
-  });
-
-  it("returns the room for a door cell", () => {
-    // Kitchen door at (6,4)
-    expect(roomAt({ row: 6, col: 4 }, BOARD)).toBe("kitchen");
-  });
-
-  it("returns null for start cells", () => {
-    // Scarlet start at (24,7)
-    expect(roomAt({ row: 24, col: 7 }, BOARD)).toBeNull();
-  });
-
-  it("returns null for out-of-bounds positions", () => {
-    expect(roomAt({ row: -1, col: 0 }, BOARD)).toBeNull();
-    expect(roomAt({ row: ROWS, col: 0 }, BOARD)).toBeNull();
-    expect(roomAt({ row: 0, col: COLS }, BOARD)).toBeNull();
-  });
-});
-
-// ── reachableCells – corridor movement ────────────────────────────────────
-
-describe("reachableCells – corridor", () => {
-  it("returns empty when steps is 0", () => {
-    expect(reachableCells({ row: 7, col: 7 }, 0, BOARD, [])).toEqual([]);
-  });
-
-  it("returns only orthogonal corridor neighbours for 1 step", () => {
-    // (7,7): left=(7,6), right=(7,8), up=(6,7), down=(8,7) — all corridor
-    const result = reachableCells({ row: 7, col: 7 }, 1, BOARD, []);
-    const keys = result.map((p) => `${p.row},${p.col}`).sort();
-    expect(keys).toEqual(["6,7", "7,6", "7,8", "8,7"]);
-  });
-
-  it("cannot reach cells beyond the step budget", () => {
-    const result = reachableCells({ row: 7, col: 7 }, 1, BOARD, []);
-    // (7,5) is 2 steps away
-    expect(result).not.toContainEqual({ row: 7, col: 5 });
-  });
-
-  it("includes all cells within budget", () => {
-    const result = reachableCells({ row: 7, col: 7 }, 2, BOARD, []);
-    expect(result).toContainEqual({ row: 7, col: 5 });
-    expect(result).toContainEqual({ row: 5, col: 7 });
-  });
-
-  it("respects board boundaries (top-left corner)", () => {
-    // (0,0): only right=(0,1) and down=(1,0) but (1,0) is Kitchen interior (not door)
-    const result = reachableCells({ row: 0, col: 0 }, 1, BOARD, []);
-    expect(result).toContainEqual({ row: 0, col: 1 });
-    expect(result).not.toContainEqual({ row: 1, col: 0 }); // room cell, no door
-  });
-
-  it("blocks occupied corridor cells", () => {
-    // Occupy (7,8); from (7,7) step 1 can no longer reach (7,8)
-    const result = reachableCells({ row: 7, col: 7 }, 1, BOARD, [
-      { row: 7, col: 8 },
-    ]);
-    expect(result).not.toContainEqual({ row: 7, col: 8 });
-  });
-
-  it("does not block movement through rooms (rooms allow multi-occupancy)", () => {
-    // Occupying a door cell does not prevent entering; rooms are free
-    // Place a character at Kitchen door (6,4); another approaches from (7,4)
-    const result = reachableCells(
-      { row: 7, col: 4 },
-      1,
-      BOARD,
-      [{ row: 6, col: 4 }], // occupied door cell
-    );
-    // Door cells are room-type — occupiedCells filter only applies to corridors
-    expect(result).toContainEqual({ row: 6, col: 4 });
-  });
-});
-
-// ── reachableCells – door entry ────────────────────────────────────────────
-
-describe("reachableCells – door entry", () => {
-  it("can enter a room by stepping onto a door cell", () => {
-    // Kitchen door (6,4) is 1 step from corridor (7,4)
-    const result = reachableCells({ row: 7, col: 4 }, 1, BOARD, []);
-    expect(result).toContainEqual({ row: 6, col: 4 });
-  });
-
-  it("cannot enter a room through a non-door boundary cell", () => {
-    // (0,0) is adjacent to (1,0) which is a plain Kitchen room cell
-    const result = reachableCells({ row: 0, col: 0 }, 1, BOARD, []);
-    expect(result).not.toContainEqual({ row: 1, col: 0 });
-  });
-
-  it("entering a room stops further movement (door cell not used as stepping stone)", () => {
-    // 3 steps from (7,4): can reach (6,4) in 1 step, but NOT (5,4) via the room
-    const result = reachableCells({ row: 7, col: 4 }, 3, BOARD, []);
-    const keys = new Set(result.map((p) => `${p.row},${p.col}`));
-    expect(keys.has("6,4")).toBe(true); // door reachable
-    expect(keys.has("5,4")).toBe(false); // interior room not reachable through door
-  });
-});
-
-// ── reachableCells – room exit ─────────────────────────────────────────────
-
-describe("reachableCells – exiting a room", () => {
-  it("exits to the adjacent corridor of a door cell in 1 step", () => {
-    // Start at Kitchen door (6,4); adjacent corridor is (7,4)
-    const result = reachableCells({ row: 6, col: 4 }, 1, BOARD, []);
-    expect(result).toContainEqual({ row: 7, col: 4 });
-  });
-
-  it("uses all door exits of the starting room", () => {
-    // Kitchen has 2 doors: (6,4)→(7,4) and (3,5)→(3,6)
-    // With 1 step both adjacent corridors should be reachable
-    const result = reachableCells({ row: 6, col: 4 }, 1, BOARD, []);
-    const keys = new Set(result.map((p) => `${p.row},${p.col}`));
-    expect(keys.has("7,4")).toBe(true); // door (6,4) exit
-    expect(keys.has("3,6")).toBe(true); // door (3,5) exit
-  });
-
-  it("does not re-enter the starting room from exit corridor", () => {
-    const result = reachableCells({ row: 6, col: 4 }, 2, BOARD, []);
-    const keys = new Set(result.map((p) => `${p.row},${p.col}`));
-    // (6,4) is the starting door — should not appear as destination
-    expect(keys.has("6,4")).toBe(false);
-    // (3,5) is the other kitchen door — also blocked
-    expect(keys.has("3,5")).toBe(false);
-  });
-
-  it("continues moving through corridors after exiting", () => {
-    // 2 steps from kitchen door (6,4): exit to (7,4) then continue
-    const result = reachableCells({ row: 6, col: 4 }, 2, BOARD, []);
-    const keys = new Set(result.map((p) => `${p.row},${p.col}`));
-    expect(keys.has("7,4")).toBe(true);
-    expect(keys.has("8,4")).toBe(true); // 1 step beyond (7,4)
-  });
-
-  it("also exits kitchen through second door (3,5) in multi-step move", () => {
-    const result = reachableCells({ row: 3, col: 5 }, 2, BOARD, []);
-    const keys = new Set(result.map((p) => `${p.row},${p.col}`));
-    // (3,6) is 1 step away; (3,7) is 2 steps away
-    expect(keys.has("3,6")).toBe(true);
-    expect(keys.has("3,7")).toBe(true);
-  });
-});
-
-// ── ROOM_DOORS ─────────────────────────────────────────────────────────────
-
-describe("ROOM_DOORS", () => {
-  it("every room has at least one door", () => {
-    const ids: string[] = [
-      "kitchen",
-      "ballroom",
-      "conservatory",
-      "billiard_room",
-      "library",
-      "study",
-      "hall",
-      "lounge",
-      "dining_room",
-    ];
-    for (const id of ids) {
-      const doors = ROOM_DOORS[id as keyof typeof ROOM_DOORS];
-      expect(doors.length, `${id} should have ≥1 door`).toBeGreaterThan(0);
-    }
-  });
-
-  it("each door cell is adjacent to at least one corridor/start cell", () => {
-    for (const doors of Object.values(ROOM_DOORS)) {
-      for (const { row, col } of doors) {
-        const neighbours = [
-          { row: row - 1, col },
-          { row: row + 1, col },
-          { row, col: col - 1 },
-          { row, col: col + 1 },
-        ].filter(
-          ({ row: r, col: c }) => r >= 0 && r < ROWS && c >= 0 && c < COLS,
-        );
-        const hasCorridorNeighbour = neighbours.some(({ row: r, col: c }) => {
-          const t = BOARD[r]?.[c]?.type;
-          return t === "corridor" || t === "start";
-        });
-        expect(
-          hasCorridorNeighbour,
-          `door at (${row},${col}) must face a corridor`,
-        ).toBe(true);
+  it("centre is void and not walkable", () => {
+    for (let r = CENTER_RECT.top; r <= CENTER_RECT.bottom; r++)
+      for (let c = CENTER_RECT.left; c <= CENTER_RECT.right; c++) {
+        expect(CELLS[r]?.[c]?.kind).toBe("void");
+        expect(isCorridor({ row: r, col: c })).toBe(false);
       }
+  });
+
+  it("isCorridor is false outside the board", () => {
+    expect(isCorridor({ row: -1, col: 0 })).toBe(false);
+    expect(isCorridor({ row: 0, col: COLS })).toBe(false);
+    expect(isCorridor({ row: ROWS, col: 0 })).toBe(false);
+  });
+
+  it("every room has at least one door", () => {
+    for (const r of roomIds) expect(DOORS.some((d) => d.roomId === r)).toBe(true);
+  });
+
+  it.each(DOORS.map((d) => [d.roomId, d.inside.row, d.inside.col, d] as const))(
+    "door %s (%i,%i): inside on room edge, outside corridor and adjacent",
+    (_, __, ___, d) => {
+      const rect = ROOM_RECTS[d.roomId];
+      expect(CELLS[d.inside.row]?.[d.inside.col]).toEqual({ kind: "room", roomId: d.roomId });
+      const onEdge =
+        d.inside.row === rect.top ||
+        d.inside.row === rect.bottom ||
+        d.inside.col === rect.left ||
+        d.inside.col === rect.right;
+      expect(onEdge).toBe(true);
+      expect(isCorridor(d.outside)).toBe(true);
+      expect(Math.abs(d.inside.row - d.outside.row) + Math.abs(d.inside.col - d.outside.col)).toBe(1);
+    },
+  );
+
+  it("secret passages are symmetric pairs between corner rooms", () => {
+    const corner = (r: RoomId) => {
+      const rect = ROOM_RECTS[r];
+      return (rect.top === 0 || rect.bottom === ROWS - 1) && (rect.left === 0 || rect.right === COLS - 1);
+    };
+    const entries = Object.entries(SECRET_PASSAGES) as [RoomId, RoomId][];
+    expect(entries).toHaveLength(4);
+    for (const [from, to] of entries) {
+      expect(SECRET_PASSAGES[to]).toBe(from);
+      expect(from).not.toBe(to);
+      expect(corner(from)).toBe(true);
+      expect(corner(to)).toBe(true);
+      const a = ROOM_RECTS[from];
+      const b = ROOM_RECTS[to];
+      // opposite corners
+      expect(a.top === 0).not.toBe(b.top === 0);
+      expect(a.left === 0).not.toBe(b.left === 0);
     }
+  });
+
+  it("start positions are distinct corridor cells on the board edge", () => {
+    expect([...SEAT_ORDER].sort()).toEqual([...characterIds].sort());
+    const keys = new Set<string>();
+    for (const c of characterIds) {
+      const p = START_POSITIONS[c];
+      expect(isCorridor(p)).toBe(true);
+      expect(p.row === 0 || p.row === ROWS - 1 || p.col === 0 || p.col === COLS - 1).toBe(true);
+      keys.add(`${p.row},${p.col}`);
+    }
+    expect(keys.size).toBe(6);
+  });
+
+  it.each([...characterIds])("every room is reachable from %s start", (c) => {
+    const rooms = reachableLocations(
+      soloPawns(c, { kind: "cell", position: START_POSITIONS[c] }),
+      c,
+      200,
+      null,
+    )
+      .filter((l) => l.kind === "room")
+      .map((l) => (l.kind === "room" ? l.roomId : null));
+    expect(rooms).toEqual([...roomIds]);
+  });
+
+  it.each([...roomIds])("every other room is reachable from inside %s", (r) => {
+    const rooms = reachableLocations(soloPawns("red", { kind: "room", roomId: r }), "red", 200, null)
+      .filter((l) => l.kind === "room")
+      .map((l) => (l.kind === "room" ? l.roomId : null));
+    expect(rooms).toEqual(roomIds.filter((x) => x !== r));
+  });
+
+  it("all corridor cells form one connected area", () => {
+    const all = reachableLocations(
+      soloPawns("red", { kind: "cell", position: START_POSITIONS.red }),
+      "red",
+      1000,
+      null,
+    ).filter((l) => l.kind === "cell");
+    const corridorCount = CELLS.flat().filter((c) => c.kind === "corridor").length;
+    expect(all).toHaveLength(corridorCount - 1);
+  });
+
+  it("ASCII snapshot", () => {
+    expect("\n" + ascii() + "\n").toMatchInlineSnapshot(`
+      "
+      kkkkkk.WbbbbbbbbG.cccccc
+      kkkkkk..bbbbbbbb..cccccc
+      kkkkkk..#bbbbbb#..cccccc
+      kkkkk#..bbbbbbbb..cccccc
+      kkkkkk..bbbbbbbb..c#cccc
+      kkkk#k..bbbbbbbb........
+      ........b#bbbb#b.......B
+      ........................
+      ..................ii#iii
+      dddd#dd..XXXXXX...iiiiii
+      ddddddd..XXXXXX...iiiiii
+      ddddddd..XXXXXX...#iiiii
+      dddddd#..XXXXXX...iiiiii
+      ddddddd..XXXXXX.........
+      ddddddd..XXXXXX..lll#lll
+      ddddd#d..XXXXXX..lllllll
+      .................#llllll
+      Y................lllllll
+      .........hh##hh..lllllll
+      oooooo#..hhhhhh........P
+      ooooooo..hhhhhh.........
+      ooooooo..hhhhh#..s#sssss
+      ooooooo..hhhhhh..sssssss
+      ooooooo..hhhhhh..sssssss
+      oooooooR.hhhhhh..sssssss
+      "
+    `);
   });
 });

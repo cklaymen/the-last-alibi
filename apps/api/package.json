@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
     "dev": "tsx watch src/main.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@mystery-game/contracts": "workspace:*",
@@ -18,9 +19,13 @@
     "@nestjs/websockets": "^11.1.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "^4.20.0"
+    "@nestjs/testing": "^11.2.10",
+    "socket.io-client": "^4.8.3",
+    "tsx": "^4.20.0",
+    "vitest": "^3.2.7"
   }
 }

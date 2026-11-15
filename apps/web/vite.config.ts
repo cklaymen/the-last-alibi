@@ -4,6 +4,5 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  publicDir: "../../images",
   server: { port: 5173 },
 });

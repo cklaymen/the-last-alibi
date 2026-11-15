@@ -165,6 +165,8 @@ graph LR
 
 ## 6. Slice'y
 
+> **Stan MVP (2026-11-15):** zrealizowane F2–F5, D0–D4, G1–G10 oraz część F1 (podział kontraktów, `shared/` w API, Vitest w API i web, fixture'y i Page Objects E2E, projekt `desktop-chromium`). Pozostaje: F1 (ESLint + boundaries, CI, `architecture.md`), L1, R1, R2, P1–P3. Komendy: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
+
 Legenda warstw: **Game** `packages/game` · **Contracts** `packages/contracts` · **API** `apps/api` · **Web** `apps/web` · **E2E** `apps/e2e` · **Docs** `docs/`.
 
 ### Fundamenty
@@ -173,11 +175,11 @@ Legenda warstw: **Game** `packages/game` · **Contracts** `packages/contracts` �
 Zależy od: — · Cel: każdy kolejny slice ma gdzie i czym pisać kod i testy zgodnie z sekcją 2.
 
 - [ ] **Repo:** ESLint (flat config, typescript-eslint) + `eslint-plugin-boundaries` z regułami z 2.1/2.2; Prettier; skrypt `lint` w każdym pakiecie
-- [ ] **Contracts:** podział na `session/`, `rooms/`, `game/`, `errors.ts` (`errorCodeSchema`), `events.ts` (typowane `ClientToServerEvents`/`ServerToClientEvents`, `CommandResult`); `characterIds` (i inne id) importowane z `@mystery-game/game` zamiast duplikatu
-- [ ] **API:** przeniesienie do `modules/rooms`; `shared/` z walidacją Zod dla WS, filtrem błędów mapującym na kody, helperem ack; istniejące komendy lobby odpowiadają przez ack z kodem błędu
-- [ ] **API:** Vitest + `@nestjs/testing` + `socket.io-client`; testy istniejącego lobby (create, join, choose, start, błędy)
-- [ ] **Web:** Vitest + Testing Library; `app/` z `AppHeader` (slot na przełączniki), `app/screens.tsx` (wybór ekranu wg stanu); `index.ts` jako publiczne API feature'ów; błędy z kodów (tymczasowo słownik EN)
-- [ ] **E2E:** fixture `players(n)`, Page Objects `JoinPage`/`LobbyPage`; projekt `desktop-chromium`; istniejące testy przepisane na fixture'y
+- [x] **Contracts:** podział na `session/`, `rooms/`, `game/`, `errors.ts` (`errorCodeSchema`), `events.ts` (typowane `ClientToServerEvents`/`ServerToClientEvents`, `CommandResult`); `characterIds` (i inne id) importowane z `@mystery-game/game` zamiast duplikatu
+- [x] **API:** przeniesienie do `modules/rooms`; `shared/` z walidacją Zod dla WS, filtrem błędów mapującym na kody, helperem ack; istniejące komendy lobby odpowiadają przez ack z kodem błędu
+- [x] **API:** Vitest + `@nestjs/testing` + `socket.io-client`; testy istniejącego lobby (create, join, choose, start, błędy)
+- [x] **Web:** Vitest + Testing Library; `app/` z `AppHeader` (slot na przełączniki), `app/screens.tsx` (wybór ekranu wg stanu); `index.ts` jako publiczne API feature'ów; błędy z kodów (tymczasowo słownik EN)
+- [x] **E2E:** fixture `players(n)`, Page Objects `JoinPage`/`LobbyPage`; projekt `desktop-chromium`; istniejące testy przepisane na fixture'y
 - [ ] **CI:** GitHub Actions: install → lint → typecheck → test → build → e2e (z `playwright install --with-deps`)
 - [ ] **Docs:** krótki `docs/architecture.md` odsyłający do sekcji 2–4 tego planu
 
@@ -186,12 +188,12 @@ Gotowe, gdy: wszystkie komendy z DoD przechodzą lokalnie i w CI, a celowo błę
 #### F2 – Sesje graczy (tokeny) i unikalne nazwy
 Zależy od: F1 · Cel: nie da się grać za innego gracza; odświeżenie strony nie wyrzuca z pokoju.
 
-- [ ] **Contracts:** odpowiedź `create`/`join` zawiera `{ room, session: { playerId, token } }`; `RoomSummary` zawiera `hostId`
-- [ ] **API:** `modules/session`: `SessionRepository` (token UUID → `{ roomCode, playerId }`), middleware handshake (`socket.data.playerId`); usunięcie `playerIdByName` jako źródła tożsamości; komendy lobby bez `playerName`
-- [ ] **API:** `join` z zajętą nazwą w pokoju → kod `NAME_TAKEN`; ta sama nazwa w innym pokoju jest poprawna
-- [ ] **API:** `GET /rooms/:code/session` (z tokenem) – przywrócenie sesji po odświeżeniu
-- [ ] **Web:** token w `localStorage` per kod pokoju; połączenie socketu z `auth.token`; automatyczny powrót do pokoju po odświeżeniu; host rozpoznawany po `hostId`; komunikat o zajętej nazwie
-- [ ] **Testy:** API – duplikat nazwy, ta sama nazwa w 2 pokojach, komenda bez/z nieprawidłowym tokenem odrzucona, gracz nie może wykonać akcji hosta; E2E – odświeżenie strony zachowuje gracza i jego postać
+- [x] **Contracts:** odpowiedź `create`/`join` zawiera `{ room, session: { playerId, token } }`; `RoomSummary` zawiera `hostId`
+- [x] **API:** `modules/session`: `SessionRepository` (token UUID → `{ roomCode, playerId }`), middleware handshake (`socket.data.playerId`); usunięcie `playerIdByName` jako źródła tożsamości; komendy lobby bez `playerName`
+- [x] **API:** `join` z zajętą nazwą w pokoju → kod `NAME_TAKEN`; ta sama nazwa w innym pokoju jest poprawna
+- [x] **API:** `GET /rooms/:code/session` (z tokenem) – przywrócenie sesji po odświeżeniu
+- [x] **Web:** token w `localStorage` per kod pokoju; połączenie socketu z `auth.token`; automatyczny powrót do pokoju po odświeżeniu; host rozpoznawany po `hostId`; komunikat o zajętej nazwie
+- [x] **Testy:** API – duplikat nazwy, ta sama nazwa w 2 pokojach, komenda bez/z nieprawidłowym tokenem odrzucona, gracz nie może wykonać akcji hosta; E2E – odświeżenie strony zachowuje gracza i jego postać
 
 Gotowe, gdy: odświeżenie strony przywraca gracza, a komenda wysłana z cudzą nazwą bez tokenu jest odrzucana.
 Poza zakresem: JWT, wygasanie sesji (P3).
@@ -199,30 +201,30 @@ Poza zakresem: JWT, wygasanie sesji (P3).
 #### F3 – Motyw jasny/ciemny
 Zależy od: F1
 
-- [ ] **Web:** tokeny CSS (tło, tekst, akcent zielony, hover, disabled, ramki, powierzchnie kart, kolory pól planszy); paleta ciemna z zachowaniem zielonego akcentu i kontrastu AA
-- [ ] **Web:** przełącznik „Jasny / Ciemny / Systemowy” w `AppHeader` (domyślnie systemowy); zapis w `localStorage`; `data-theme` na `<html>` ustawiane skryptem w `index.html` (bez migania)
-- [ ] **Web:** zastosowanie na wszystkich istniejących ekranach
-- [ ] **Testy:** E2E – wybór motywu zmienia `data-theme` i przetrwa odświeżenie; emulacja `prefers-color-scheme: dark`
+- [x] **Web:** tokeny CSS (tło, tekst, akcent zielony, hover, disabled, ramki, powierzchnie kart, kolory pól planszy); paleta ciemna z zachowaniem zielonego akcentu i kontrastu AA
+- [x] **Web:** przełącznik „Jasny / Ciemny / Systemowy” w `AppHeader` (domyślnie systemowy); zapis w `localStorage`; `data-theme` na `<html>` ustawiane skryptem w `index.html` (bez migania)
+- [x] **Web:** zastosowanie na wszystkich istniejących ekranach
+- [x] **Testy:** E2E – wybór motywu zmienia `data-theme` i przetrwa odświeżenie; emulacja `prefers-color-scheme: dark`
 
 Gotowe, gdy: oba motywy działają na wszystkich ekranach, a wybór użytkownika ma pierwszeństwo przed systemowym.
 
 #### F4 – Język PL/EN
 Zależy od: F1
 
-- [ ] **Web:** słowniki per feature (`en` + `pl`, `pl` typowany kształtem `en`); hook `useT()` z re-renderem po zmianie języka; przełącznik EN/PL w `AppHeader`; zapis w `localStorage`; domyślnie wg `navigator.language`; `<html lang>`
-- [ ] **Web:** tłumaczenia istniejących ekranów i kodów błędów
-- [ ] **Testy:** Vitest – kompletność kluczy (dodatkowo do TS); E2E – przełączenie na PL zmienia etykiety i przetrwa odświeżenie
+- [x] **Web:** słowniki per feature (`en` + `pl`, `pl` typowany kształtem `en`); hook `useT()` z re-renderem po zmianie języka; przełącznik EN/PL w `AppHeader`; zapis w `localStorage`; domyślnie wg `navigator.language`; `<html lang>`
+- [x] **Web:** tłumaczenia istniejących ekranów i kodów błędów
+- [x] **Testy:** Vitest – kompletność kluczy (dodatkowo do TS); E2E – przełączenie na PL zmienia etykiety i przetrwa odświeżenie
 
 Gotowe, gdy: cały istniejący interfejs działa po polsku i angielsku.
 
 #### F5 – Oryginalna tożsamość gry
 Zależy od: F1 · Cel: mechanika według zasad dedukcji, ale własna oprawa (wymóg z `implementation-plan.md`). Na tym etapie wystarczą **neutralne placeholdery**; docelowe nazwy i grafiki podmienia się później w jednym miejscu (i18n + mapa obrazków), bez zmian w kodzie gry.
 
-- [ ] **Game/Contracts:** neutralne id postaci według koloru (`red`, `yellow`, `white`, `green`, `blue`, `purple`); `knife` → `dagger`; nazwy wyświetlane wyłącznie z i18n
-- [ ] **Web (placeholdery):** postacie nazwane kolorem (np. „Pani Czerwona” / „Ms. Red”) z awatarem w kolorze postaci; bronie z ikonami (`lucide-react`); pokoje z nazwą i prostą ikoną; roboczy tytuł gry zamiast logo „Cluedo”; pliki z `images/` usunięte z aplikacji
-- [ ] **Web:** jedno miejsce mapowania wyglądu kart (`features/cards/cardArt.ts`), żeby podmiana na docelowe grafiki była jedną zmianą
-- [ ] **Testy/E2E:** aktualizacja id i selektorów
-- [ ] **Docs:** `cluedo-rules.md` – tabela mapowania postaci (kolor → nazwa w grze)
+- [x] **Game/Contracts:** neutralne id postaci według koloru (`red`, `yellow`, `white`, `green`, `blue`, `purple`); `knife` → `dagger`; nazwy wyświetlane wyłącznie z i18n
+- [x] **Web (placeholdery):** postacie nazwane kolorem (np. „Pani Czerwona” / „Ms. Red”) z awatarem w kolorze postaci; bronie z ikonami (`lucide-react`); pokoje z nazwą i prostą ikoną; roboczy tytuł gry zamiast logo „Cluedo”; pliki z `images/` usunięte z aplikacji
+- [x] **Web:** jedno miejsce mapowania wyglądu kart (`features/cards/cardArt.ts`), żeby podmiana na docelowe grafiki była jedną zmianą
+- [x] **Testy/E2E:** aktualizacja id i selektorów
+- [x] **Docs:** `cluedo-rules.md` – tabela mapowania postaci (kolor → nazwa w grze)
 
 Gotowe, gdy: w UI i kodzie nie ma nazw ani grafik z oryginalnej gry, a wszystkie testy przechodzą.
 
@@ -231,51 +233,51 @@ Gotowe, gdy: w UI i kodzie nie ma nazw ani grafik z oryginalnej gry, a wszystkie
 #### D0 – Refaktor modułów domeny i przygotowanie gry
 Zależy od: F5 · Cel: podział na moduły umożliwiający równoległą pracę D2–D4.
 
-- [ ] **Game:** podział `turn.ts` na `setup/`, `movement/`, `suggestion/`, `accusation/`, `turn-flow/`; wspólne `shared/` (`shuffle`, `Result`, `GameErrorCode`, `requireActivePlayer`, `findPlayerToken`) – usunięcie duplikatów `shuffle`/`Envelope`
-- [ ] **Game:** `GameErrorCode` jako union zamiast `string`
-- [ ] **Game:** `availableActions(game, playerId)` (na razie dla obecnych reguł) – jedyne źródło dozwolonych akcji dla UI
-- [ ] **Game:** `startGame`: wszystkie 6 pionków na polach startowych; bronie po jednej w 6 losowych pokojach; kolejność tur wg stałej `SEAT_ORDER` (czerwona pierwsza, potem zgodnie z ruchem wskazówek zegara), tylko gracze uczestniczący; min. 2 graczy
-- [ ] **Testy:** Vitest – dotychczasowe testy przechodzą po refaktorze; nowe dla setupu (6 pionków, kolejność, rozdanie 2–6 graczy, w tym 9/9)
+- [x] **Game:** podział `turn.ts` na `setup/`, `movement/`, `suggestion/`, `accusation/`, `turn-flow/`; wspólne `shared/` (`shuffle`, `Result`, `GameErrorCode`, `requireActivePlayer`, `findPlayerToken`) – usunięcie duplikatów `shuffle`/`Envelope`
+- [x] **Game:** `GameErrorCode` jako union zamiast `string`
+- [x] **Game:** `availableActions(game, playerId)` (na razie dla obecnych reguł) – jedyne źródło dozwolonych akcji dla UI
+- [x] **Game:** `startGame`: wszystkie 6 pionków na polach startowych; bronie po jednej w 6 losowych pokojach; kolejność tur wg stałej `SEAT_ORDER` (czerwona pierwsza, potem zgodnie z ruchem wskazówek zegara), tylko gracze uczestniczący; min. 2 graczy
+- [x] **Testy:** Vitest – dotychczasowe testy przechodzą po refaktorze; nowe dla setupu (6 pionków, kolejność, rozdanie 2–6 graczy, w tym 9/9)
 
 Gotowe, gdy: testy domeny przechodzą, publiczne API pakietu jest zachowane lub zaktualizowane u wywołujących.
 
 #### D1 – Plansza: oryginalny układ i model położenia
 Zależy od: F5 (równolegle z D0)
 
-- [ ] **Game:** własny układ 24×25 (9 pokoi, korytarze, ściany, środek planszy niedostępny); referencja z Figmy służy tylko jako styl wizualny, nie jako układ do skopiowania
-- [ ] **Game:** drzwi z kierunkiem (wejście tylko z pola korytarza przed drzwiami); 2 pary tajnych przejść między narożnymi pokojami; 6 pól startowych na krawędzi
-- [ ] **Game:** model położenia `{ kind: "cell", position } | { kind: "room", roomId }` zamiast pola drzwi
-- [ ] **Game:** `BOARD_LAYOUT` dla renderu: prostokąty/wielokąty pokoi, punkty etykiet, segmenty drzwi, znaczniki przejść, sloty na pionki i bronie w każdym pokoju
-- [ ] **Testy:** Vitest – każdy pokój osiągalny z każdego pola startowego, wszystkie pokoje mają drzwi, przejścia są parami, środek niedostępny, snapshot ASCII planszy
+- [x] **Game:** własny układ 24×25 (9 pokoi, korytarze, ściany, środek planszy niedostępny); referencja z Figmy służy tylko jako styl wizualny, nie jako układ do skopiowania
+- [x] **Game:** drzwi z kierunkiem (wejście tylko z pola korytarza przed drzwiami); 2 pary tajnych przejść między narożnymi pokojami; 6 pól startowych na krawędzi
+- [x] **Game:** model położenia `{ kind: "cell", position } | { kind: "room", roomId }` zamiast pola drzwi
+- [x] **Game:** `BOARD_LAYOUT` dla renderu: prostokąty/wielokąty pokoi, punkty etykiet, segmenty drzwi, znaczniki przejść, sloty na pionki i bronie w każdym pokoju
+- [x] **Testy:** Vitest – każdy pokój osiągalny z każdego pola startowego, wszystkie pokoje mają drzwi, przejścia są parami, środek niedostępny, snapshot ASCII planszy
 
 Gotowe, gdy: plansza jest spójna (testy grafu), a `reachableCells` działa na nowym modelu.
 
 #### D2 – Reguły ruchu i przebiegu tury
 Zależy od: D0, D1
 
-- [ ] **Game:** na początku tury w pokoju z przejściem: tajne przejście **zamiast** rzutu
-- [ ] **Game:** wyjście z pokoju tylko przez drzwi; zakaz ponownego wejścia do pokoju opuszczonego w tej turze; ruch „do” wyrzuconej liczby, bez przechodzenia przez zajęte pola korytarza
-- [ ] **Game:** wejście do pokoju kończy ruch i pozwala na sugestię; pozostanie w pokoju bez ruchu nie pozwala na sugestię (wyjątek: D3)
-- [ ] **Game:** zakończenie tury możliwe w każdej fazie własnej tury poza oczekiwaniem na obalenie (brak blokady w `MOVE`)
-- [ ] **Game:** `reachableFor(game, playerId)`; `availableActions` uwzględnia powyższe
-- [ ] **Testy:** Vitest dla każdej reguły (w tym zablokowany pokój i zablokowane drzwi)
+- [x] **Game:** na początku tury w pokoju z przejściem: tajne przejście **zamiast** rzutu
+- [x] **Game:** wyjście z pokoju tylko przez drzwi; zakaz ponownego wejścia do pokoju opuszczonego w tej turze; ruch „do” wyrzuconej liczby, bez przechodzenia przez zajęte pola korytarza
+- [x] **Game:** wejście do pokoju kończy ruch i pozwala na sugestię; pozostanie w pokoju bez ruchu nie pozwala na sugestię (wyjątek: D3)
+- [x] **Game:** zakończenie tury możliwe w każdej fazie własnej tury poza oczekiwaniem na obalenie (brak blokady w `MOVE`)
+- [x] **Game:** `reachableFor(game, playerId)`; `availableActions` uwzględnia powyższe
+- [x] **Testy:** Vitest dla każdej reguły (w tym zablokowany pokój i zablokowane drzwi)
 
 #### D3 – Reguły sugestii i obalania
 Zależy od: D0
 
-- [ ] **Game:** sugestia tylko w pokoju, do którego gracz wszedł w tej turze, albo w pokoju, do którego został wezwany (`summonedTo`); jedna sugestia na turę
-- [ ] **Game:** sugestia przenosi wskazany pionek (dowolny z 6) i broń do pokoju; przeniesionemu graczowi ustawia `summonedTo`
-- [ ] **Game:** kolejka obalających zgodnie z ruchem wskazówek zegara, **łącznie z odpadłymi**
-- [ ] **Game:** obalenie obowiązkowe: `pass` z pasującą kartą → `CARD_REQUIRED`; `matchingCards(hand, suggestion)`; automatyczny pas gracza bez pasujących kart (funkcja `autoResolveDisprove`)
-- [ ] **Testy:** Vitest dla każdej reguły, w tym „nikt nie obalił” i obalenie przez odpadłego gracza
+- [x] **Game:** sugestia tylko w pokoju, do którego gracz wszedł w tej turze, albo w pokoju, do którego został wezwany (`summonedTo`); jedna sugestia na turę
+- [x] **Game:** sugestia przenosi wskazany pionek (dowolny z 6) i broń do pokoju; przeniesionemu graczowi ustawia `summonedTo`
+- [x] **Game:** kolejka obalających zgodnie z ruchem wskazówek zegara, **łącznie z odpadłymi**
+- [x] **Game:** obalenie obowiązkowe: `pass` z pasującą kartą → `CARD_REQUIRED`; `matchingCards(hand, suggestion)`; automatyczny pas gracza bez pasujących kart (funkcja `autoResolveDisprove`)
+- [x] **Testy:** Vitest dla każdej reguły, w tym „nikt nie obalił” i obalenie przez odpadłego gracza
 
 #### D4 – Reguły oskarżenia i końca gry
 Zależy od: D0
 
-- [ ] **Game:** oskarżenie w dowolnym momencie własnej tury (przed rzutem, po ruchu, po sugestii), poza oczekiwaniem na obalenie; dowolny pokój
-- [ ] **Game:** błędne oskarżenie: gracz odpada, jego tura kończy się automatycznie, pionek zostaje na planszy, nadal obala; wynik prywatny zawiera kopertę (oskarżający ją widzi)
-- [ ] **Game:** ostatni nieodpadły gracz wygrywa automatycznie (`winReason: "LAST_STANDING"`); poprawne oskarżenie → `winReason: "ACCUSATION"`; po `FINISHED` wszystkie komendy odrzucane
-- [ ] **Testy:** Vitest – poprawne/błędne oskarżenie, 2 graczy (błąd jednego = wygrana drugiego), łańcuch eliminacji
+- [x] **Game:** oskarżenie w dowolnym momencie własnej tury (przed rzutem, po ruchu, po sugestii), poza oczekiwaniem na obalenie; dowolny pokój
+- [x] **Game:** błędne oskarżenie: gracz odpada, jego tura kończy się automatycznie, pionek zostaje na planszy, nadal obala; wynik prywatny zawiera kopertę (oskarżający ją widzi)
+- [x] **Game:** ostatni nieodpadły gracz wygrywa automatycznie (`winReason: "LAST_STANDING"`); poprawne oskarżenie → `winReason: "ACCUSATION"`; po `FINISHED` wszystkie komendy odrzucane
+- [x] **Testy:** Vitest – poprawne/błędne oskarżenie, 2 graczy (błąd jednego = wygrana drugiego), łańcuch eliminacji
 
 ### Lobby
 
@@ -292,77 +294,78 @@ Zależy od: F2, F4
 #### G1 – Start gry, prywatna ręka i szkielet ekranu gry
 Zależy od: F2, F3, F4, D0
 
-- [ ] **Contracts:** `publicGameStateSchema` (gracze z postaciami, kolejność, aktywny gracz, faza tury, odpadli, liczba kart, położenia pionków i broni, ostatnie zdarzenia, zwycięzca) i `privateGameStateSchema` (ręka, `availableActions`); zdarzenia `game:state`, `game:private`
-- [ ] **API:** `modules/game`: `GameService`, `GameRepository` (in-memory), `GameProjector`, `GameNotifier` (pokój + kanał `player:<id>`), dostawca `Rng`; `RoomsService.start()` wywołuje `startGame()`; po ponownym połączeniu wysyła oba stany
-- [ ] **API:** `modules/testing` + `POST /testing/rooms/:code/scenario` (koperta, ręce)
-- [ ] **Web:** `features/game`: `GameScreen` po `phase === "IN_PROGRESS"`, `GameProvider` + `useGame()`, `PlayersBar` (awatary, aktywny wyróżniony), `CardHand`, wskaźnik tury; wspólne `CardTile` i `CardSelectGrid`; miejsce na planszę; układ mobilny (plansza u góry, pod nią gracze i karty) i desktopowy (plansza po lewej, panel po prawej)
-- [ ] **Testy:** API – projekcja publiczna i zdarzenia odebrane przez gracza nie zawierają koperty ani cudzych kart; rozmiary rąk dla 2–6 graczy; E2E – 3 graczy startuje, każdy widzi tylko swoje (ustawione scenariuszem) karty; odświeżenie przywraca rękę
+- [x] **Contracts:** `publicGameStateSchema` (gracze z postaciami, kolejność, aktywny gracz, faza tury, odpadli, liczba kart, położenia pionków i broni, ostatnie zdarzenia, zwycięzca) i `privateGameStateSchema` (ręka, `availableActions`); zdarzenia `game:state`, `game:private`
+- [x] **API:** `modules/game`: `GameService`, `GameRepository` (in-memory), `GameProjector`, `GameNotifier` (pokój + kanał `player:<id>`), dostawca `Rng`; `RoomsService.start()` wywołuje `startGame()`; po ponownym połączeniu wysyła oba stany
+- [x] **API:** `modules/testing` + `POST /testing/rooms/:code/scenario` (koperta, ręce)
+- [x] **Web:** `features/game`: `GameScreen` po `phase === "IN_PROGRESS"`, `GameProvider` + `useGame()`, `PlayersBar` (awatary, aktywny wyróżniony), `CardHand`, wskaźnik tury; wspólne `CardTile` i `CardSelectGrid`; miejsce na planszę; układ mobilny (plansza u góry, pod nią gracze i karty) i desktopowy (plansza po lewej, panel po prawej)
+- [x] **Testy:** API – projekcja publiczna i zdarzenia odebrane przez gracza nie zawierają koperty ani cudzych kart; rozmiary rąk dla 2–6 graczy; E2E – 3 graczy startuje, każdy widzi tylko swoje (ustawione scenariuszem) karty; odświeżenie przywraca rękę
 
 Gotowe, gdy: host startuje grę, każdy widzi graczy i tylko swoje karty, odświeżenie przywraca widok.
 
 #### G2 – Plansza (SVG, tylko podgląd)
 Zależy od: G1, D1
 
-- [ ] **Web:** `features/board`: inline SVG z `BOARD_LAYOUT` (pola, ściany, drzwi, pokoje z etykietami i18n, znaczniki przejść), pionki i bronie ze stanu publicznego w slotach pokoi; kolory z tokenów; `role`/`aria-label` (np. „Red – Kitchen”)
-- [ ] **Web:** mobile: przybliżanie i przesuwanie (pointer events na `viewBox`; jeśli nie wystarczy – `react-zoom-pan-pinch`)
-- [ ] **Testy:** Vitest – render 6 pionków i 6 broni; E2E – wszyscy widzą pionki na polach startowych i bronie w pokojach; zrzut ekranu planszy w obu motywach (`toHaveScreenshot`)
+- [x] **Web:** `features/board`: inline SVG z `BOARD_LAYOUT` (pola, ściany, drzwi, pokoje z etykietami i18n, znaczniki przejść), pionki i bronie ze stanu publicznego w slotach pokoi; kolory z tokenów; `role`/`aria-label` (np. „Red – Kitchen”)
+- [x] **Web:** mobile: przybliżanie i przesuwanie (pointer events na `viewBox`; jeśli nie wystarczy – `react-zoom-pan-pinch`)
+- [x] **Testy:** Vitest – render 6 pionków i 6 broni; E2E – wszyscy widzą pionki na polach startowych i bronie w pokojach
+- [ ] **Testy:** zrzut ekranu planszy w obu motywach (`toHaveScreenshot`) – przeniesione do P1
 
 #### G3 – Rzut kośćmi, koniec tury, dziennik zdarzeń
 Zależy od: G1, D2
 
-- [ ] **Contracts:** komendy `turn:roll`, `turn:end`; `GameEvent` (union zdarzeń publicznych) w stanie
-- [ ] **API:** handlery w rejestrze komend; rzut po stronie serwera (`Rng`); scenariusz: kolejne rzuty kośćmi
-- [ ] **Web:** `features/turn`: `TurnPanel` z rejestrem akcji (`actions.ts`), `RollAction` (wynik dwóch kości), `EndTurnAction`; pozostali widzą „Ruch gracza X”; `EventLog` renderujący `GameEvent` przez i18n
-- [ ] **Testy:** API – rzut poza turą → `NOT_YOUR_TURN`; E2E – A rzuca (3+4), oba ekrany pokazują 7 w dzienniku, A kończy turę, aktywny jest B, A nie ma przycisku rzutu
+- [x] **Contracts:** komendy `turn:roll`, `turn:end`; `GameEvent` (union zdarzeń publicznych) w stanie
+- [x] **API:** handlery w rejestrze komend; rzut po stronie serwera (`Rng`); scenariusz: kolejne rzuty kośćmi
+- [x] **Web:** `features/turn`: `TurnPanel` z rejestrem akcji (`actions.ts`), `RollAction` (wynik dwóch kości), `EndTurnAction`; pozostali widzą „Ruch gracza X”; `EventLog` renderujący `GameEvent` przez i18n
+- [x] **Testy:** API – rzut poza turą → `NOT_YOUR_TURN`; E2E – A rzuca (3+4), oba ekrany pokazują 7 w dzienniku, A kończy turę, aktywny jest B, A nie ma przycisku rzutu
 
 #### G4 – Ruch po planszy
 Zależy od: G2, G3
 
-- [ ] **Contracts/API:** komenda `turn:move`; `reachable` w stanie prywatnym; scenariusz: pozycje pionków
-- [ ] **Web:** podświetlenie osiągalnych pól jako klikalne elementy z `aria-label`; animacja ruchu (`transform`, z `prefers-reduced-motion`); wpis w dzienniku („X wchodzi do Kuchni”)
-- [ ] **Testy:** E2E – ruch na korytarz, wejście do pokoju przez drzwi, pole zajęte nie jest podświetlone, drugi gracz widzi nową pozycję
+- [x] **Contracts/API:** komenda `turn:move`; `reachable` w stanie prywatnym; scenariusz: pozycje pionków
+- [x] **Web:** podświetlenie osiągalnych pól jako klikalne elementy z `aria-label`; animacja ruchu (`transform`, z `prefers-reduced-motion`); wpis w dzienniku („X wchodzi do Kuchni”)
+- [x] **Testy:** E2E – ruch na korytarz, wejście do pokoju przez drzwi, pole zajęte nie jest podświetlone, drugi gracz widzi nową pozycję
 
 #### G5 – Tajne przejście
 Zależy od: G2, G3, D2
 
-- [ ] **Contracts/API:** komenda `turn:passage`
-- [ ] **Web:** `PassageAction` (tylko gdy w `availableActions`); wpis w dzienniku
-- [ ] **Testy:** E2E – gracz zaczyna turę w narożnym pokoju (scenariusz), używa przejścia zamiast rzutu, pionek ląduje w pokoju naprzeciw, przycisk rzutu znika
+- [x] **Contracts/API:** komenda `turn:passage`
+- [x] **Web:** `PassageAction` (tylko gdy w `availableActions`); wpis w dzienniku
+- [x] **Testy:** E2E – gracz zaczyna turę w narożnym pokoju (scenariusz), używa przejścia zamiast rzutu, pionek ląduje w pokoju naprzeciw, przycisk rzutu znika
 
 #### G6 – Sugestia (z automatycznym pasowaniem)
 Zależy od: G2, G3, D3
 
-- [ ] **Contracts/API:** komenda `turn:suggest`; po sugestii serwer automatycznie pasuje za graczy bez pasujących kart (zdarzenie „X nie może obalić”); stan publiczny pokazuje, na kogo czekamy
-- [ ] **Web:** `SuggestAction` + `SuggestionDialog` (podejrzany + broń na `CardSelectGrid`, pokój narzucony); dziennik: „A sugeruje: Red, Rope, Kitchen”, „Nikt nie obalił”
-- [ ] **Testy:** E2E – ręce bez dopasowań → wszyscy widzą „Nikt nie obalił”, pionek podejrzanego i broń w pokoju; wezwany gracz w swojej turze może sugerować bez ruchu
+- [x] **Contracts/API:** komenda `turn:suggest`; po sugestii serwer automatycznie pasuje za graczy bez pasujących kart (zdarzenie „X nie może obalić”); stan publiczny pokazuje, na kogo czekamy
+- [x] **Web:** `SuggestAction` + `SuggestionDialog` (podejrzany + broń na `CardSelectGrid`, pokój narzucony); dziennik: „A sugeruje: Red, Rope, Kitchen”, „Nikt nie obalił”
+- [x] **Testy:** E2E – ręce bez dopasowań → wszyscy widzą „Nikt nie obalił”, pionek podejrzanego i broń w pokoju; wezwany gracz w swojej turze może sugerować bez ruchu
 
 #### G7 – Obalanie i prywatne ujawnienie karty
 Zależy od: G6
 
-- [ ] **Contracts/API:** `game:private` dla obalającego zawiera `disproveRequest` (pasujące karty); komenda `turn:disprove { cardId }`; pokazana karta tylko w stanie prywatnym sugerującego (`seenCards`), pozostali dostają „B pokazał kartę A”
-- [ ] **Web:** `features/disprove`: panel obalającego (wybór jednej z pasujących kart, bez przycisku „Pas”), widok sugerującego (karta i od kogo), pozostali (informacja bez karty); stany oczekiwania
-- [ ] **Testy:** API – socket trzeciego gracza nie otrzymuje id pokazanej karty w żadnym zdarzeniu; E2E – 3 graczy: B wybiera kartę, A ją widzi, w DOM C nie ma nazwy karty
+- [x] **Contracts/API:** `game:private` dla obalającego zawiera `disproveRequest` (pasujące karty); komenda `turn:disprove { cardId }`; pokazana karta tylko w stanie prywatnym sugerującego (`seenCards`), pozostali dostają „B pokazał kartę A”
+- [x] **Web:** `features/disprove`: panel obalającego (wybór jednej z pasujących kart, bez przycisku „Pas”), widok sugerującego (karta i od kogo), pozostali (informacja bez karty); stany oczekiwania
+- [x] **Testy:** API – socket trzeciego gracza nie otrzymuje id pokazanej karty w żadnym zdarzeniu; E2E – 3 graczy: B wybiera kartę, A ją widzi, w DOM C nie ma nazwy karty
 
 #### G8 – Oskarżenie, odpadnięcie i koniec gry
 Zależy od: G3, D4
 
-- [ ] **Contracts/API:** komenda `turn:accuse`; wynik prywatny (koperta dla błędnie oskarżającego); stan publiczny: odpadli, zwycięzca, `winReason`, koperta po zakończeniu
-- [ ] **Web:** `AccuseAction` + `AccusationDialog` (3 × `CardSelectGrid`, ostrzeżenie o odpadnięciu); baner „Odpadłeś – nadal obalasz”; `features/game-over`: `GameOverScreen` (zwycięzca, koperta, wariant: wygrana / przegrana / ostatni gracz), „Wróć do menu”
-- [ ] **Testy:** E2E – poprawne oskarżenie kończy grę u wszystkich; błędne eliminuje gracza (widzi kopertę, inni nie), gra trwa dalej; w grze 2-osobowej błąd jednego = wygrana drugiego
+- [x] **Contracts/API:** komenda `turn:accuse`; wynik prywatny (koperta dla błędnie oskarżającego); stan publiczny: odpadli, zwycięzca, `winReason`, koperta po zakończeniu
+- [x] **Web:** `AccuseAction` + `AccusationDialog` (3 × `CardSelectGrid`, ostrzeżenie o odpadnięciu); baner „Odpadłeś – nadal obalasz”; `features/game-over`: `GameOverScreen` (zwycięzca, koperta, wariant: wygrana / przegrana / ostatni gracz), „Wróć do menu”
+- [x] **Testy:** E2E – poprawne oskarżenie kończy grę u wszystkich; błędne eliminuje gracza (widzi kopertę, inni nie), gra trwa dalej; w grze 2-osobowej błąd jednego = wygrana drugiego
 
 #### G9 – Notatnik detektywa
 Zależy od: G1
 
-- [ ] **Web:** `features/notebook`: siatka podejrzani/bronie/pokoje; komórka cyklicznie puste → ✓ → ✗ → ?; własne karty zaznaczone; zapis w `localStorage` per `gameId` + `playerId`; zakładka (mobile) / panel (desktop)
-- [ ] **Web:** jeśli G7 jest gotowy – karty pokazane graczowi (`seenCards`) zaznaczane automatycznie
-- [ ] **Testy:** Vitest – cykl stanów i pre-zaznaczenie; E2E – zaznaczenia przetrwają odświeżenie
+- [x] **Web:** `features/notebook`: siatka podejrzani/bronie/pokoje; komórka cyklicznie puste → ✓ → ✗ → ?; własne karty zaznaczone; zapis w `localStorage` per `gameId` + `playerId`; zakładka (mobile) / panel (desktop)
+- [x] **Web:** jeśli G7 jest gotowy – karty pokazane graczowi (`seenCards`) zaznaczane automatycznie
+- [x] **Testy:** Vitest – cykl stanów i pre-zaznaczenie; E2E – zaznaczenia przetrwają odświeżenie
 
 #### G10 – Zagraj ponownie w tym samym pokoju
 Zależy od: G8
 
-- [ ] **Game/API:** `room:restart` (tylko host, tylko `FINISHED`) → pokój wraca do `LOBBY` z tymi samymi graczami, postaciami i ustawieniami, nowym `gameId`
-- [ ] **Web:** przycisk „Zagraj ponownie” dla hosta na `GameOverScreen`; pozostali automatycznie przechodzą do lobby; nowy notatnik (nowy `gameId`)
-- [ ] **Testy:** E2E – po zakończeniu host restartuje, wszyscy są w lobby, można rozpocząć nową grę z nową kopertą
+- [x] **Game/API:** `room:restart` (tylko host, tylko `FINISHED`) → pokój wraca do `LOBBY` z tymi samymi graczami, postaciami i ustawieniami, nowym `gameId`
+- [x] **Web:** przycisk „Zagraj ponownie” dla hosta na `GameOverScreen`; pozostali automatycznie przechodzą do lobby; nowy notatnik (nowy `gameId`)
+- [x] **Testy:** E2E – po zakończeniu host restartuje, wszyscy są w lobby, można rozpocząć nową grę z nową kopertą
 
 ### Odporność
 

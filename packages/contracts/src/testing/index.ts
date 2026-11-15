@@ -1,0 +1,21 @@
+import { z } from "zod";
+import { cardIdSchema, characterIdSchema, roomIdSchema, weaponIdSchema } from "../ids.js";
+import { locationSchema, tripleSchema } from "../game/index.js";
+
+/**
+ * Body of POST /testing/rooms/:code/scenario (only when ENABLE_TEST_API=1).
+ * Players are referenced by name. All fields optional; applied to a started game.
+ */
+export const scenarioSchema = z.object({
+  envelope: tripleSchema.optional(),
+  hands: z.record(z.string(), z.array(cardIdSchema)).optional(),
+  pawns: z.partialRecord(characterIdSchema, locationSchema).optional(),
+  weapons: z.partialRecord(weaponIdSchema, roomIdSchema).optional(),
+  /** Queue of upcoming dice rolls, e.g. [[3,4],[1,1]]. */
+  dice: z.array(z.tuple([z.number().int().min(1).max(6), z.number().int().min(1).max(6)])).optional(),
+  /** Make this player active with a fresh turn (start of turn). */
+  activePlayer: z.string().optional(),
+  /** Players summoned to a room by a suggestion (may suggest without moving). */
+  summonedTo: z.record(z.string(), roomIdSchema).optional(),
+});
+export type Scenario = z.infer<typeof scenarioSchema>;

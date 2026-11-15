@@ -1,21 +1,26 @@
 import { useState } from "react";
+import { useErrorText } from "../../shared/errors/index.js";
+import { useT } from "../../shared/i18n/index.js";
 import { Button } from "../../shared/ui/Button.js";
 import { ErrorMessage } from "../../shared/ui/ErrorMessage.js";
 import { TextField } from "../../shared/ui/TextField.js";
-import { t } from "../../i18n/index.js";
+import { joinMessages } from "./i18n.js";
 import { RoomCodeRow } from "./RoomCodeRow.js";
 
 type Props = {
   isLoading: boolean;
-  error: string | null;
+  errorCode: string | null;
   onCreate: (playerName: string) => void;
   onJoin: (playerName: string, roomCode: string) => void;
 };
 
-export function JoinForm({ isLoading, error, onCreate, onJoin }: Props) {
+export function JoinForm({ isLoading, errorCode, onCreate, onJoin }: Props) {
+  const t = useT(joinMessages);
+  const errorText = useErrorText();
   const [playerName, setPlayerName] = useState("");
   const [isJoining, setIsJoining] = useState(false);
-  const hasName = playerName.trim().length >= 2;
+  const name = playerName.trim();
+  const hasName = name.length >= 2;
 
   return (
     <>
@@ -27,17 +32,14 @@ export function JoinForm({ isLoading, error, onCreate, onJoin }: Props) {
         placeholder={t("nickname_placeholder")}
         value={playerName}
       />
-      {error ? <ErrorMessage message={error} /> : null}
-      <Button
-        disabled={!hasName || isLoading}
-        onClick={() => onCreate(playerName)}
-      >
+      {errorCode ? <ErrorMessage message={errorText(errorCode)} /> : null}
+      <Button disabled={!hasName || isLoading} onClick={() => onCreate(name)}>
         {t("create_room")}
       </Button>
       {isJoining ? (
         <RoomCodeRow
           canJoin={hasName && !isLoading}
-          onJoin={(code) => onJoin(playerName, code)}
+          onJoin={(code) => onJoin(name, code)}
         />
       ) : (
         <Button onClick={() => setIsJoining(true)}>{t("join_room")}</Button>

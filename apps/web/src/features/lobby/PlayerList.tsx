@@ -1,19 +1,24 @@
 import type { RoomSummary } from "@mystery-game/contracts";
-import { t } from "../../i18n/index.js";
+import { useT } from "../../shared/i18n/index.js";
+import { lobbyMessages } from "./i18n.js";
 import { PlayerRow } from "./PlayerRow.js";
 
-type Props = { players: RoomSummary["players"]; playerName: string };
+type Props = { room: RoomSummary; myId: string };
 
-export function PlayerList({ players, playerName }: Props) {
+export function PlayerList({ room, myId }: Props) {
+  const t = useT(lobbyMessages);
   return (
-    <section aria-label={t("players_label")}>
-      <p className="m-0 mb-1 text-lg">{t("players_label")}</p>
-      <ul className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-2 p-0">
-        {players.map((player) => (
+    <section aria-label={t("players")}>
+      <h2 className="m-0 mb-2 text-lg font-normal">
+        {t("players")} ({room.players.length}/{room.maxPlayers})
+      </h2>
+      <ul className="m-0 grid list-none grid-cols-1 gap-2 p-0 min-[400px]:grid-cols-2">
+        {room.players.map((player) => (
           <PlayerRow
             key={player.id}
             player={player}
-            isMe={player.name === playerName}
+            isMe={player.id === myId}
+            isHost={player.id === room.hostId}
           />
         ))}
       </ul>

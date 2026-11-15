@@ -1,28 +1,30 @@
-import type { CharacterId, RoomSummary } from "@mystery-game/contracts";
-import { t } from "../../i18n/index.js";
+import { characterIds, type CharacterId, type RoomSummary } from "@mystery-game/contracts";
+import { useT } from "../../shared/i18n/index.js";
 import { CharacterCard } from "./CharacterCard.js";
-import { characterTiles } from "./characterImages.js";
+import { lobbyMessages } from "./i18n.js";
 
 type Props = {
   players: RoomSummary["players"];
-  playerName: string;
+  myId: string;
   onChoose: (id: CharacterId) => void;
 };
 
-export function CharacterPicker({ players, playerName, onChoose }: Props) {
+export function CharacterPicker({ players, myId, onChoose }: Props) {
+  const t = useT(lobbyMessages);
   return (
-    <section aria-label={t("choose_character")}>
-      <p className="m-0 mb-1 text-lg">{t("choose_character")}</p>
-      <div className="flex gap-1 overflow-x-auto">
-        {characterTiles.map(({ id, image }) => {
+    <section aria-label={t("select_character")}>
+      <h2 className="m-0 mb-2 text-lg font-normal">
+        {t("select_character")}
+      </h2>
+      <div className="grid grid-cols-3 gap-2">
+        {characterIds.map((id) => {
           const owner = players.find((p) => p.characterId === id);
           return (
             <CharacterCard
               key={id}
               id={id}
-              image={image}
-              isMine={owner?.name === playerName}
-              isTaken={owner !== undefined && owner.name !== playerName}
+              isMine={owner?.id === myId}
+              isTaken={owner !== undefined && owner.id !== myId}
               onChoose={onChoose}
             />
           );

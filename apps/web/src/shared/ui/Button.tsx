@@ -1,13 +1,16 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "icon";
+type Variant = "primary" | "secondary" | "icon";
 
 const base =
-  "flex h-22.25 items-center justify-center rounded bg-brand text-white disabled:cursor-not-allowed disabled:bg-disabled";
+  "flex items-center justify-center rounded disabled:cursor-not-allowed disabled:bg-disabled disabled:text-muted";
 
 const variants: Record<Variant, string> = {
-  primary: "w-full text-2xl font-bold tracking-[3.6px]",
-  icon: "w-21.75 shrink-0 rounded-none focus-visible:-outline-offset-6 focus-visible:outline-white",
+  primary:
+    "h-22.25 w-full bg-brand text-2xl font-bold tracking-[3.6px] text-on-brand hover:bg-brand-hover",
+  secondary:
+    "min-h-14 w-full border border-brand bg-surface text-xl font-bold text-brand-strong hover:bg-surface-2",
+  icon: "h-22.25 w-21.75 shrink-0 rounded-none bg-brand text-on-brand hover:bg-brand-hover focus-visible:-outline-offset-6 focus-visible:outline-on-brand",
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant };
