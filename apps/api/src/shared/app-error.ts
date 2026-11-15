@@ -24,6 +24,7 @@ export const errorStatus: Readonly<Record<ErrorCode, number>> = {
   CHARACTER_REQUIRED: 409,
   GAME_NOT_IN_LOBBY: 409,
   GAME_NOT_FINISHED: 409,
+  CANNOT_KICK_SELF: 400,
   GAME_NOT_IN_PROGRESS: 409,
   NOT_YOUR_TURN: 403,
   PLAYER_ELIMINATED: 403,

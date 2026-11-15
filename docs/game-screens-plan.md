@@ -166,6 +166,8 @@ graph LR
 ## 6. Slice'y
 
 > **Stan MVP (2026-11-15):** zrealizowane F2–F5, D0–D4, G1–G10 oraz część F1 (podział kontraktów, `shared/` w API, Vitest w API i web, fixture'y i Page Objects E2E, projekt `desktop-chromium`). Pozostaje: F1 (ESLint + boundaries, CI, `architecture.md`), L1, R1, R2, P1–P3. Komendy: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
+>
+> **Runda 2 (2026-11-15):** link do pokoju (`/room/<kod>`) i dołączanie z linku, zapamiętany nick i zmiana nicku w pasku górnym (bez duplikatów w pokoju), wyrzucanie graczy przez hosta w lobby, obecność graczy (online / offline / nieobecny; po `PRESENCE_GRACE_MS` = 30 s gracz opuszcza lobby, a w grze jego tury są pomijane i serwer obala za niego – może wrócić), ikony w notatniku, oznaczenia „w ręce” i notatek w dialogach sugestii/oskarżenia, Docker (`docker compose up --build`), `README.md`. **Zmiana względem G10:** po zakończeniu gry pokój od razu wraca do lobby z podsumowaniem (`room.lastResult`), bez ekranu końca gry i bez `room:restart`. **Zmiana względem R2:** zamiast karencji 60 s z pominięciem tury obowiązuje opisany wyżej mechanizm obecności (R1 – limity czasu tury – nadal otwarte).
 
 Legenda warstw: **Game** `packages/game` · **Contracts** `packages/contracts` · **API** `apps/api` · **Web** `apps/web` · **E2E** `apps/e2e` · **Docs** `docs/`.
 

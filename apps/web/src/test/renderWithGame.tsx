@@ -11,17 +11,18 @@ export const testRoom: RoomSummary = {
   maxPlayers: 6,
   phase: "IN_PROGRESS",
   players: [
-    { id: "p1", name: "Alice", characterId: "red" },
-    { id: "p2", name: "Bob", characterId: "blue" },
+    { id: "p1", name: "Alice", characterId: "red", presence: "online" },
+    { id: "p2", name: "Bob", characterId: "blue", presence: "online" },
   ],
+  lastResult: null,
 };
 
 export const testGame: PublicGameState = {
   gameId: "game-1",
   status: "IN_PROGRESS",
   players: [
-    { id: "p1", name: "Alice", characterId: "red", cardCount: 9, eliminated: false },
-    { id: "p2", name: "Bob", characterId: "blue", cardCount: 9, eliminated: false },
+    { id: "p1", name: "Alice", characterId: "red", cardCount: 9, eliminated: false, presence: "online" },
+    { id: "p2", name: "Bob", characterId: "blue", cardCount: 9, eliminated: false, presence: "online" },
   ],
   turnOrder: ["p1", "p2"],
   turn: { playerId: "p1", dice: null, hasMoved: false, pendingSuggestion: null },

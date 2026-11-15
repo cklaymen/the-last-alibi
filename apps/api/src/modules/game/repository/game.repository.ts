@@ -5,6 +5,7 @@ import type { Game } from "@mystery-game/game";
 export interface GameRepository {
   get(roomCode: string): Game | undefined;
   save(game: Game): void;
+  delete(roomCode: string): void;
 }
 
 export const GAME_REPOSITORY = Symbol("GAME_REPOSITORY");
@@ -19,5 +20,9 @@ export class InMemoryGameRepository implements GameRepository {
 
   public save(game: Game): void {
     this.games.set(game.roomCode, game);
+  }
+
+  public delete(roomCode: string): void {
+    this.games.delete(roomCode);
   }
 }

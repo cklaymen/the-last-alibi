@@ -17,10 +17,10 @@ function readCode(body: unknown): string {
   return "INTERNAL";
 }
 
-async function request(
+async function request<T = RoomSessionResponse>(
   path: string,
-  init: RequestInit,
-): Promise<RoomSessionResponse> {
+  init: RequestInit = {},
+): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`${apiUrl}${path}`, init);
@@ -29,7 +29,7 @@ async function request(
   }
   const body: unknown = await response.json().catch(() => null);
   if (!response.ok) throw new ApiError(readCode(body), response.status);
-  return body as RoomSessionResponse;
+  return body as T;
 }
 
 const json = (body: object): RequestInit => ({
@@ -46,4 +46,10 @@ export const roomsApi = {
     request(`/rooms/${encodeURIComponent(roomCode)}/session`, {
       headers: { Authorization: `Bearer ${token}` },
     }),
+  /**
+   * Checks that a room exists (GET /rooms/:code). Rejects with ApiError
+   * "ROOM_NOT_FOUND" when it does not; the body is not used.
+   */
+  check: (roomCode: string) =>
+    request<unknown>(`/rooms/${encodeURIComponent(roomCode)}`).then(() => undefined),
 };

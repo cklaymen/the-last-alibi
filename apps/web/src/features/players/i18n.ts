@@ -9,6 +9,8 @@ export const playersMessages = defineMessages({
     cards_few: "{count} cards",
     cards_many: "{count} cards",
     active: "Active player",
+    offline: "offline",
+    away: "away",
   },
   pl: {
     region: "Gracze",
@@ -18,5 +20,7 @@ export const playersMessages = defineMessages({
     cards_few: "{count} karty",
     cards_many: "{count} kart",
     active: "Aktywny gracz",
+    offline: "rozłączony",
+    away: "nieobecny",
   },
 });

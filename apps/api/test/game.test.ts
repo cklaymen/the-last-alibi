@@ -121,11 +121,12 @@ function valuesOfKey(value: unknown, key: string, out: unknown[] = []): unknown[
   return out;
 }
 
-describe("suggestion, disprove, accusation, restart (privacy)", () => {
+describe("suggestion, disprove, accusation, return to lobby (privacy)", () => {
   it("never leaks the envelope, other hands or reveals", async () => {
     const { code, clients } = await startedRoom(app, ["Alice", "Bob", "Carol"]);
     const [alice, bob, carol] = track(clients) as [Client, Client, Client];
     await applyScenario(app, code, suggestionScenario);
+    const carolSinceScenario = carol.events.length;
     expect(alice.lastPrivate()!.hand).toEqual(HANDS.Alice);
     expect(alice.lastPrivate()!.availableActions).toContain("suggest");
 
@@ -168,27 +169,32 @@ describe("suggestion, disprove, accusation, restart (privacy)", () => {
       const lastHand = c.lastPrivate()!.hand;
       expect([...lastHand].sort()).toEqual(ownHand(c).sort());
     }
-    // Carol never got the revealed card in any cardId / matchingCards / hand field
-    for (const e of carol.events) {
+    // Carol never got the revealed card in any cardId / matchingCards field, nor in a
+    // hand after the scenario (her randomly dealt hand may have contained it).
+    for (const [i, e] of carol.events.entries()) {
       expect(valuesOfKey(e.payload, "cardId")).not.toContain("dagger");
-      expect(valuesOfKey(e.payload, "hand").flat()).not.toContain("dagger");
+      if (i >= carolSinceScenario) expect(valuesOfKey(e.payload, "hand").flat()).not.toContain("dagger");
       expect(valuesOfKey(e.payload, "matchingCards")).toEqual([]);
     }
 
-    // ── correct accusation → FINISHED with public envelope ──
-    expect(await alice.send("turn:accuse", ENVELOPE)).toEqual({ ok: true });
-    await waitFor(() => carol.lastPublic()?.status === "FINISHED");
-    expect(carol.lastPublic()!.envelope).toEqual(ENVELOPE);
-    expect(carol.lastPublic()!.winner).toEqual({ playerId: alice.playerId, reason: "ACCUSATION" });
-    expect(carol.lastRoom()!.phase).toBe("FINISHED");
-
-    // ── restart → LOBBY with new game id ──
+    // ── correct accusation → straight back to LOBBY with lastResult and a new id ──
     const oldId = carol.lastRoom()!.id;
-    expect(await bob.send("room:restart")).toEqual({ ok: false, code: "NOT_HOST" });
-    expect(await alice.send("room:restart")).toEqual({ ok: true });
+    expect(await alice.send("turn:accuse", ENVELOPE)).toEqual({ ok: true });
     await waitFor(() => carol.lastRoom()?.phase === "LOBBY");
-    expect(carol.lastRoom()!.id).not.toBe(oldId);
-    expect(carol.lastRoom()!.players.map((p) => p.characterId)).toEqual(["red", "yellow", "white"]);
+    const room = carol.lastRoom()!;
+    expect(room.id).not.toBe(oldId);
+    expect(room.lastResult).toEqual({
+      winnerId: alice.playerId,
+      winnerName: "Alice",
+      reason: "ACCUSATION",
+      envelope: ENVELOPE,
+    });
+    expect(room.players.map((p) => p.characterId)).toEqual(["red", "yellow", "white"]);
+    expect(room.players.map((p) => p.presence)).toEqual(["online", "online", "online"]);
+    // No game:state after the lobby return; the envelope only via lastResult.
+    for (const e of carol.events) if (e.event === "game:state") expect(e.payload.envelope).toBeNull();
+    expect(await alice.send("room:start")).toEqual({ ok: true });
+    await waitFor(() => carol.lastPublic()?.gameId === carol.lastRoom()?.id);
   });
 
   it("a wrong accusation shows the envelope only to the accuser", async () => {

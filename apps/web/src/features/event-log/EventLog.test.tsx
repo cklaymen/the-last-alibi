@@ -29,6 +29,7 @@ const cases: [GameEvent, string][] = [
     "Bob accuses Ms. Red with the Rope in the Kitchen – wrong. Bob is out.",
   ],
   [{ type: "turn_ended", playerId: "p1" }, "Alice ended the turn."],
+  [{ type: "turn_skipped", playerId: "p2" }, "Bob is away – turn skipped."],
   [{ type: "game_won", playerId: "p3", reason: "LAST_STANDING" }, "Cleo wins!"],
 ];
 

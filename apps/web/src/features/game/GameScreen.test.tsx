@@ -6,7 +6,7 @@ import { makeGame, makeMe } from "./testFixtures.js";
 
 function renderScreen(overrides: Partial<GameContextValue> = {}) {
   const value: GameContextValue = {
-    room: { id: "g1", code: "ABCD", hostId: "p1", maxPlayers: 6, phase: "IN_PROGRESS", players: [] },
+    room: { id: "g1", code: "ABCD", hostId: "p1", maxPlayers: 6, phase: "IN_PROGRESS", players: [], lastResult: null },
     myId: "p1",
     game: makeGame(),
     me: makeMe(),

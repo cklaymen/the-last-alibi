@@ -7,14 +7,24 @@ export interface ActiveSession extends StoredSession {
   initialRoom: RoomSummary;
 }
 
+/**
+ * Why the session ended, shown as an alert on the next screen (an errorText code):
+ * "kicked" – the host removed the player; "UNAUTHORIZED" – the server forgot the session.
+ */
+export type SessionNotice = "kicked" | "UNAUTHORIZED";
+
 export interface SessionContextValue {
-  /** "restoring" while a stored session is being checked on app load. */
+  /** "restoring" while a stored session is being checked. */
   status: "restoring" | "ready";
   session: ActiveSession | null;
-  /** Stores the session returned by create/join. */
+  /** Set after a session ended for a reason the player should see. */
+  notice: SessionNotice | null;
+  /** Stores the session returned by create/join and opens `/room/<code>`. */
   begin: (response: RoomSessionResponse) => void;
-  /** Forgets the session (back to the join screen). */
-  leave: () => void;
+  /** Forgets the session and goes to `/` (optionally with a notice, e.g. "kicked"). */
+  leave: (notice?: SessionNotice) => void;
+  /** Forgets a session the server rejected but stays on the room URL (join-by-link form). */
+  expire: () => void;
 }
 
 export const SessionContext = createContext<SessionContextValue | null>(null);

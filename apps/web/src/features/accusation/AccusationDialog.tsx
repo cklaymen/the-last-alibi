@@ -10,6 +10,7 @@ import {
   type WeaponId,
 } from "@mystery-game/game";
 import { CardSelectGrid } from "../cards/index.js";
+import { useCardAnnotations } from "../suggestion/index.js";
 import { ModalDialog, primaryButtonClass, secondaryButtonClass } from "../../shared/ui/ModalDialog.js";
 import { useT } from "../../shared/i18n/index.js";
 import { accusationMessages } from "./i18n.js";
@@ -23,6 +24,7 @@ type Props = {
 
 export function AccusationDialog({ onSubmit, onClose, busy = false, error = null }: Props) {
   const t = useT(accusationMessages);
+  const annotate = useCardAnnotations();
   const [suspect, setSuspect] = useState<CharacterId | null>(null);
   const [weapon, setWeapon] = useState<WeaponId | null>(null);
   const [room, setRoom] = useState<RoomId | null>(null);
@@ -52,13 +54,13 @@ export function AccusationDialog({ onSubmit, onClose, busy = false, error = null
         {t("warning")}
       </p>
       <Group title={t("suspect")}>
-        <CardSelectGrid label={t("suspect")} options={characterIds} value={suspect} onChange={setSuspect} />
+        <CardSelectGrid label={t("suspect")} options={characterIds} value={suspect} onChange={setSuspect} annotate={annotate} />
       </Group>
       <Group title={t("weapon")}>
-        <CardSelectGrid label={t("weapon")} options={weaponIds} value={weapon} onChange={setWeapon} />
+        <CardSelectGrid label={t("weapon")} options={weaponIds} value={weapon} onChange={setWeapon} annotate={annotate} />
       </Group>
       <Group title={t("room")}>
-        <CardSelectGrid label={t("room")} options={roomIds} value={room} onChange={setRoom} />
+        <CardSelectGrid label={t("room")} options={roomIds} value={room} onChange={setRoom} annotate={annotate} />
       </Group>
       {error && (
         <p role="alert" className="m-0 text-sm text-danger">

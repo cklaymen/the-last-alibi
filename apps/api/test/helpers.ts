@@ -14,16 +14,25 @@ import type {
 } from "@mystery-game/contracts";
 import type { CharacterId } from "@mystery-game/game";
 import { AppModule } from "../src/app.module.js";
+import { PRESENCE_OPTIONS } from "../src/modules/presence/index.js";
 
 export interface TestApp {
   url: string;
   close(): Promise<void>;
 }
 
-export async function startApp(): Promise<TestApp> {
+export interface StartOptions {
+  /** Presence grace period (default: a long one so it never fires in a test). */
+  graceMs?: number;
+}
+
+export async function startApp(options: StartOptions = {}): Promise<TestApp> {
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule.forRoot({ enableTestApi: true })],
-  }).compile();
+  })
+    .overrideProvider(PRESENCE_OPTIONS)
+    .useValue({ graceMs: options.graceMs ?? 60_000 })
+    .compile();
   const app: INestApplication = moduleRef.createNestApplication({ logger: false });
   await app.listen(0, "127.0.0.1");
   const url = (await app.getUrl()).replace("[::1]", "127.0.0.1");
@@ -56,7 +65,9 @@ export async function http<T = unknown>(
 export type RecordedEvent =
   | { event: "room:state"; payload: RoomSummary }
   | { event: "game:state"; payload: PublicGameState }
-  | { event: "game:private"; payload: PrivateGameState };
+  | { event: "game:private"; payload: PrivateGameState }
+  | { event: "room:kicked"; payload: undefined }
+  | { event: "disconnect"; payload: string };
 
 export interface Client {
   name: string;
@@ -92,6 +103,8 @@ export async function connectClient(
   socket.on("room:state", (payload) => events.push({ event: "room:state", payload }));
   socket.on("game:state", (payload) => events.push({ event: "game:state", payload }));
   socket.on("game:private", (payload) => events.push({ event: "game:private", payload }));
+  socket.on("room:kicked", () => events.push({ event: "room:kicked", payload: undefined }));
+  socket.on("disconnect", (reason) => events.push({ event: "disconnect", payload: reason }));
   await new Promise<void>((resolve, reject) => {
     socket.once("connect", () => resolve());
     socket.once("connect_error", reject);
@@ -131,6 +144,10 @@ export async function waitFor(predicate: () => boolean, timeoutMs = 3000): Promi
 
 /** Lets in-flight socket broadcasts arrive. */
 export const settle = (ms = 50): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+/** Presence of `playerId` as seen in the last room:state of `observer`. */
+export const presenceOf = (observer: Client, playerId: string): string | undefined =>
+  observer.lastRoom()?.players.find((p) => p.id === playerId)?.presence;
 
 export async function createRoom(app: TestApp, names: string[]): Promise<{ code: string; clients: Client[] }> {
   const [host, ...rest] = names;

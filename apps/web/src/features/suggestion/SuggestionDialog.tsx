@@ -10,6 +10,7 @@ import {
 import { CardSelectGrid, CardTile, cardMessages } from "../cards/index.js";
 import { useT } from "../../shared/i18n/index.js";
 import { suggestionMessages } from "./i18n.js";
+import { useCardAnnotations } from "./useCardAnnotations.js";
 import { ModalDialog, primaryButtonClass, secondaryButtonClass } from "../../shared/ui/ModalDialog.js";
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 export function SuggestionDialog({ room, onSubmit, onClose, busy = false, error = null }: Props) {
   const t = useT(suggestionMessages);
   const card = useT(cardMessages);
+  const annotate = useCardAnnotations();
   const [suspect, setSuspect] = useState<CharacterId | null>(null);
   const [weapon, setWeapon] = useState<WeaponId | null>(null);
 
@@ -49,11 +51,11 @@ export function SuggestionDialog({ room, onSubmit, onClose, busy = false, error 
     >
       <div className="flex flex-col gap-2">
         <h3 className="m-0 text-sm font-bold text-muted">{t("suspect")}</h3>
-        <CardSelectGrid label={t("suspect")} options={characterIds} value={suspect} onChange={setSuspect} />
+        <CardSelectGrid label={t("suspect")} options={characterIds} value={suspect} onChange={setSuspect} annotate={annotate} />
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="m-0 text-sm font-bold text-muted">{t("weapon")}</h3>
-        <CardSelectGrid label={t("weapon")} options={weaponIds} value={weapon} onChange={setWeapon} />
+        <CardSelectGrid label={t("weapon")} options={weaponIds} value={weapon} onChange={setWeapon} annotate={annotate} />
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="m-0 text-sm font-bold text-muted">{t("roomLabel")}</h3>

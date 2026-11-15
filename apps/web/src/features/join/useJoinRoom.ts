@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { RoomSessionResponse } from "@mystery-game/contracts";
+import { saveNickname } from "../nickname/index.js";
 import { ApiError, useSession } from "../session/index.js";
 
 /** Runs a create/join request; on success begins the session, otherwise keeps the error code. */
@@ -12,7 +13,10 @@ export function useJoinRoom() {
     setErrorCode(null);
     setIsLoading(true);
     try {
-      begin(await request());
+      const response = await request();
+      const me = response.room.players.find((p) => p.id === response.session.playerId);
+      if (me) saveNickname(me.name);
+      begin(response);
     } catch (error) {
       setErrorCode(error instanceof ApiError ? error.code : "connect");
     } finally {
@@ -20,5 +24,5 @@ export function useJoinRoom() {
     }
   }
 
-  return { errorCode, isLoading, submit };
+  return { errorCode, setErrorCode, isLoading, submit };
 }

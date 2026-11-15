@@ -5,8 +5,13 @@ export {
   createGame,
   joinGame,
   chooseCharacter,
-  restartGame,
+  renamePlayer,
+  removePlayer,
+  kickPlayer,
+  returnToLobby,
+  isNameTaken,
 } from "./lobby/index.js";
+export { resolveAway } from "./presence/index.js";
 export { startGame } from "./setup/index.js";
 export {
   rollDice,

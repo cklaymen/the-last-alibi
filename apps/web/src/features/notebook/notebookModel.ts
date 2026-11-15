@@ -3,6 +3,7 @@ import type { CardId } from "@mystery-game/game";
 /** Pure notebook model: marks per card plus the cards already auto-marked once. */
 export type Mark = "empty" | "has" | "not" | "maybe";
 export const marks: readonly Mark[] = ["empty", "has", "not", "maybe"];
+export const markSymbol: Record<Mark, string> = { empty: "", has: "✓", not: "✗", maybe: "?" };
 
 export interface NotebookState {
   marks: Partial<Record<CardId, Mark>>;
@@ -43,11 +44,19 @@ function isNotebook(value: unknown): value is NotebookState {
   return typeof v.marks === "object" && v.marks !== null && Array.isArray(v.auto);
 }
 
-export function loadNotebook(key: string): NotebookState {
+/** Parses a stored notebook; anything corrupt becomes the empty notebook. */
+export function parseNotebook(raw: string | null): NotebookState {
   try {
-    const raw = localStorage.getItem(key);
     const parsed: unknown = raw ? JSON.parse(raw) : null;
     return isNotebook(parsed) ? parsed : emptyNotebook;
+  } catch {
+    return emptyNotebook;
+  }
+}
+
+export function loadNotebook(key: string): NotebookState {
+  try {
+    return parseNotebook(localStorage.getItem(key));
   } catch {
     return emptyNotebook;
   }

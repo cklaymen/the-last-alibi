@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NotebookPen, UserX } from "lucide-react";
 import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
 import { Board } from "../board/index.js";
-import { CardTile } from "../cards/index.js";
+import { EnvelopeCards } from "../cards/index.js";
 import { DisprovePanel, SeenCards } from "../disprove/index.js";
 import { EventLog } from "../event-log/index.js";
 import { CardHand } from "../hand/index.js";
@@ -55,18 +55,7 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
               <UserX aria-hidden="true" className="size-5 shrink-0" />
               {t("eliminated")}
             </p>
-            {me.envelope && (
-              <section aria-label={t("envelope")} className="flex flex-col gap-2">
-                <h2 className="m-0 text-sm font-bold text-muted">{t("envelope")}</h2>
-                <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
-                  {[me.envelope.suspect, me.envelope.weapon, me.envelope.room].map((id) => (
-                    <li key={id}>
-                      <CardTile id={id} compact />
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+            {me.envelope && <EnvelopeCards envelope={me.envelope} compact />}
           </div>
         )}
 

@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import {
   availableActions,
   characterIds,
@@ -16,6 +16,7 @@ import type {
   PublicGameState,
   RoomSummary,
 } from "@mystery-game/contracts";
+import { PresenceRegistry } from "../../presence/index.js";
 
 export const EVENT_WINDOW = 50;
 
@@ -32,7 +33,10 @@ const copyLocation = (l: Location): PublicGameState["pawns"][number]["location"]
  */
 @Injectable()
 export class GameProjector {
+  public constructor(@Inject(PresenceRegistry) private readonly presence: PresenceRegistry) {}
+
   public room(game: Game): RoomSummary {
+    const last = game.lastResult;
     return {
       id: game.id,
       code: game.roomCode,
@@ -43,7 +47,16 @@ export class GameProjector {
         id: p.id,
         name: p.name,
         ...(p.characterId !== undefined ? { characterId: p.characterId } : {}),
+        presence: this.presence.status(game.roomCode, p.id),
       })),
+      lastResult: last
+        ? {
+            winnerId: last.winnerId,
+            winnerName: last.winnerName,
+            reason: last.reason,
+            envelope: copyTriple(last.envelope),
+          }
+        : null,
     };
   }
 
@@ -64,6 +77,7 @@ export class GameProjector {
           characterId: player?.characterId ?? "red",
           cardCount: play.hands[id]?.length ?? 0,
           eliminated: play.eliminated.includes(id),
+          presence: this.presence.status(game.roomCode, id),
         };
       }),
       turnOrder: [...play.turnOrder],

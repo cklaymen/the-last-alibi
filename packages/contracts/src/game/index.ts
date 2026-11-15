@@ -55,6 +55,7 @@ export const gameEventSchema = z.discriminatedUnion("type", [
     correct: z.boolean(),
   }),
   z.object({ type: z.literal("turn_ended"), playerId: z.string() }),
+  z.object({ type: z.literal("turn_skipped"), playerId: z.string() }),
   z.object({
     type: z.literal("game_won"),
     playerId: z.string(),
@@ -73,6 +74,7 @@ export const publicGameStateSchema = z.object({
       characterId: characterIdSchema,
       cardCount: z.number().int(),
       eliminated: z.boolean(),
+      presence: z.enum(["online", "offline", "away"]),
     }),
   ),
   /** Player ids in turn order. */

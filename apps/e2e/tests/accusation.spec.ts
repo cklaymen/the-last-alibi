@@ -1,23 +1,31 @@
 import { applyScenario, ENVELOPE, HANDS_2, HANDS_3 } from "../fixtures/api.js";
 import { expect, test } from "../fixtures/players.js";
 
-test("a correct accusation ends the game for everyone; host can play again", async ({ table, request }) => {
+test("a correct accusation ends the game: everyone is back in the room's lobby with a summary", async ({ table, request }) => {
   const t = await table(2);
   await t.start();
   const [ada, bob] = t.players;
   await applyScenario(request, t.code, { envelope: ENVELOPE, hands: HANDS_2 });
   await ada!.game.accuse("Prof. Purple", "Wrench", "Study");
 
-  await expect(ada!.page.getByRole("heading", { name: "You win!" })).toBeVisible();
-  await expect(bob!.page.getByRole("heading", { name: "Ada wins!" })).toBeVisible();
-  const envelope = bob!.page.getByRole("region", { name: "Envelope" });
+  const adaLast = ada!.page.getByRole("region", { name: "Last game" });
+  const bobLast = bob!.page.getByRole("region", { name: "Last game" });
+  await expect(adaLast.getByRole("heading", { name: "You win!" })).toBeVisible();
+  await expect(bobLast.getByRole("heading", { name: "Ada wins!" })).toBeVisible();
+  const envelope = bobLast.getByRole("region", { name: "Envelope" });
   await expect(envelope.getByText("Prof. Purple")).toBeVisible();
   await expect(envelope.getByText("Wrench")).toBeVisible();
   await expect(envelope.getByText("Study")).toBeVisible();
-  await expect(bob!.page.getByRole("button", { name: "Play again" })).toHaveCount(0);
+  for (const p of [ada!, bob!]) {
+    await expect(p.page.getByText(`room: ${t.code}`)).toBeVisible();
+    await expect(p.page).toHaveURL(new RegExp(`/room/${t.code}$`));
+  }
+  await expect(bob!.page.getByRole("button", { name: "Waiting for host" })).toBeVisible();
 
-  await ada!.page.getByRole("button", { name: "Play again" }).click();
-  for (const p of [ada!, bob!]) await expect(p.lobby.startButton().or(p.page.getByRole("button", { name: "Waiting for host" }))).toBeVisible();
+  // a non-host keeps the room after a reload, too
+  await bob!.page.reload();
+  await expect(bob!.page.getByText(`room: ${t.code}`)).toBeVisible();
+
   await t.start();
 });
 
@@ -43,7 +51,10 @@ test("in a two-player game a wrong accusation makes the other player win", async
   const [ada, bob] = t.players;
   await applyScenario(request, t.code, { envelope: ENVELOPE, hands: HANDS_2 });
   await ada!.game.accuse("Ms. Red", "Rope", "Kitchen");
-  await expect(bob!.page.getByRole("heading", { name: "You win!" })).toBeVisible();
-  await expect(bob!.page.getByText("Last detective standing.")).toBeVisible();
-  await expect(ada!.page.getByRole("heading", { name: "Bob wins!" })).toBeVisible();
+  const bobLast = bob!.page.getByRole("region", { name: "Last game" });
+  await expect(bobLast.getByRole("heading", { name: "You win!" })).toBeVisible();
+  await expect(bobLast.getByText("Last detective standing.")).toBeVisible();
+  await expect(
+    ada!.page.getByRole("region", { name: "Last game" }).getByRole("heading", { name: "Bob wins!" }),
+  ).toBeVisible();
 });

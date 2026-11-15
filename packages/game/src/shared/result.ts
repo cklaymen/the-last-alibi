@@ -11,6 +11,8 @@ export type GameErrorCode =
   | "CHARACTER_REQUIRED"
   | "GAME_NOT_IN_LOBBY"
   | "GAME_NOT_FINISHED"
+  | "NAME_TAKEN"
+  | "CANNOT_KICK_SELF"
   // play
   | "GAME_NOT_IN_PROGRESS"
   | "NOT_YOUR_TURN"

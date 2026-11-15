@@ -2,6 +2,7 @@ import { Inject, Logger } from "@nestjs/common";
 import {
   WebSocketGateway,
   type OnGatewayConnection,
+  type OnGatewayDisconnect,
   type OnGatewayInit,
 } from "@nestjs/websockets";
 import type { Server, Socket } from "socket.io";
@@ -18,11 +19,13 @@ interface SocketData {
   roomCode: string;
 }
 
-/** Transport only: authenticates sockets, parses commands, sends acks. */
+/** Transport only: authenticates sockets, parses commands, sends acks, reports presence. */
 @WebSocketGateway({
+  // Default Socket.IO path `/socket.io` (nginx proxies it as-is).
+  path: "/socket.io",
   cors: { origin: process.env.WEB_ORIGIN ?? "http://localhost:5173" },
 })
-export class GameGateway implements OnGatewayInit, OnGatewayConnection {
+export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(GameGateway.name);
 
   public constructor(
@@ -38,7 +41,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
       const auth = socket.handshake.auth as { token?: unknown } | undefined;
       const token = typeof auth?.token === "string" ? auth.token : "";
       const session = this.sessions.find(token);
-      if (!session) {
+      if (!session || !this.gameService.hasPlayer(session.roomCode, session.playerId)) {
         next(new Error("UNAUTHORIZED"));
         return;
       }
@@ -71,6 +74,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection {
 
     try {
       this.sendSnapshot(socket, roomCode, playerId);
+      this.gameService.socketConnected(roomCode, toPlayerId(playerId));
+    } catch (err) {
+      this.logger.error(err);
+    }
+  }
+
+  public handleDisconnect(socket: Socket): void {
+    const { playerId, roomCode } = socket.data as Partial<SocketData>;
+    if (!playerId || !roomCode) return;
+    try {
+      this.gameService.socketDisconnected(roomCode, toPlayerId(playerId));
     } catch (err) {
       this.logger.error(err);
     }

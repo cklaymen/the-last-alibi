@@ -3,10 +3,10 @@ import { errorCodes } from "@mystery-game/contracts";
 import type { Messages } from "../shared/i18n/index.js";
 import { errorMessages } from "../shared/errors/index.js";
 import { cardMessages } from "../features/cards/index.js";
-import { gameOverMessages } from "../features/game-over/i18n.js";
 import { joinMessages } from "../features/join/i18n.js";
 import { lobbyMessages } from "../features/lobby/i18n.js";
 import { localeMessages } from "../features/locale/i18n.js";
+import { nicknameMessages } from "../features/nickname/i18n.js";
 import { notebookMessages } from "../features/notebook/i18n.js";
 import { themeMessages } from "../features/theme/i18n.js";
 import { appMessages } from "./i18n.js";
@@ -15,10 +15,10 @@ const dictionaries: Record<string, Messages<Record<string, string>>> = {
   app: appMessages,
   errors: errorMessages,
   cards: cardMessages,
-  gameOver: gameOverMessages,
   join: joinMessages,
   lobby: lobbyMessages,
   locale: localeMessages,
+  nickname: nicknameMessages,
   notebook: notebookMessages,
   theme: themeMessages,
 };

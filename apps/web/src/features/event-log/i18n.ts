@@ -16,6 +16,7 @@ export const eventLogMessages = defineMessages({
     accused_correct: "{name} accuses {suspect} with the {weapon} in the {room} – correct!",
     accused_wrong: "{name} accuses {suspect} with the {weapon} in the {room} – wrong. {name} is out.",
     turn_ended: "{name} ended the turn.",
+    turn_skipped: "{name} is away – turn skipped.",
     game_won: "{name} wins!",
   },
   pl: {
@@ -33,6 +34,7 @@ export const eventLogMessages = defineMessages({
     accused_correct: "{name} oskarża: {suspect}, narzędzie: {weapon}, miejsce: {room} – trafnie!",
     accused_wrong: "{name} oskarża: {suspect}, narzędzie: {weapon}, miejsce: {room} – błędnie. {name} odpada z gry.",
     turn_ended: "{name} kończy turę.",
+    turn_skipped: "{name} jest nieobecny – tura pominięta.",
     game_won: "{name} wygrywa!",
   },
 });

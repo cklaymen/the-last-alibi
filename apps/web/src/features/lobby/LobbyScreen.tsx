@@ -8,6 +8,7 @@ import { ScreenLayout } from "../../shared/ui/ScreenLayout.js";
 import { useGame } from "../game/index.js";
 import { CharacterPicker } from "./CharacterPicker.js";
 import { lobbyMessages } from "./i18n.js";
+import { LastGame } from "./LastGame.js";
 import { PlayerList } from "./PlayerList.js";
 
 export function LobbyScreen() {
@@ -15,6 +16,7 @@ export function LobbyScreen() {
   const errorText = useErrorText();
   const { room, myId, connected, send, leave } = useGame();
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [kicking, setKicking] = useState(false);
 
   const isHost = room.hostId === myId;
   const canStart =
@@ -26,6 +28,12 @@ export function LobbyScreen() {
     if (!result.ok) setErrorCode(result.code);
   }
 
+  async function kick(playerId: string) {
+    setKicking(true);
+    await run(send("room:kick", { playerId }));
+    setKicking(false);
+  }
+
   return (
     <ScreenLayout
       header={
@@ -34,7 +42,13 @@ export function LobbyScreen() {
         </p>
       }
     >
-      <PlayerList room={room} myId={myId} />
+      {room.lastResult ? <LastGame result={room.lastResult} myId={myId} /> : null}
+      <PlayerList
+        room={room}
+        myId={myId}
+        onKick={isHost ? (playerId) => void kick(playerId) : undefined}
+        busy={kicking}
+      />
       <CharacterPicker
         players={room.players}
         myId={myId}

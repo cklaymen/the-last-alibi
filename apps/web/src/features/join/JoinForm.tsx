@@ -4,6 +4,7 @@ import { useT } from "../../shared/i18n/index.js";
 import { Button } from "../../shared/ui/Button.js";
 import { ErrorMessage } from "../../shared/ui/ErrorMessage.js";
 import { TextField } from "../../shared/ui/TextField.js";
+import { loadNickname } from "../nickname/index.js";
 import { joinMessages } from "./i18n.js";
 import { RoomCodeRow } from "./RoomCodeRow.js";
 
@@ -17,7 +18,7 @@ type Props = {
 export function JoinForm({ isLoading, errorCode, onCreate, onJoin }: Props) {
   const t = useT(joinMessages);
   const errorText = useErrorText();
-  const [playerName, setPlayerName] = useState("");
+  const [playerName, setPlayerName] = useState(loadNickname);
   const [isJoining, setIsJoining] = useState(false);
   const name = playerName.trim();
   const hasName = name.length >= 2;

@@ -21,7 +21,8 @@ describe("HTTP rooms & sessions", () => {
     expect(created.status).toBe(201);
     const { room, session } = created.body;
     expect(room).toMatchObject({ phase: "LOBBY", hostId: session.playerId, maxPlayers: 6 });
-    expect(room.players).toEqual([{ id: session.playerId, name: "Alice" }]);
+    expect(room.players).toEqual([{ id: session.playerId, name: "Alice", presence: "offline" }]);
+    expect(room.lastResult).toBeNull();
     expect(session.token).toMatch(/[0-9a-f-]{36}/);
 
     const joined = await http<RoomSessionResponse>(app, "POST", "/rooms/join", {

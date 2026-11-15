@@ -10,12 +10,20 @@ export interface CommandDeps {
   readonly newId: () => string;
 }
 
+/** Side effects a handler may request after its result was committed. */
+export interface CommandEffects {
+  /** Notifies the player with `room:kicked`, disconnects them and invalidates their session. */
+  expel(playerId: PlayerId): void;
+}
+
 export type CommandEvent = keyof ClientToServerEvents;
 
 export interface CommandHandler<S extends z.ZodType = z.ZodType> {
   readonly event: CommandEvent;
   readonly schema: S;
   execute(game: Game, playerId: PlayerId, payload: z.output<S>, deps: CommandDeps): GameResult;
+  /** Runs after a successful, committed `execute`. */
+  afterCommit?(payload: z.output<S>, effects: CommandEffects): void;
 }
 
 /** Type-checks a handler against its own schema and erases it for the registry. */

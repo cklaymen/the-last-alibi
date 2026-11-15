@@ -1,18 +1,29 @@
-import { useEffect, useState } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import type { CardId } from "@mystery-game/game";
-import { autoMark, cycle, loadNotebook, saveNotebook } from "./notebookModel.js";
+import { GameContext } from "../game/index.js";
+import { autoMark, cycle, markOf, notebookKey, type Mark } from "./notebookModel.js";
+import { updateNotebook, useNotebookState } from "./notebookStore.js";
 
 /** Notebook persisted under `key`; `known` cards (hand + seen) are auto-marked "has". */
 export function useNotebook(key: string, known: readonly CardId[]) {
-  const [state, setState] = useState(() => autoMark(loadNotebook(key), known));
+  const state = useNotebookState(key);
   const knownKey = known.join(",");
 
   useEffect(() => {
-    setState((s) => autoMark(s, known));
+    updateNotebook(key, (s) => autoMark(s, known));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- knownKey tracks `known`
-  }, [knownKey]);
+  }, [key, knownKey]);
 
-  useEffect(() => saveNotebook(key, state), [key, state]);
+  const toggle = useCallback((card: CardId) => updateNotebook(key, (s) => cycle(s, card)), [key]);
+  return { state, toggle };
+}
 
-  return { state, toggle: (card: CardId) => setState((s) => cycle(s, card)) };
+/**
+ * Read-only view of my notebook for the current game, kept in sync with the
+ * Notebook component. Returns a lookup `(cardId) => mark` (all "empty" outside a game).
+ */
+export function useNotebookMarks(): (card: CardId) => Mark {
+  const ctx = useContext(GameContext);
+  const state = useNotebookState(ctx?.game ? notebookKey(ctx.game.gameId, ctx.myId) : null);
+  return useCallback((card: CardId) => markOf(state, card), [state]);
 }

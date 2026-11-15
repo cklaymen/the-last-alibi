@@ -150,6 +150,8 @@ export type GameEvent =
       readonly correct: boolean;
     }
   | { readonly type: "turn_ended"; readonly playerId: PlayerId }
+  /** The player was away (offline too long); the server ended their turn. */
+  | { readonly type: "turn_skipped"; readonly playerId: PlayerId }
   | {
       readonly type: "game_won";
       readonly playerId: PlayerId;
@@ -180,6 +182,15 @@ export interface PlayState {
   readonly winner: { readonly playerId: PlayerId; readonly reason: WinReason } | null;
 }
 
+/** Summary of the previous game, shown in the lobby after it ends. */
+export interface LastResult {
+  readonly winnerId: PlayerId;
+  /** Name at the time of winning (the player may have left since). */
+  readonly winnerName: string;
+  readonly reason: WinReason;
+  readonly envelope: Envelope;
+}
+
 export interface Game {
   readonly id: GameId;
   readonly roomCode: RoomCode;
@@ -189,4 +200,6 @@ export interface Game {
   readonly players: readonly Player[];
   /** null while in LOBBY. */
   readonly play: PlayState | null;
+  /** Result of the previous game in this room; null before the first one ends. */
+  readonly lastResult: LastResult | null;
 }

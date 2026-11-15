@@ -1,3 +1,4 @@
+import { Moon, WifiOff } from "lucide-react";
 import type { PublicGameState } from "@mystery-game/contracts";
 import { CharacterAvatar } from "../cards/index.js";
 import { useLocale, useT } from "../../shared/i18n/index.js";
@@ -23,7 +24,9 @@ export function PlayersBar({ game, myId }: Props) {
                 active ? "border-brand-strong bg-surface-2" : "border-line bg-surface"
               } ${p.eliminated ? "opacity-60" : ""}`}
             >
-              <CharacterAvatar id={p.characterId} size={28} />
+              <span className={`inline-flex shrink-0 ${p.presence !== "online" ? "opacity-40 grayscale" : ""}`}>
+                <CharacterAvatar id={p.characterId} size={28} />
+              </span>
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className={`truncate font-bold ${p.eliminated ? "line-through" : ""}`}>
                   {p.name}
@@ -34,6 +37,7 @@ export function PlayersBar({ game, myId }: Props) {
                   {p.eliminated && (
                     <span className="ml-2 font-bold uppercase text-danger">{t("out")}</span>
                   )}
+                  {p.presence !== "online" && <PresenceBadge presence={p.presence} />}
                 </span>
               </span>
             </li>
@@ -41,5 +45,16 @@ export function PlayersBar({ game, myId }: Props) {
         })}
       </ul>
     </section>
+  );
+}
+
+function PresenceBadge({ presence }: { presence: "offline" | "away" }) {
+  const t = useT(playersMessages);
+  const Icon = presence === "away" ? Moon : WifiOff;
+  return (
+    <span className="ml-2 inline-flex items-center gap-0.5 align-middle font-bold text-muted">
+      <Icon aria-hidden="true" className="size-3.5 shrink-0" />
+      {t(presence)}
+    </span>
   );
 }

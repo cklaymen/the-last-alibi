@@ -3,9 +3,15 @@ import { useT } from "../../shared/i18n/index.js";
 import { lobbyMessages } from "./i18n.js";
 import { PlayerRow } from "./PlayerRow.js";
 
-type Props = { room: RoomSummary; myId: string };
+type Props = {
+  room: RoomSummary;
+  myId: string;
+  /** Given only to the host: removes another player from the room. */
+  onKick?: ((playerId: string) => void) | undefined;
+  busy?: boolean;
+};
 
-export function PlayerList({ room, myId }: Props) {
+export function PlayerList({ room, myId, onKick, busy = false }: Props) {
   const t = useT(lobbyMessages);
   return (
     <section aria-label={t("players")}>
@@ -19,6 +25,8 @@ export function PlayerList({ room, myId }: Props) {
             player={player}
             isMe={player.id === myId}
             isHost={player.id === room.hostId}
+            onKick={onKick && player.id !== myId ? () => onKick(player.id) : undefined}
+            kickDisabled={busy}
           />
         ))}
       </ul>

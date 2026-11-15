@@ -11,15 +11,15 @@ import {
   type PlayerId,
 } from "@mystery-game/game";
 import { AppError } from "../../shared/app-error.js";
-import {
-  GAME_REPOSITORY,
-  GameProjector,
-  StatePublisher,
-  type GameRepository,
-} from "../game/index.js";
+import { GAME_REPOSITORY, GameProjector, GameService, type GameRepository } from "../game/index.js";
 import { SESSION_REPOSITORY, type SessionRepository } from "../session/index.js";
 
-const normalizeName = (name: string): string => name.trim().toLocaleLowerCase();
+/** Public info about a room (GET /rooms/:code), e.g. for the join-by-link screen. */
+export interface RoomInfo {
+  code: string;
+  phase: Game["phase"];
+  playerCount: number;
+}
 
 @Injectable()
 export class RoomsService {
@@ -27,7 +27,7 @@ export class RoomsService {
     @Inject(GAME_REPOSITORY) private readonly games: GameRepository,
     @Inject(SESSION_REPOSITORY) private readonly sessions: SessionRepository,
     @Inject(GameProjector) private readonly projector: GameProjector,
-    @Inject(StatePublisher) private readonly publisher: StatePublisher,
+    @Inject(GameService) private readonly gameService: GameService,
   ) {}
 
   public create(playerName: string): RoomSessionResponse {
@@ -38,6 +38,7 @@ export class RoomsService {
       name: playerName.trim(),
     });
     this.games.save(game);
+    this.gameService.playerJoined(code, hostId);
     return this.response(game, hostId);
   }
 
@@ -47,18 +48,21 @@ export class RoomsService {
     const id = toPlayerId(randomUUID());
     const result = joinGame(game, { id, name });
     if (!result.ok) throw new AppError(result.code);
-    if (game.players.some((p) => normalizeName(p.name) === normalizeName(name))) {
-      throw new AppError("NAME_TAKEN");
-    }
-    this.games.save(result.game);
-    this.publisher.publish(result.game);
+    this.gameService.commit(result.game);
+    this.gameService.playerJoined(game.roomCode, id);
     return this.response(result.game, id);
+  }
+
+  public info(roomCode: string): RoomInfo {
+    const game = this.find(roomCode);
+    return { code: game.roomCode, phase: game.phase, playerCount: game.players.length };
   }
 
   public restore(roomCode: string, token: string | undefined): RoomSessionResponse {
     const session = token ? this.sessions.find(token) : undefined;
     if (!session || session.roomCode !== roomCode || !token) throw new AppError("UNAUTHORIZED");
     const game = this.find(roomCode);
+    if (!game.players.some((p) => p.id === session.playerId)) throw new AppError("UNAUTHORIZED");
     return {
       room: this.projector.room(game),
       session: { playerId: session.playerId, token },

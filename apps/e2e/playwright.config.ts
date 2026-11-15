@@ -23,7 +23,7 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm --filter @mystery-game/api dev",
-      env: { PORT: "3100", WEB_ORIGIN: "http://127.0.0.1:5174", ENABLE_TEST_API: "1" },
+      env: { PORT: "3100", WEB_ORIGIN: "http://127.0.0.1:5174", ENABLE_TEST_API: "1", PRESENCE_GRACE_MS: "5000" },
       port: 3100,
       reuseExistingServer: false,
     },

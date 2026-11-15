@@ -9,8 +9,8 @@ import {
   type RoomSummary,
   type ServerToClientEvents,
 } from "@mystery-game/contracts";
-import { apiUrl } from "../../config.js";
-import { useSession, type ActiveSession } from "../session/index.js";
+import { socketPath, socketUrl } from "../../config.js";
+import { useSession, type ActiveSession, type SessionContextValue } from "../session/index.js";
 import { GameContext, type GameContextValue } from "./GameContext.js";
 
 const ACK_TIMEOUT_MS = 8000;
@@ -28,34 +28,54 @@ type LooseEmitter = {
  * room/game state + `send()` through GameContext. Renders nothing without a session.
  */
 export function GameProvider({ children }: { children: ReactNode }) {
-  const { session, leave } = useSession();
+  const { session, leave, expire } = useSession();
   if (!session) return null;
   return (
-    <ConnectedGame key={session.token} session={session} leave={leave}>
+    <ConnectedGame key={session.token} session={session} leave={leave} expire={expire}>
       {children}
     </ConnectedGame>
   );
 }
 
-type Props = { session: ActiveSession; leave: () => void; children: ReactNode };
+type Props = {
+  session: ActiveSession;
+  leave: SessionContextValue["leave"];
+  expire: SessionContextValue["expire"];
+  children: ReactNode;
+};
 
-function ConnectedGame({ session, leave, children }: Props) {
+function ConnectedGame({ session, leave, expire, children }: Props) {
   const [room, setRoom] = useState<RoomSummary>(session.initialRoom);
   const [game, setGame] = useState<PublicGameState | null>(null);
   const [me, setMe] = useState<PrivateGameState | null>(null);
   const [connected, setConnected] = useState(false);
   const socketRef = useRef<GameSocket | null>(null);
-  const leaveRef = useRef(leave);
-  leaveRef.current = leave;
+  const endRef = useRef({ leave, expire });
+  endRef.current = { leave, expire };
 
   useEffect(() => {
-    const socket: GameSocket = io(apiUrl, { auth: { token: session.token } });
+    const auth = { token: session.token };
+    const socket: GameSocket = socketPath
+      ? io(socketUrl, { path: socketPath, auth })
+      : io(socketUrl, { auth });
     socketRef.current = socket;
+    let kicked = false;
     socket.on("connect", () => setConnected(true));
-    socket.on("disconnect", () => setConnected(false));
+    socket.on("disconnect", (reason) => {
+      setConnected(false);
+      // The server closed the socket (Socket.IO won't retry by itself): reconnect,
+      // the handshake then either restores us or rejects the token (UNAUTHORIZED).
+      if (reason === "io server disconnect" && !kicked) socket.connect();
+    });
     socket.on("connect_error", (error) => {
       setConnected(false);
-      if (error.message === "UNAUTHORIZED") leaveRef.current();
+      // The server no longer knows this session (e.g. removed while away): stay on
+      // the room URL so the join-by-link form lets the player come back.
+      if (error.message === "UNAUTHORIZED") endRef.current.expire();
+    });
+    socket.on(ServerEvents.kicked, () => {
+      kicked = true;
+      endRef.current.leave("kicked");
     });
     socket.on(ServerEvents.roomState, (next) => {
       setRoom(next);
@@ -92,7 +112,7 @@ function ConnectedGame({ session, leave, children }: Props) {
       me: me && game && me.gameId !== game.gameId ? null : me,
       connected,
       send,
-      leave,
+      leave: () => leave(),
     };
   }, [room, game, me, connected, leave, session.playerId]);
 

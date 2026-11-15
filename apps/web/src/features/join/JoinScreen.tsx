@@ -1,6 +1,6 @@
 import { useT } from "../../shared/i18n/index.js";
 import { ScreenLayout } from "../../shared/ui/ScreenLayout.js";
-import { roomsApi } from "../session/index.js";
+import { roomsApi, useSession } from "../session/index.js";
 import { joinMessages } from "./i18n.js";
 import { JoinForm } from "./JoinForm.js";
 import { useJoinRoom } from "./useJoinRoom.js";
@@ -8,6 +8,7 @@ import { useJoinRoom } from "./useJoinRoom.js";
 export function JoinScreen() {
   const t = useT(joinMessages);
   const { errorCode, isLoading, submit } = useJoinRoom();
+  const { notice } = useSession();
 
   return (
     <ScreenLayout
@@ -17,7 +18,7 @@ export function JoinScreen() {
     >
       <JoinForm
         isLoading={isLoading}
-        errorCode={errorCode}
+        errorCode={errorCode ?? notice}
         onCreate={(name) => void submit(() => roomsApi.create(name))}
         onJoin={(name, code) => void submit(() => roomsApi.join(name, code))}
       />

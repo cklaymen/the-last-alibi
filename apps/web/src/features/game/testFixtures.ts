@@ -6,9 +6,9 @@ export function makeGame(overrides: Partial<PublicGameState> = {}): PublicGameSt
     gameId: "g1",
     status: "IN_PROGRESS",
     players: [
-      { id: "p1", name: "Alice", characterId: "red", cardCount: 6, eliminated: false },
-      { id: "p2", name: "Bob", characterId: "white", cardCount: 6, eliminated: false },
-      { id: "p3", name: "Cleo", characterId: "blue", cardCount: 6, eliminated: false },
+      { id: "p1", name: "Alice", characterId: "red", cardCount: 6, eliminated: false, presence: "online" },
+      { id: "p2", name: "Bob", characterId: "white", cardCount: 6, eliminated: false, presence: "online" },
+      { id: "p3", name: "Cleo", characterId: "blue", cardCount: 6, eliminated: false, presence: "online" },
     ],
     turnOrder: ["p1", "p2", "p3"],
     turn: { playerId: "p1", dice: null, hasMoved: false, pendingSuggestion: null },
