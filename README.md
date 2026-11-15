@@ -66,6 +66,14 @@ docker compose up --build
 
 The game is available at <http://localhost:8080>; you can change the port with `WEB_PORT=9000 docker compose up`. The `web` container (nginx) serves the built app and forwards `/api/*` and `/socket.io/*` to the `api` container, so everything runs on a single origin. Game state is kept in the API's memory, so restarting the container wipes all rooms.
 
+### Public deployment via Cloudflare Tunnel
+
+1. In Cloudflare Zero Trust create a tunnel and add a Public Hostname (e.g. `cluedo.example.com`) with service `http://web:80`.
+2. `cp .env.docker.example .env` and fill in `WEB_ORIGIN` (the public URL) and `TUNNEL_TOKEN`.
+3. `docker compose --profile tunnel up -d --build`
+
+No ports are exposed to the outside world; `web` is bound to `127.0.0.1` only.
+
 ## Tests and quality
 
 ```bash
