@@ -1,3 +1,5 @@
+> **Historical document.** The current implementation plan is [`game-screens-plan.md`](game-screens-plan.md); binding game rules are in [`cluedo-rules.md`](cluedo-rules.md).
+
 Players enter with a nickname and a private room code. There are no accounts, bots, public matchmaking, chat, ranking, or offline play in the first release.
 
 ## Design reference audit

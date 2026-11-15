@@ -49,3 +49,39 @@ Gameplay
    Any suspect and any weapon may be named, regardless of their current locations.
    The hidden solution always contains exactly one suspect, one weapon, and one room.
    The first player to make a correct accusation wins the game.
+
+## Implementation clarifications (binding for this project)
+
+The rules above leave several points open ("according to your edition's rules"). The game implements them as follows. Character names below refer to the original game for clarity only; the app uses its own character names (see slice F5 in `game-screens-plan.md`).
+
+Players and setup
+- 2–6 players. All six character tokens start on the board, including those nobody plays (they can still be moved by suggestions).
+- Six weapons start in six different random rooms.
+- The red character (Miss Scarlett equivalent) moves first if played; play then continues clockwise by seat order around the board (`SEAT_ORDER`), skipping unplayed characters.
+- The 18 remaining cards are dealt round-robin; with 4 or 5 players some players hold one card more (2 players: 9/9).
+
+Movement
+- Roll two dice and move horizontally/vertically up to the total. No diagonal moves, no passing through occupied corridor squares; a room may hold any number of tokens.
+- Rooms are entered and exited only through doorways, from the corridor square in front of the door. Entering a room ends movement.
+- A player may not re-enter, in the same turn, the room they left.
+- A player starting the turn in a corner room with a secret passage may use the passage **instead of** rolling.
+- A player may end the turn at any time during their own turn (except while a suggestion is waiting to be disproved), including without using the full roll.
+
+Suggestions
+- Allowed only in the room the player entered this turn (by moving or by secret passage), or in the room they were moved to by another player's suggestion since their last turn (they may suggest there without moving). Staying in a room without either does not allow a suggestion. One suggestion per turn.
+- The named suspect token (any of the six) and weapon are moved to that room.
+
+Disproving
+- Players are asked clockwise from the suggester, **including eliminated players**.
+- A player holding at least one named card **must** show exactly one of them (their choice). Players without a matching card pass automatically.
+- Only the suggester sees the shown card; everyone sees who showed a card or that nobody could.
+
+Accusations and end of game
+- A player may accuse at any point of their own turn (before rolling, after moving, after a suggestion), except while a suggestion is waiting to be disproved. Any room may be named.
+- The accuser privately sees the envelope. A correct accusation wins. A wrong one eliminates the player: their turn ends, they take no more turns, their token stays on the board and they keep disproving.
+- **House rule:** when only one non-eliminated player remains, that player wins automatically.
+
+Online-specific rules
+- The host sets a turn time limit in the lobby (none / 60 / 90 / 120 / 180 s, default 120 s). When it runs out, the turn ends automatically. A disprover has 30 s; after that the server shows one of their matching cards at random.
+- A disconnected player keeps their seat. If it is their turn or they must disprove, they get a 60 s grace period, after which their turn is skipped or a matching card is shown automatically.
+- After the game the host can restart the room: everybody returns to the lobby with the same players and characters.
