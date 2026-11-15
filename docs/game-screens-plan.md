@@ -1,125 +1,125 @@
-# Plan wdrożenia rozgrywki – pionowe kawałki (slices)
+# Gameplay implementation plan – vertical slices
 
-Ten dokument jest **głównym planem** wdrożenia. `implementation-plan.md` jest dokumentem historycznym (stan fundamentów); reguły gry opisuje `cluedo-rules.md` (sekcja „Implementation clarifications” jest wiążąca).
+This document is the **main plan** for the implementation. `implementation-plan.md` is a historical document (the state of the foundations); the game rules are described in `cluedo-rules.md` (the "Implementation clarifications" section is binding).
 
-Cel: działająca dedukcyjna gra online dla 2–6 graczy według zasad z `cluedo-rules.md`, mobile first, desktop responsywnie, motyw jasny/ciemny, interfejs PL + EN, limit czasu tury ustawiany przez hosta, „Zagraj ponownie” w tym samym pokoju.
+Goal: a working online deduction game for 2–6 players following the rules in `cluedo-rules.md`, mobile first, responsive on desktop, light/dark theme, PL + EN interface, host-configurable turn time limit, "Play again" in the same room.
 
-Jak zlecać pracę agentowi: *„Zaimplementuj slice `G3` z `docs/game-screens-plan.md`. Przeczytaj najpierw sekcje Architektura, Testowanie i Definition of Done.”* Agent pracuje w osobnym worktree/branchu `slice/<ID>-<krótka-nazwa>`, metodą TDD, a na końcu odhacza `[x]` w swoim slice.
+How to assign work to an agent: *"Implement slice `G3` from `docs/game-screens-plan.md`. First read the Architecture, Testing, and Definition of Done sections."* The agent works in a separate worktree/branch `slice/<ID>-<short-name>`, using TDD, and finally ticks `[x]` in its slice.
 
 ---
 
-## 1. Stan wyjściowy (audyt)
+## 1. Baseline (audit)
 
-Działa: tworzenie/dołączanie do pokoju, wybór postaci, lista graczy, `room:start` (Playwright: 2 testy). `packages/game` ma planszę, karty i logikę tury z testami Vitest, ale nic nie jest podpięte do API ani UI.
+Working: room creation/joining, character selection, player list, `room:start` (Playwright: 2 tests). `packages/game` has the board, cards, and turn logic with Vitest tests, but nothing is wired to the API or UI.
 
-Braki i problemy, które plan naprawia:
+Gaps and problems the plan fixes:
 
-| Obszar | Problem | Slice |
+| Area | Problem | Slice |
 |---|---|---|
-| API | `room:start` tylko ustawia `phase = IN_PROGRESS`, nie wywołuje `startGame()` | G1 |
-| Bezpieczeństwo | Tożsamość = `playerName`; kto zna kod i nazwę, gra za kogoś. Host rozpoznawany po nazwie w `LobbyScreen` | F2 |
-| Reguły | Odpadli gracze są pomijani w obalaniu (powinni dalej obalać) | D3 |
-| Reguły | Można spasować mając pasującą kartę (obalenie jest obowiązkowe) | D3 |
-| Reguły | Oskarżenie tylko w fazie `ACTION` (powinno być w dowolnym momencie własnej tury, także po sugestii) | D4 |
-| Reguły | Tajne przejście tylko po wejściu do pokoju (powinno być zamiast rzutu na początku tury) | D2 |
-| Reguły | Na planszy są tylko pionki graczy (powinno być wszystkie 6, także nieużywane) | D0 |
-| Reguły | Brak „wezwania do pokoju” – gracz przeniesiony cudzą sugestią może sugerować bez ruchu | D3 |
-| Reguły | Tura może utknąć w `MOVE` (brak osiągalnych pól, a `endTurn` wymaga `DONE`/`ACTION`) | D2 |
-| Reguły | Kolejność tur dowolna (powinna zaczynać czerwona postać, potem zgodnie z ruchem wskazówek zegara) | D0 |
-| Plansza | Brak ścian i środka planszy, drzwi dostępne z każdej strony, pionek w pokoju zapisany jako pole drzwi | D1 |
-| DRY | `characterIds` zduplikowane w `contracts`; `shuffle` i `Envelope` zduplikowane w `cards.ts`/`turn.ts`/`types.ts`; `reachableCells` skanuje planszę zamiast użyć `ROOM_DOORS`; te same walidacje tury powtarzane w każdej funkcji | F1, D0 |
-| Błędy | Domena zwraca stringi, serwer wysyła angielskie komunikaty – nie da się ich przetłumaczyć | F1 |
-| Testy | Brak testów API i web, brak konfiguracji lint (choć `turbo lint` istnieje), Playwright tylko mobile, brak deterministycznego RNG dla e2e | F1, G1 |
-| Tożsamość | Logo „Cluedo”, postacie i grafiki z oryginalnej gry – `implementation-plan.md` wymaga oryginalnej oprawy | F5, D1 |
+| API | `room:start` only sets `phase = IN_PROGRESS`, it does not call `startGame()` | G1 |
+| Security | Identity = `playerName`; anyone who knows the code and name can play as someone else. The host is recognized by name in `LobbyScreen` | F2 |
+| Rules | Eliminated players are skipped when disproving (they should keep disproving) | D3 |
+| Rules | A player can pass while holding a matching card (disproving is mandatory) | D3 |
+| Rules | Accusation only in the `ACTION` phase (should be possible at any moment of one's own turn, including after a suggestion) | D4 |
+| Rules | Secret passage only after entering a room (should be used instead of rolling at the start of a turn) | D2 |
+| Rules | Only the players' tokens are on the board (all 6 should be, including unused ones) | D0 |
+| Rules | No "summoning to a room" – a player moved by someone else's suggestion can suggest without moving | D3 |
+| Rules | A turn can get stuck in `MOVE` (no reachable cells, and `endTurn` requires `DONE`/`ACTION`) | D2 |
+| Rules | Turn order is arbitrary (should start with the red character, then clockwise) | D0 |
+| Board | No walls or board center, doors accessible from every side, a token in a room stored as a door cell | D1 |
+| DRY | `characterIds` duplicated in `contracts`; `shuffle` and `Envelope` duplicated in `cards.ts`/`turn.ts`/`types.ts`; `reachableCells` scans the board instead of using `ROOM_DOORS`; the same turn validations repeated in every function | F1, D0 |
+| Errors | The domain returns strings, the server sends English messages – they cannot be translated | F1 |
+| Tests | No API and web tests, no lint configuration (although `turbo lint` exists), Playwright only on mobile, no deterministic RNG for e2e | F1, G1 |
+| Identity | "Cluedo" logo, characters, and artwork from the original game – `implementation-plan.md` requires original presentation | F5, D1 |
 
 ---
 
-## 2. Architektura – wymagania obowiązujące każdy slice
+## 2. Architecture – requirements binding on every slice
 
-### 2.1 Warstwy i kierunek zależności
+### 2.1 Layers and dependency direction
 
 ```
-packages/game  (czysta domena, zero zależności runtime)
+packages/game  (pure domain, zero runtime dependencies)
       ▲
-packages/contracts  (Zod + typy; identyfikatory importuje z game)
+packages/contracts  (Zod + types; imports identifiers from game)
       ▲                 ▲
-  apps/api          apps/web   (web może importować z game TYLKO dane statyczne: id, geometrię planszy)
+  apps/api          apps/web   (web may import from game ONLY static data: ids, board geometry)
 ```
 
-- **Serwer jest autorytatywny.** Klient wysyła intencję, nigdy nie rozstrzyga o poprawności ruchu, sugestii, oskarżenia ani o tym, kto co widzi. Klient nie wywołuje funkcji reguł z `packages/game`.
-- **Dozwolone akcje liczy domena**: `availableActions(game, playerId)` i `reachableFor(game, playerId)` w `packages/game`; serwer wysyła je w prywatnej projekcji. UI tylko pokazuje przyciski z tej listy (zero duplikacji reguł w UI).
-- **Projekcje**: jedno miejsce (`GameProjector`) buduje stan publiczny i prywatny. Koperta, cudze ręce i pokazane karty nigdy nie trafiają do projekcji publicznej.
-- **Losowość i czas wstrzykiwane** (`Rng`, `Clock`) – deterministyczne testy, brak `Math.random()`/`Date.now()` w logice.
+- **The server is authoritative.** The client sends an intent and never decides whether a move, suggestion, or accusation is valid, nor who sees what. The client does not call rule functions from `packages/game`.
+- **Allowed actions are computed by the domain**: `availableActions(game, playerId)` and `reachableFor(game, playerId)` in `packages/game`; the server sends them in the private projection. The UI only shows buttons from that list (zero rule duplication in the UI).
+- **Projections**: one place (`GameProjector`) builds the public and private state. The envelope, other players' hands, and shown cards never reach the public projection.
+- **Randomness and time are injected** (`Rng`, `Clock`) – deterministic tests, no `Math.random()`/`Date.now()` in the logic.
 
 ### 2.2 Feature-based
 
-Każda funkcjonalność ma własny folder we wszystkich warstwach; publiczne API folderu to jego `index.ts`. Importy do wnętrza innego feature'a są zabronione (wymusza lint).
+Every feature has its own folder in all layers; the folder's public API is its `index.ts`. Imports into the internals of another feature are forbidden (enforced by lint).
 
 ```
 packages/game/src/
   setup/  board/  movement/  suggestion/  accusation/  turn-flow/  shared/ (rng, result, errors)
 packages/contracts/src/
-  session/  rooms/  game/  errors.ts  events.ts (typy ClientToServer/ServerToClient)  index.ts
+  session/  rooms/  game/  errors.ts  events.ts (ClientToServer/ServerToClient types)  index.ts
 apps/api/src/
   modules/session/  modules/rooms/  modules/game/{commands/, projection/, notifier/, repository/}
-  modules/testing/  (tylko gdy ENABLE_TEST_API=1)
-  shared/ (walidacja Zod, filtr błędów WS, ack helper)
+  modules/testing/  (only when ENABLE_TEST_API=1)
+  shared/ (Zod validation, WS error filter, ack helper)
 apps/web/src/
-  app/ (routing ekranów, providery, AppHeader)
+  app/ (screen routing, providers, AppHeader)
   features/join/  lobby/  game/  board/  turn/  suggestion/  disprove/  accusation/  notebook/  game-over/  theme/  i18n/
   shared/ui/  shared/lib/
 apps/e2e/
-  fixtures/ (wielu graczy, scenariusze)  pages/ (Page Objects)  tests/<feature>.spec.ts
+  fixtures/ (multi-player, scenarios)  pages/ (Page Objects)  tests/<feature>.spec.ts
 ```
 
-### 2.3 Zasady
+### 2.3 Principles
 
 - **SOLID**
-  - *SRP*: gateway = transport (parsowanie, ack), service = orkiestracja, domena = reguły, projector = widoczność, notifier = emisja.
-  - *OCP*: nowe komendy i akcje dodaje się bez modyfikowania istniejących. API ma rejestr handlerów komend (`modules/game/commands/<akcja>.handler.ts`), a web rejestr akcji tury (`features/turn/actions.ts`: każda akcja to komponent z własnego feature'a).
-  - *DIP*: `GameRepository`, `SessionRepository`, `Rng`, `Clock` jako interfejsy z implementacjami in-memory (DB w P3 bez zmian w serwisach).
-  - *ISP*: małe interfejsy (`GameNotifier.toRoom`, `.toPlayer`), bez „god service”.
-- **DRY**: jedno źródło identyfikatorów (game → contracts), nazwy zdarzeń socketów jako stałe w `contracts/events.ts`, wspólne komponenty kart (`CardTile`, `CardSelectGrid`) dla ręki, sugestii, oskarżenia i notatnika.
-- **KISS/YAGNI**: bez Redux, bez CQRS-frameworków; stan gry w kontekście React + czyste selektory.
-- **Niemutowalność i Result** w domenie: funkcje czyste, zwracają `{ ok: true, game } | { ok: false, code: GameErrorCode }`, bez wyjątków.
-- **Kody błędów zamiast tekstów**: domena → `GameErrorCode` (union) → `errorCodeSchema` w contracts → web tłumaczy `t("errors.<code>")`. Serwer nie wysyła tekstów UI.
-- **Komendy socketowe z potwierdzeniem (ack)**: `emit("turn:roll", payload, (res: CommandResult) => …)`; stan rozsyłany osobno zdarzeniami `game:state` / `game:private`.
-- **Tożsamość z połączenia**: token sesji przekazywany w handshake (`auth.token`), serwer wiąże socket z graczem; komendy nie zawierają `playerName` ani tokenu.
-- **i18n**: słowniki per feature (`features/x/i18n.ts` z `en` i `pl`), typ `pl` musi spełniać kształt `en` (TypeScript pilnuje kompletności).
-- **Dostępność**: elementy interaktywne z rolą i nazwą (`role`, `aria-label`) – z tego korzystają selektory Playwright.
-- **Style**: tylko tokeny CSS (F3), żadnych zakodowanych kolorów w komponentach.
+  - *SRP*: gateway = transport (parsing, ack), service = orchestration, domain = rules, projector = visibility, notifier = emission.
+  - *OCP*: new commands and actions are added without modifying existing ones. The API has a command handler registry (`modules/game/commands/<action>.handler.ts`), and the web has a turn action registry (`features/turn/actions.ts`: each action is a component from its own feature).
+  - *DIP*: `GameRepository`, `SessionRepository`, `Rng`, `Clock` as interfaces with in-memory implementations (DB in P3 without changes in the services).
+  - *ISP*: small interfaces (`GameNotifier.toRoom`, `.toPlayer`), no "god service".
+- **DRY**: a single source of identifiers (game → contracts), socket event names as constants in `contracts/events.ts`, shared card components (`CardTile`, `CardSelectGrid`) for the hand, suggestion, accusation, and notebook.
+- **KISS/YAGNI**: no Redux, no CQRS frameworks; game state in a React context + pure selectors.
+- **Immutability and Result** in the domain: pure functions returning `{ ok: true, game } | { ok: false, code: GameErrorCode }`, no exceptions.
+- **Error codes instead of texts**: domain → `GameErrorCode` (union) → `errorCodeSchema` in contracts → web translates with `t("errors.<code>")`. The server does not send UI texts.
+- **Socket commands with acknowledgement (ack)**: `emit("turn:roll", payload, (res: CommandResult) => …)`; state is broadcast separately via `game:state` / `game:private` events.
+- **Identity from the connection**: the session token is passed in the handshake (`auth.token`), the server binds the socket to a player; commands contain neither `playerName` nor a token.
+- **i18n**: dictionaries per feature (`features/x/i18n.ts` with `en` and `pl`), the `pl` type must satisfy the shape of `en` (TypeScript enforces completeness).
+- **Accessibility**: interactive elements with a role and name (`role`, `aria-label`) – Playwright selectors rely on them.
+- **Styles**: CSS tokens only (F3), no hardcoded colors in components.
 
-### 2.4 Pliki „gorące” (konflikty przy pracy równoległej)
+### 2.4 "Hot" files (conflicts during parallel work)
 
-Do tych plików slice'y tylko **dopisują** wpisy (bez przebudowy): `contracts/src/index.ts`, `contracts/src/events.ts`, `api/.../commands/index.ts` (rejestr), `api/modules/testing/scenario.ts`, `web/features/turn/actions.ts`, `web/app/screens.tsx`, `web/i18n/index.ts` (rejestr słowników). Konflikty przy merge rozwiązuje się przez połączenie obu wpisów.
+Slices only **append** entries to these files (no restructuring): `contracts/src/index.ts`, `contracts/src/events.ts`, `api/.../commands/index.ts` (registry), `api/modules/testing/scenario.ts`, `web/features/turn/actions.ts`, `web/app/screens.tsx`, `web/i18n/index.ts` (dictionary registry). Merge conflicts are resolved by combining both entries.
 
 ---
 
-## 3. Testowanie
+## 3. Testing
 
-| Poziom | Narzędzie | Co testuje | Wymagane |
+| Level | Tool | What it tests | Required |
 |---|---|---|---|
-| Domena | Vitest (`packages/game`) | każda reguła, przypadki brzegowe, deterministyczny `Rng` | każdy slice D i każdy, który zmienia game; pokrycie ≥ 90% linii |
-| API | Vitest + `@nestjs/testing` + `socket.io-client` | komendy, autoryzacja, **brak wycieku danych prywatnych** (rejestrujemy wszystkie zdarzenia odebrane przez gracza) | każdy slice z warstwą API |
-| Web | Vitest + Testing Library (jsdom) | czyste selektory, złożone komponenty (notatnik, dialogi) | gdy jest logika w komponencie |
-| E2E | Playwright, projekty `mobile-chromium` (iPhone 13) i `desktop-chromium` (1440×900) | scenariusz użytkownika z „Gotowe, gdy” | **każdy slice z UI** |
+| Domain | Vitest (`packages/game`) | every rule, edge cases, deterministic `Rng` | every D slice and every slice that changes game; coverage ≥ 90% of lines |
+| API | Vitest + `@nestjs/testing` + `socket.io-client` | commands, authorization, **no leakage of private data** (we record all events received by a player) | every slice with an API layer |
+| Web | Vitest + Testing Library (jsdom) | pure selectors, complex components (notebook, dialogs) | when there is logic in a component |
+| E2E | Playwright, projects `mobile-chromium` (iPhone 13) and `desktop-chromium` (1440×900) | the user scenario from "Done when" | **every slice with UI** |
 
-- **Scenariusze testowe**: `modules/testing` (włączany wyłącznie przez `ENABLE_TEST_API=1`, ustawiane w `playwright.config.ts`) udostępnia `POST /testing/rooms/:code/scenario`, którym test ustawia kopertę, ręce, pozycje pionków, fazę tury i kolejne rzuty kośćmi. Moduł powstaje w G1, a każdy kolejny slice dopisuje potrzebne pola.
-- **Fixture'y Playwright**: `test.extend({ players })` tworzy N graczy (osobne konteksty przeglądarki) w jednym pokoju z wybranymi postaciami; Page Objects (`JoinPage`, `LobbyPage`, `GamePage`).
-- **Selektory**: `getByRole`/`getByLabel` z nazwami EN (testy działają w locale `en-US`); `data-testid` tylko tam, gdzie nie ma sensownej roli.
-- **Prywatność w e2e**: w testach widoczności sprawdzamy także, że tekst prywatny **nie występuje** w DOM innych graczy.
+- **Test scenarios**: `modules/testing` (enabled only by `ENABLE_TEST_API=1`, set in `playwright.config.ts`) exposes `POST /testing/rooms/:code/scenario`, which a test uses to set the envelope, hands, token positions, turn phase, and subsequent dice rolls. The module is created in G1, and every following slice adds the fields it needs.
+- **Playwright fixtures**: `test.extend({ players })` creates N players (separate browser contexts) in one room with chosen characters; Page Objects (`JoinPage`, `LobbyPage`, `GamePage`).
+- **Selectors**: `getByRole`/`getByLabel` with EN names (tests run in the `en-US` locale); `data-testid` only where there is no sensible role.
+- **Privacy in e2e**: in visibility tests we also check that private text **does not appear** in other players' DOM.
 
-## 4. Definition of Done (każdy slice)
+## 4. Definition of Done (every slice)
 
-1. Wszystkie punkty slice'a odhaczone, „Gotowe, gdy” spełnione i pokryte testem Playwright (jeśli slice ma UI).
-2. Zielone: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
-3. Nowe teksty w EN i PL; nowe kolory przez tokeny; działa w obu motywach i na obu viewportach.
-4. Brak importów łamiących granice feature'ów; brak duplikacji reguł w UI.
-5. Dokumentacja zaktualizowana, jeśli slice zmienia reguły lub kontrakty.
+1. All slice items ticked, "Done when" satisfied and covered by a Playwright test (if the slice has UI).
+2. Green: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
+3. New texts in EN and PL; new colors via tokens; works in both themes and on both viewports.
+4. No imports violating feature boundaries; no rule duplication in the UI.
+5. Documentation updated if the slice changes rules or contracts.
 
 ---
 
-## 5. Zależności i równoległość
+## 5. Dependencies and parallelism
 
 ```mermaid
 graph LR
@@ -145,270 +145,270 @@ graph LR
   P1 --> P2
 ```
 
-| Fala | Slice'y (równolegle) | Uwagi |
+| Wave | Slices (in parallel) | Notes |
 |---|---|---|
-| 1 | F1 | fundament dla wszystkich |
-| 2 | F2, F3, F4, F5 | F3 i F4 dodają przełączniki do `AppHeader` (slot z F1) |
-| 3 | D0, D1, L1 | D0 i D1 to różne moduły game |
-| 4 | D2, D3, D4, G1 | D2–D4 w osobnych modułach po refaktorze D0 |
+| 1 | F1 | foundation for everything |
+| 2 | F2, F3, F4, F5 | F3 and F4 add switches to `AppHeader` (slot from F1) |
+| 3 | D0, D1, L1 | D0 and D1 are different game modules |
+| 4 | D2, D3, D4, G1 | D2–D4 in separate modules after the D0 refactor |
 | 5 | G2, G3, G9 | |
-| 6 | G4, G5, G6, G8 | akcje tury jako osobne wpisy w rejestrze |
-| 7 | G7, G10 | P3 (opcjonalny) może wystartować od tej fali |
+| 6 | G4, G5, G6, G8 | turn actions as separate registry entries |
+| 7 | G7, G10 | P3 (optional) can start from this wave |
 | 8 | R1 | |
 | 9 | R2 | |
 | 10 | P1 | |
 | 11 | P2 | |
 
-Ścieżka krytyczna: F1 → F5 → D0 → G1 → G3 → G6 → G7 → R1 → R2 → P1 → P2.
+Critical path: F1 → F5 → D0 → G1 → G3 → G6 → G7 → R1 → R2 → P1 → P2.
 
 ---
 
-## 6. Slice'y
+## 6. Slices
 
-> **Stan MVP (2026-11-15):** zrealizowane F2–F5, D0–D4, G1–G10 oraz część F1 (podział kontraktów, `shared/` w API, Vitest w API i web, fixture'y i Page Objects E2E, projekt `desktop-chromium`). Pozostaje: F1 (ESLint + boundaries, CI, `architecture.md`), L1, R1, R2, P1–P3. Komendy: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
+> **MVP status (2026-11-15):** F2–F5, D0–D4, G1–G10, and part of F1 are done (contracts split, `shared/` in the API, Vitest in the API and web, E2E fixtures and Page Objects, `desktop-chromium` project). Remaining: F1 (ESLint + boundaries, CI, `architecture.md`), L1, R1, R2, P1–P3. Commands: `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
 >
-> **Runda 2 (2026-11-15):** link do pokoju (`/room/<kod>`) i dołączanie z linku, zapamiętany nick i zmiana nicku w pasku górnym (bez duplikatów w pokoju), wyrzucanie graczy przez hosta w lobby, obecność graczy (online / offline / nieobecny; po `PRESENCE_GRACE_MS` = 30 s gracz opuszcza lobby, a w grze jego tury są pomijane i serwer obala za niego – może wrócić), ikony w notatniku, oznaczenia „w ręce” i notatek w dialogach sugestii/oskarżenia, Docker (`docker compose up --build`), `README.md`. **Zmiana względem G10:** po zakończeniu gry pokój od razu wraca do lobby z podsumowaniem (`room.lastResult`), bez ekranu końca gry i bez `room:restart`. **Zmiana względem R2:** zamiast karencji 60 s z pominięciem tury obowiązuje opisany wyżej mechanizm obecności (R1 – limity czasu tury – nadal otwarte).
+> **Round 2 (2026-11-15):** room link (`/room/<code>`) and joining from a link, remembered nickname and nickname change in the top bar (no duplicates in a room), kicking players by the host in the lobby, player presence (online / offline / away; after `PRESENCE_GRACE_MS` = 30 s a player leaves the lobby, and in a game their turns are skipped and the server disproves on their behalf – they can come back), icons in the notebook, "in hand" and notes markers in the suggestion/accusation dialogs, Docker (`docker compose up --build`), `README.md`. **Change relative to G10:** after a game ends, the room immediately returns to the lobby with a summary (`room.lastResult`), with no game-over screen and no `room:restart`. **Change relative to R2:** instead of the 60 s grace period with turn skipping, the presence mechanism described above applies (R1 – turn time limits – is still open).
 
-Legenda warstw: **Game** `packages/game` · **Contracts** `packages/contracts` · **API** `apps/api` · **Web** `apps/web` · **E2E** `apps/e2e` · **Docs** `docs/`.
+Layer legend: **Game** `packages/game` · **Contracts** `packages/contracts` · **API** `apps/api` · **Web** `apps/web` · **E2E** `apps/e2e` · **Docs** `docs/`.
 
-### Fundamenty
+### Foundations
 
-#### F1 – Narzędzia i ramy architektury
-Zależy od: — · Cel: każdy kolejny slice ma gdzie i czym pisać kod i testy zgodnie z sekcją 2.
+#### F1 – Tooling and architecture framework
+Depends on: — · Goal: every following slice has a place and tools to write code and tests according to section 2.
 
-- [ ] **Repo:** ESLint (flat config, typescript-eslint) + `eslint-plugin-boundaries` z regułami z 2.1/2.2; Prettier; skrypt `lint` w każdym pakiecie
-- [x] **Contracts:** podział na `session/`, `rooms/`, `game/`, `errors.ts` (`errorCodeSchema`), `events.ts` (typowane `ClientToServerEvents`/`ServerToClientEvents`, `CommandResult`); `characterIds` (i inne id) importowane z `@mystery-game/game` zamiast duplikatu
-- [x] **API:** przeniesienie do `modules/rooms`; `shared/` z walidacją Zod dla WS, filtrem błędów mapującym na kody, helperem ack; istniejące komendy lobby odpowiadają przez ack z kodem błędu
-- [x] **API:** Vitest + `@nestjs/testing` + `socket.io-client`; testy istniejącego lobby (create, join, choose, start, błędy)
-- [x] **Web:** Vitest + Testing Library; `app/` z `AppHeader` (slot na przełączniki), `app/screens.tsx` (wybór ekranu wg stanu); `index.ts` jako publiczne API feature'ów; błędy z kodów (tymczasowo słownik EN)
-- [x] **E2E:** fixture `players(n)`, Page Objects `JoinPage`/`LobbyPage`; projekt `desktop-chromium`; istniejące testy przepisane na fixture'y
-- [ ] **CI:** GitHub Actions: install → lint → typecheck → test → build → e2e (z `playwright install --with-deps`)
-- [ ] **Docs:** krótki `docs/architecture.md` odsyłający do sekcji 2–4 tego planu
+- [ ] **Repo:** ESLint (flat config, typescript-eslint) + `eslint-plugin-boundaries` with the rules from 2.1/2.2; Prettier; `lint` script in every package
+- [x] **Contracts:** split into `session/`, `rooms/`, `game/`, `errors.ts` (`errorCodeSchema`), `events.ts` (typed `ClientToServerEvents`/`ServerToClientEvents`, `CommandResult`); `characterIds` (and other ids) imported from `@mystery-game/game` instead of a duplicate
+- [x] **API:** move to `modules/rooms`; `shared/` with Zod validation for WS, an error filter mapping to codes, an ack helper; existing lobby commands respond via ack with an error code
+- [x] **API:** Vitest + `@nestjs/testing` + `socket.io-client`; tests of the existing lobby (create, join, choose, start, errors)
+- [x] **Web:** Vitest + Testing Library; `app/` with `AppHeader` (slot for switches), `app/screens.tsx` (screen selection by state); `index.ts` as the public API of features; errors from codes (temporarily an EN dictionary)
+- [x] **E2E:** `players(n)` fixture, `JoinPage`/`LobbyPage` Page Objects; `desktop-chromium` project; existing tests rewritten to use fixtures
+- [ ] **CI:** GitHub Actions: install → lint → typecheck → test → build → e2e (with `playwright install --with-deps`)
+- [ ] **Docs:** a short `docs/architecture.md` pointing to sections 2–4 of this plan
 
-Gotowe, gdy: wszystkie komendy z DoD przechodzą lokalnie i w CI, a celowo błędny import między feature'ami powoduje błąd lint.
+Done when: all DoD commands pass locally and in CI, and a deliberately wrong import between features causes a lint error.
 
-#### F2 – Sesje graczy (tokeny) i unikalne nazwy
-Zależy od: F1 · Cel: nie da się grać za innego gracza; odświeżenie strony nie wyrzuca z pokoju.
+#### F2 – Player sessions (tokens) and unique names
+Depends on: F1 · Goal: it is impossible to play as another player; refreshing the page does not kick you out of the room.
 
-- [x] **Contracts:** odpowiedź `create`/`join` zawiera `{ room, session: { playerId, token } }`; `RoomSummary` zawiera `hostId`
-- [x] **API:** `modules/session`: `SessionRepository` (token UUID → `{ roomCode, playerId }`), middleware handshake (`socket.data.playerId`); usunięcie `playerIdByName` jako źródła tożsamości; komendy lobby bez `playerName`
-- [x] **API:** `join` z zajętą nazwą w pokoju → kod `NAME_TAKEN`; ta sama nazwa w innym pokoju jest poprawna
-- [x] **API:** `GET /rooms/:code/session` (z tokenem) – przywrócenie sesji po odświeżeniu
-- [x] **Web:** token w `localStorage` per kod pokoju; połączenie socketu z `auth.token`; automatyczny powrót do pokoju po odświeżeniu; host rozpoznawany po `hostId`; komunikat o zajętej nazwie
-- [x] **Testy:** API – duplikat nazwy, ta sama nazwa w 2 pokojach, komenda bez/z nieprawidłowym tokenem odrzucona, gracz nie może wykonać akcji hosta; E2E – odświeżenie strony zachowuje gracza i jego postać
+- [x] **Contracts:** the `create`/`join` response contains `{ room, session: { playerId, token } }`; `RoomSummary` contains `hostId`
+- [x] **API:** `modules/session`: `SessionRepository` (UUID token → `{ roomCode, playerId }`), handshake middleware (`socket.data.playerId`); remove `playerIdByName` as the source of identity; lobby commands without `playerName`
+- [x] **API:** `join` with a name already taken in the room → code `NAME_TAKEN`; the same name in another room is valid
+- [x] **API:** `GET /rooms/:code/session` (with a token) – restoring the session after a refresh
+- [x] **Web:** token in `localStorage` per room code; socket connection with `auth.token`; automatic return to the room after a refresh; host recognized by `hostId`; message about a taken name
+- [x] **Tests:** API – duplicate name, same name in 2 rooms, command without/with an invalid token rejected, a player cannot perform a host action; E2E – a page refresh preserves the player and their character
 
-Gotowe, gdy: odświeżenie strony przywraca gracza, a komenda wysłana z cudzą nazwą bez tokenu jest odrzucana.
-Poza zakresem: JWT, wygasanie sesji (P3).
+Done when: a refresh restores the player, and a command sent with someone else's name and no token is rejected.
+Out of scope: JWT, session expiry (P3).
 
-#### F3 – Motyw jasny/ciemny
-Zależy od: F1
+#### F3 – Light/dark theme
+Depends on: F1
 
-- [x] **Web:** tokeny CSS (tło, tekst, akcent zielony, hover, disabled, ramki, powierzchnie kart, kolory pól planszy); paleta ciemna z zachowaniem zielonego akcentu i kontrastu AA
-- [x] **Web:** przełącznik „Jasny / Ciemny / Systemowy” w `AppHeader` (domyślnie systemowy); zapis w `localStorage`; `data-theme` na `<html>` ustawiane skryptem w `index.html` (bez migania)
-- [x] **Web:** zastosowanie na wszystkich istniejących ekranach
-- [x] **Testy:** E2E – wybór motywu zmienia `data-theme` i przetrwa odświeżenie; emulacja `prefers-color-scheme: dark`
+- [x] **Web:** CSS tokens (background, text, green accent, hover, disabled, borders, card surfaces, board cell colors); a dark palette keeping the green accent and AA contrast
+- [x] **Web:** "Light / Dark / System" switch in `AppHeader` (system by default); saved in `localStorage`; `data-theme` on `<html>` set by a script in `index.html` (no flash)
+- [x] **Web:** applied on all existing screens
+- [x] **Tests:** E2E – choosing a theme changes `data-theme` and survives a refresh; `prefers-color-scheme: dark` emulation
 
-Gotowe, gdy: oba motywy działają na wszystkich ekranach, a wybór użytkownika ma pierwszeństwo przed systemowym.
+Done when: both themes work on all screens, and the user's choice takes precedence over the system one.
 
-#### F4 – Język PL/EN
-Zależy od: F1
+#### F4 – PL/EN language
+Depends on: F1
 
-- [x] **Web:** słowniki per feature (`en` + `pl`, `pl` typowany kształtem `en`); hook `useT()` z re-renderem po zmianie języka; przełącznik EN/PL w `AppHeader`; zapis w `localStorage`; domyślnie wg `navigator.language`; `<html lang>`
-- [x] **Web:** tłumaczenia istniejących ekranów i kodów błędów
-- [x] **Testy:** Vitest – kompletność kluczy (dodatkowo do TS); E2E – przełączenie na PL zmienia etykiety i przetrwa odświeżenie
+- [x] **Web:** dictionaries per feature (`en` + `pl`, `pl` typed with the shape of `en`); `useT()` hook re-rendering on language change; EN/PL switch in `AppHeader`; saved in `localStorage`; default by `navigator.language`; `<html lang>`
+- [x] **Web:** translations of existing screens and error codes
+- [x] **Tests:** Vitest – key completeness (in addition to TS); E2E – switching to PL changes labels and survives a refresh
 
-Gotowe, gdy: cały istniejący interfejs działa po polsku i angielsku.
+Done when: the whole existing interface works in Polish and English.
 
-#### F5 – Oryginalna tożsamość gry
-Zależy od: F1 · Cel: mechanika według zasad dedukcji, ale własna oprawa (wymóg z `implementation-plan.md`). Na tym etapie wystarczą **neutralne placeholdery**; docelowe nazwy i grafiki podmienia się później w jednym miejscu (i18n + mapa obrazków), bez zmian w kodzie gry.
+#### F5 – Original game identity
+Depends on: F1 · Goal: deduction mechanics following the rules, but its own presentation (a requirement from `implementation-plan.md`). At this stage **neutral placeholders** are enough; the final names and artwork are swapped in later in one place (i18n + image map), without changes to the game code.
 
-- [x] **Game/Contracts:** neutralne id postaci według koloru (`red`, `yellow`, `white`, `green`, `blue`, `purple`); `knife` → `dagger`; nazwy wyświetlane wyłącznie z i18n
-- [x] **Web (placeholdery):** postacie nazwane kolorem (np. „Pani Czerwona” / „Ms. Red”) z awatarem w kolorze postaci; bronie z ikonami (`lucide-react`); pokoje z nazwą i prostą ikoną; roboczy tytuł gry zamiast logo „Cluedo”; pliki z `images/` usunięte z aplikacji
-- [x] **Web:** jedno miejsce mapowania wyglądu kart (`features/cards/cardArt.ts`), żeby podmiana na docelowe grafiki była jedną zmianą
-- [x] **Testy/E2E:** aktualizacja id i selektorów
-- [x] **Docs:** `cluedo-rules.md` – tabela mapowania postaci (kolor → nazwa w grze)
+- [x] **Game/Contracts:** neutral character ids by color (`red`, `yellow`, `white`, `green`, `blue`, `purple`); `knife` → `dagger`; display names exclusively from i18n
+- [x] **Web (placeholders):** characters named by color (e.g. "Ms. Red" / "Pani Czerwona") with an avatar in the character's color; weapons with icons (`lucide-react`); rooms with a name and a simple icon; a working game title instead of the "Cluedo" logo; files from `images/` removed from the app
+- [x] **Web:** one place mapping card appearance (`features/cards/cardArt.ts`), so that swapping in the final artwork is a single change
+- [x] **Tests/E2E:** update ids and selectors
+- [x] **Docs:** `cluedo-rules.md` – character mapping table (color → in-game name)
 
-Gotowe, gdy: w UI i kodzie nie ma nazw ani grafik z oryginalnej gry, a wszystkie testy przechodzą.
+Done when: there are no names or artwork from the original game in the UI or code, and all tests pass.
 
-### Domena (packages/game)
+### Domain (packages/game)
 
-#### D0 – Refaktor modułów domeny i przygotowanie gry
-Zależy od: F5 · Cel: podział na moduły umożliwiający równoległą pracę D2–D4.
+#### D0 – Domain module refactor and game preparation
+Depends on: F5 · Goal: a split into modules enabling parallel work on D2–D4.
 
-- [x] **Game:** podział `turn.ts` na `setup/`, `movement/`, `suggestion/`, `accusation/`, `turn-flow/`; wspólne `shared/` (`shuffle`, `Result`, `GameErrorCode`, `requireActivePlayer`, `findPlayerToken`) – usunięcie duplikatów `shuffle`/`Envelope`
-- [x] **Game:** `GameErrorCode` jako union zamiast `string`
-- [x] **Game:** `availableActions(game, playerId)` (na razie dla obecnych reguł) – jedyne źródło dozwolonych akcji dla UI
-- [x] **Game:** `startGame`: wszystkie 6 pionków na polach startowych; bronie po jednej w 6 losowych pokojach; kolejność tur wg stałej `SEAT_ORDER` (czerwona pierwsza, potem zgodnie z ruchem wskazówek zegara), tylko gracze uczestniczący; min. 2 graczy
-- [x] **Testy:** Vitest – dotychczasowe testy przechodzą po refaktorze; nowe dla setupu (6 pionków, kolejność, rozdanie 2–6 graczy, w tym 9/9)
+- [x] **Game:** split `turn.ts` into `setup/`, `movement/`, `suggestion/`, `accusation/`, `turn-flow/`; shared `shared/` (`shuffle`, `Result`, `GameErrorCode`, `requireActivePlayer`, `findPlayerToken`) – remove `shuffle`/`Envelope` duplicates
+- [x] **Game:** `GameErrorCode` as a union instead of `string`
+- [x] **Game:** `availableActions(game, playerId)` (for now for the existing rules) – the single source of allowed actions for the UI
+- [x] **Game:** `startGame`: all 6 tokens on starting cells; one weapon in each of 6 random rooms; turn order by the constant `SEAT_ORDER` (red first, then clockwise), participating players only; min. 2 players
+- [x] **Tests:** Vitest – existing tests pass after the refactor; new ones for setup (6 tokens, order, dealing for 2–6 players, including 9/9)
 
-Gotowe, gdy: testy domeny przechodzą, publiczne API pakietu jest zachowane lub zaktualizowane u wywołujących.
+Done when: domain tests pass, the package's public API is preserved or updated at call sites.
 
-#### D1 – Plansza: oryginalny układ i model położenia
-Zależy od: F5 (równolegle z D0)
+#### D1 – Board: original layout and position model
+Depends on: F5 (in parallel with D0)
 
-- [x] **Game:** własny układ 24×25 (9 pokoi, korytarze, ściany, środek planszy niedostępny); referencja z Figmy służy tylko jako styl wizualny, nie jako układ do skopiowania
-- [x] **Game:** drzwi z kierunkiem (wejście tylko z pola korytarza przed drzwiami); 2 pary tajnych przejść między narożnymi pokojami; 6 pól startowych na krawędzi
-- [x] **Game:** model położenia `{ kind: "cell", position } | { kind: "room", roomId }` zamiast pola drzwi
-- [x] **Game:** `BOARD_LAYOUT` dla renderu: prostokąty/wielokąty pokoi, punkty etykiet, segmenty drzwi, znaczniki przejść, sloty na pionki i bronie w każdym pokoju
-- [x] **Testy:** Vitest – każdy pokój osiągalny z każdego pola startowego, wszystkie pokoje mają drzwi, przejścia są parami, środek niedostępny, snapshot ASCII planszy
+- [x] **Game:** own 24×25 layout (9 rooms, corridors, walls, inaccessible board center); the Figma reference serves only as a visual style, not as a layout to copy
+- [x] **Game:** doors with a direction (entry only from the corridor cell in front of the door); 2 pairs of secret passages between corner rooms; 6 starting cells on the edge
+- [x] **Game:** position model `{ kind: "cell", position } | { kind: "room", roomId }` instead of a door cell
+- [x] **Game:** `BOARD_LAYOUT` for rendering: room rectangles/polygons, label points, door segments, passage markers, token and weapon slots in every room
+- [x] **Tests:** Vitest – every room reachable from every starting cell, all rooms have doors, passages come in pairs, the center is inaccessible, ASCII board snapshot
 
-Gotowe, gdy: plansza jest spójna (testy grafu), a `reachableCells` działa na nowym modelu.
+Done when: the board is consistent (graph tests), and `reachableCells` works on the new model.
 
-#### D2 – Reguły ruchu i przebiegu tury
-Zależy od: D0, D1
+#### D2 – Movement and turn-flow rules
+Depends on: D0, D1
 
-- [x] **Game:** na początku tury w pokoju z przejściem: tajne przejście **zamiast** rzutu
-- [x] **Game:** wyjście z pokoju tylko przez drzwi; zakaz ponownego wejścia do pokoju opuszczonego w tej turze; ruch „do” wyrzuconej liczby, bez przechodzenia przez zajęte pola korytarza
-- [x] **Game:** wejście do pokoju kończy ruch i pozwala na sugestię; pozostanie w pokoju bez ruchu nie pozwala na sugestię (wyjątek: D3)
-- [x] **Game:** zakończenie tury możliwe w każdej fazie własnej tury poza oczekiwaniem na obalenie (brak blokady w `MOVE`)
-- [x] **Game:** `reachableFor(game, playerId)`; `availableActions` uwzględnia powyższe
-- [x] **Testy:** Vitest dla każdej reguły (w tym zablokowany pokój i zablokowane drzwi)
+- [x] **Game:** at the start of a turn in a room with a passage: secret passage **instead of** rolling
+- [x] **Game:** leaving a room only through a door; no re-entering a room left during this turn; movement "up to" the rolled number, without passing through occupied corridor cells
+- [x] **Game:** entering a room ends movement and allows a suggestion; staying in a room without moving does not allow a suggestion (exception: D3)
+- [x] **Game:** ending the turn is possible in any phase of one's own turn except while waiting for a disproof (no block in `MOVE`)
+- [x] **Game:** `reachableFor(game, playerId)`; `availableActions` accounts for the above
+- [x] **Tests:** Vitest for every rule (including a blocked room and a blocked door)
 
-#### D3 – Reguły sugestii i obalania
-Zależy od: D0
+#### D3 – Suggestion and disproving rules
+Depends on: D0
 
-- [x] **Game:** sugestia tylko w pokoju, do którego gracz wszedł w tej turze, albo w pokoju, do którego został wezwany (`summonedTo`); jedna sugestia na turę
-- [x] **Game:** sugestia przenosi wskazany pionek (dowolny z 6) i broń do pokoju; przeniesionemu graczowi ustawia `summonedTo`
-- [x] **Game:** kolejka obalających zgodnie z ruchem wskazówek zegara, **łącznie z odpadłymi**
-- [x] **Game:** obalenie obowiązkowe: `pass` z pasującą kartą → `CARD_REQUIRED`; `matchingCards(hand, suggestion)`; automatyczny pas gracza bez pasujących kart (funkcja `autoResolveDisprove`)
-- [x] **Testy:** Vitest dla każdej reguły, w tym „nikt nie obalił” i obalenie przez odpadłego gracza
+- [x] **Game:** a suggestion only in the room the player entered this turn, or in the room they were summoned to (`summonedTo`); one suggestion per turn
+- [x] **Game:** a suggestion moves the named token (any of the 6) and weapon to the room; the moved player gets `summonedTo`
+- [x] **Game:** disprove queue clockwise, **including eliminated players**
+- [x] **Game:** disproving is mandatory: `pass` with a matching card → `CARD_REQUIRED`; `matchingCards(hand, suggestion)`; automatic pass for a player with no matching cards (function `autoResolveDisprove`)
+- [x] **Tests:** Vitest for every rule, including "nobody disproved" and disproving by an eliminated player
 
-#### D4 – Reguły oskarżenia i końca gry
-Zależy od: D0
+#### D4 – Accusation and game-end rules
+Depends on: D0
 
-- [x] **Game:** oskarżenie w dowolnym momencie własnej tury (przed rzutem, po ruchu, po sugestii), poza oczekiwaniem na obalenie; dowolny pokój
-- [x] **Game:** błędne oskarżenie: gracz odpada, jego tura kończy się automatycznie, pionek zostaje na planszy, nadal obala; wynik prywatny zawiera kopertę (oskarżający ją widzi)
-- [x] **Game:** ostatni nieodpadły gracz wygrywa automatycznie (`winReason: "LAST_STANDING"`); poprawne oskarżenie → `winReason: "ACCUSATION"`; po `FINISHED` wszystkie komendy odrzucane
-- [x] **Testy:** Vitest – poprawne/błędne oskarżenie, 2 graczy (błąd jednego = wygrana drugiego), łańcuch eliminacji
+- [x] **Game:** accusation at any moment of one's own turn (before rolling, after moving, after a suggestion), except while waiting for a disproof; any room
+- [x] **Game:** wrong accusation: the player is eliminated, their turn ends automatically, the token stays on the board, they keep disproving; the private result contains the envelope (the accuser sees it)
+- [x] **Game:** the last non-eliminated player wins automatically (`winReason: "LAST_STANDING"`); a correct accusation → `winReason: "ACCUSATION"`; after `FINISHED` all commands are rejected
+- [x] **Tests:** Vitest – correct/wrong accusation, 2 players (one's mistake = the other's win), elimination chain
 
 ### Lobby
 
-#### L1 – Ustawienia pokoju: limit czasu tury
-Zależy od: F2, F4
+#### L1 – Room settings: turn time limit
+Depends on: F2, F4
 
-- [ ] **Game/Contracts:** `RoomSettings { turnTimeLimitSec: null | 60 | 90 | 120 | 180 }` (domyślnie 120); zmiana tylko w `LOBBY` i tylko przez hosta
-- [ ] **API:** komenda `room:settings`, walidacja hosta
-- [ ] **Web:** wybór limitu w lobby (host: kontrolka, pozostali: tylko odczyt)
-- [ ] **Testy:** API – nie-host odrzucony, zmiana po starcie odrzucona; E2E – host zmienia limit, drugi gracz widzi nową wartość
+- [ ] **Game/Contracts:** `RoomSettings { turnTimeLimitSec: null | 60 | 90 | 120 | 180 }` (default 120); changeable only in `LOBBY` and only by the host
+- [ ] **API:** `room:settings` command, host validation
+- [ ] **Web:** limit selection in the lobby (host: control, others: read-only)
+- [ ] **Tests:** API – non-host rejected, change after start rejected; E2E – the host changes the limit, the second player sees the new value
 
-### Rozgrywka (pionowe slice'y)
+### Gameplay (vertical slices)
 
-#### G1 – Start gry, prywatna ręka i szkielet ekranu gry
-Zależy od: F2, F3, F4, D0
+#### G1 – Game start, private hand, and game screen skeleton
+Depends on: F2, F3, F4, D0
 
-- [x] **Contracts:** `publicGameStateSchema` (gracze z postaciami, kolejność, aktywny gracz, faza tury, odpadli, liczba kart, położenia pionków i broni, ostatnie zdarzenia, zwycięzca) i `privateGameStateSchema` (ręka, `availableActions`); zdarzenia `game:state`, `game:private`
-- [x] **API:** `modules/game`: `GameService`, `GameRepository` (in-memory), `GameProjector`, `GameNotifier` (pokój + kanał `player:<id>`), dostawca `Rng`; `RoomsService.start()` wywołuje `startGame()`; po ponownym połączeniu wysyła oba stany
-- [x] **API:** `modules/testing` + `POST /testing/rooms/:code/scenario` (koperta, ręce)
-- [x] **Web:** `features/game`: `GameScreen` po `phase === "IN_PROGRESS"`, `GameProvider` + `useGame()`, `PlayersBar` (awatary, aktywny wyróżniony), `CardHand`, wskaźnik tury; wspólne `CardTile` i `CardSelectGrid`; miejsce na planszę; układ mobilny (plansza u góry, pod nią gracze i karty) i desktopowy (plansza po lewej, panel po prawej)
-- [x] **Testy:** API – projekcja publiczna i zdarzenia odebrane przez gracza nie zawierają koperty ani cudzych kart; rozmiary rąk dla 2–6 graczy; E2E – 3 graczy startuje, każdy widzi tylko swoje (ustawione scenariuszem) karty; odświeżenie przywraca rękę
+- [x] **Contracts:** `publicGameStateSchema` (players with characters, order, active player, turn phase, eliminated, card counts, token and weapon positions, recent events, winner) and `privateGameStateSchema` (hand, `availableActions`); events `game:state`, `game:private`
+- [x] **API:** `modules/game`: `GameService`, `GameRepository` (in-memory), `GameProjector`, `GameNotifier` (room + `player:<id>` channel), `Rng` provider; `RoomsService.start()` calls `startGame()`; after reconnecting it sends both states
+- [x] **API:** `modules/testing` + `POST /testing/rooms/:code/scenario` (envelope, hands)
+- [x] **Web:** `features/game`: `GameScreen` when `phase === "IN_PROGRESS"`, `GameProvider` + `useGame()`, `PlayersBar` (avatars, active highlighted), `CardHand`, turn indicator; shared `CardTile` and `CardSelectGrid`; a spot for the board; mobile layout (board on top, players and cards below) and desktop layout (board on the left, panel on the right)
+- [x] **Tests:** API – the public projection and events received by a player contain neither the envelope nor other players' cards; hand sizes for 2–6 players; E2E – 3 players start, each sees only their own cards (set by a scenario); a refresh restores the hand
 
-Gotowe, gdy: host startuje grę, każdy widzi graczy i tylko swoje karty, odświeżenie przywraca widok.
+Done when: the host starts the game, everyone sees the players and only their own cards, and a refresh restores the view.
 
-#### G2 – Plansza (SVG, tylko podgląd)
-Zależy od: G1, D1
+#### G2 – Board (SVG, view only)
+Depends on: G1, D1
 
-- [x] **Web:** `features/board`: inline SVG z `BOARD_LAYOUT` (pola, ściany, drzwi, pokoje z etykietami i18n, znaczniki przejść), pionki i bronie ze stanu publicznego w slotach pokoi; kolory z tokenów; `role`/`aria-label` (np. „Red – Kitchen”)
-- [x] **Web:** mobile: przybliżanie i przesuwanie (pointer events na `viewBox`; jeśli nie wystarczy – `react-zoom-pan-pinch`)
-- [x] **Testy:** Vitest – render 6 pionków i 6 broni; E2E – wszyscy widzą pionki na polach startowych i bronie w pokojach
-- [ ] **Testy:** zrzut ekranu planszy w obu motywach (`toHaveScreenshot`) – przeniesione do P1
+- [x] **Web:** `features/board`: inline SVG from `BOARD_LAYOUT` (cells, walls, doors, rooms with i18n labels, passage markers), tokens and weapons from the public state in room slots; colors from tokens; `role`/`aria-label` (e.g. "Red – Kitchen")
+- [x] **Web:** mobile: zoom and pan (pointer events on `viewBox`; if not enough – `react-zoom-pan-pinch`)
+- [x] **Tests:** Vitest – rendering of 6 tokens and 6 weapons; E2E – everyone sees the tokens on the starting cells and the weapons in the rooms
+- [ ] **Tests:** board screenshot in both themes (`toHaveScreenshot`) – moved to P1
 
-#### G3 – Rzut kośćmi, koniec tury, dziennik zdarzeń
-Zależy od: G1, D2
+#### G3 – Dice roll, end of turn, event log
+Depends on: G1, D2
 
-- [x] **Contracts:** komendy `turn:roll`, `turn:end`; `GameEvent` (union zdarzeń publicznych) w stanie
-- [x] **API:** handlery w rejestrze komend; rzut po stronie serwera (`Rng`); scenariusz: kolejne rzuty kośćmi
-- [x] **Web:** `features/turn`: `TurnPanel` z rejestrem akcji (`actions.ts`), `RollAction` (wynik dwóch kości), `EndTurnAction`; pozostali widzą „Ruch gracza X”; `EventLog` renderujący `GameEvent` przez i18n
-- [x] **Testy:** API – rzut poza turą → `NOT_YOUR_TURN`; E2E – A rzuca (3+4), oba ekrany pokazują 7 w dzienniku, A kończy turę, aktywny jest B, A nie ma przycisku rzutu
+- [x] **Contracts:** commands `turn:roll`, `turn:end`; `GameEvent` (union of public events) in the state
+- [x] **API:** handlers in the command registry; server-side roll (`Rng`); scenario: subsequent dice rolls
+- [x] **Web:** `features/turn`: `TurnPanel` with an action registry (`actions.ts`), `RollAction` (result of two dice), `EndTurnAction`; others see "X's move"; `EventLog` rendering `GameEvent` through i18n
+- [x] **Tests:** API – a roll out of turn → `NOT_YOUR_TURN`; E2E – A rolls (3+4), both screens show 7 in the log, A ends the turn, B is active, A has no roll button
 
-#### G4 – Ruch po planszy
-Zależy od: G2, G3
+#### G4 – Moving on the board
+Depends on: G2, G3
 
-- [x] **Contracts/API:** komenda `turn:move`; `reachable` w stanie prywatnym; scenariusz: pozycje pionków
-- [x] **Web:** podświetlenie osiągalnych pól jako klikalne elementy z `aria-label`; animacja ruchu (`transform`, z `prefers-reduced-motion`); wpis w dzienniku („X wchodzi do Kuchni”)
-- [x] **Testy:** E2E – ruch na korytarz, wejście do pokoju przez drzwi, pole zajęte nie jest podświetlone, drugi gracz widzi nową pozycję
+- [x] **Contracts/API:** command `turn:move`; `reachable` in the private state; scenario: token positions
+- [x] **Web:** highlighting reachable cells as clickable elements with `aria-label`; movement animation (`transform`, honoring `prefers-reduced-motion`); a log entry ("X enters the Kitchen")
+- [x] **Tests:** E2E – move to a corridor, enter a room through a door, an occupied cell is not highlighted, the second player sees the new position
 
-#### G5 – Tajne przejście
-Zależy od: G2, G3, D2
+#### G5 – Secret passage
+Depends on: G2, G3, D2
 
-- [x] **Contracts/API:** komenda `turn:passage`
-- [x] **Web:** `PassageAction` (tylko gdy w `availableActions`); wpis w dzienniku
-- [x] **Testy:** E2E – gracz zaczyna turę w narożnym pokoju (scenariusz), używa przejścia zamiast rzutu, pionek ląduje w pokoju naprzeciw, przycisk rzutu znika
+- [x] **Contracts/API:** command `turn:passage`
+- [x] **Web:** `PassageAction` (only when in `availableActions`); a log entry
+- [x] **Tests:** E2E – a player starts the turn in a corner room (scenario), uses the passage instead of rolling, the token lands in the opposite room, the roll button disappears
 
-#### G6 – Sugestia (z automatycznym pasowaniem)
-Zależy od: G2, G3, D3
+#### G6 – Suggestion (with automatic passing)
+Depends on: G2, G3, D3
 
-- [x] **Contracts/API:** komenda `turn:suggest`; po sugestii serwer automatycznie pasuje za graczy bez pasujących kart (zdarzenie „X nie może obalić”); stan publiczny pokazuje, na kogo czekamy
-- [x] **Web:** `SuggestAction` + `SuggestionDialog` (podejrzany + broń na `CardSelectGrid`, pokój narzucony); dziennik: „A sugeruje: Red, Rope, Kitchen”, „Nikt nie obalił”
-- [x] **Testy:** E2E – ręce bez dopasowań → wszyscy widzą „Nikt nie obalił”, pionek podejrzanego i broń w pokoju; wezwany gracz w swojej turze może sugerować bez ruchu
+- [x] **Contracts/API:** command `turn:suggest`; after a suggestion the server automatically passes for players with no matching cards ("X cannot disprove" event); the public state shows who we are waiting for
+- [x] **Web:** `SuggestAction` + `SuggestionDialog` (suspect + weapon on `CardSelectGrid`, room imposed); log: "A suggests: Red, Rope, Kitchen", "Nobody disproved"
+- [x] **Tests:** E2E – hands without matches → everyone sees "Nobody disproved", the suspect's token and the weapon in the room; a summoned player on their turn can suggest without moving
 
-#### G7 – Obalanie i prywatne ujawnienie karty
-Zależy od: G6
+#### G7 – Disproving and private card reveal
+Depends on: G6
 
-- [x] **Contracts/API:** `game:private` dla obalającego zawiera `disproveRequest` (pasujące karty); komenda `turn:disprove { cardId }`; pokazana karta tylko w stanie prywatnym sugerującego (`seenCards`), pozostali dostają „B pokazał kartę A”
-- [x] **Web:** `features/disprove`: panel obalającego (wybór jednej z pasujących kart, bez przycisku „Pas”), widok sugerującego (karta i od kogo), pozostali (informacja bez karty); stany oczekiwania
-- [x] **Testy:** API – socket trzeciego gracza nie otrzymuje id pokazanej karty w żadnym zdarzeniu; E2E – 3 graczy: B wybiera kartę, A ją widzi, w DOM C nie ma nazwy karty
+- [x] **Contracts/API:** `game:private` for the disprover contains `disproveRequest` (matching cards); command `turn:disprove { cardId }`; the shown card only in the suggester's private state (`seenCards`), others get "B showed a card to A"
+- [x] **Web:** `features/disprove`: disprover panel (choose one of the matching cards, no "Pass" button), suggester view (the card and from whom), others (information without the card); waiting states
+- [x] **Tests:** API – a third player's socket does not receive the shown card id in any event; E2E – 3 players: B picks a card, A sees it, C's DOM does not contain the card name
 
-#### G8 – Oskarżenie, odpadnięcie i koniec gry
-Zależy od: G3, D4
+#### G8 – Accusation, elimination, and end of game
+Depends on: G3, D4
 
-- [x] **Contracts/API:** komenda `turn:accuse`; wynik prywatny (koperta dla błędnie oskarżającego); stan publiczny: odpadli, zwycięzca, `winReason`, koperta po zakończeniu
-- [x] **Web:** `AccuseAction` + `AccusationDialog` (3 × `CardSelectGrid`, ostrzeżenie o odpadnięciu); baner „Odpadłeś – nadal obalasz”; `features/game-over`: `GameOverScreen` (zwycięzca, koperta, wariant: wygrana / przegrana / ostatni gracz), „Wróć do menu”
-- [x] **Testy:** E2E – poprawne oskarżenie kończy grę u wszystkich; błędne eliminuje gracza (widzi kopertę, inni nie), gra trwa dalej; w grze 2-osobowej błąd jednego = wygrana drugiego
+- [x] **Contracts/API:** command `turn:accuse`; private result (envelope for a wrongly accusing player); public state: eliminated, winner, `winReason`, envelope after the end
+- [x] **Web:** `AccuseAction` + `AccusationDialog` (3 × `CardSelectGrid`, elimination warning); "You are eliminated – you still disprove" banner; `features/game-over`: `GameOverScreen` (winner, envelope, variant: win / loss / last player standing), "Back to menu"
+- [x] **Tests:** E2E – a correct accusation ends the game for everyone; a wrong one eliminates the player (they see the envelope, others don't), the game continues; in a 2-player game one's mistake = the other's win
 
-#### G9 – Notatnik detektywa
-Zależy od: G1
+#### G9 – Detective notebook
+Depends on: G1
 
-- [x] **Web:** `features/notebook`: siatka podejrzani/bronie/pokoje; komórka cyklicznie puste → ✓ → ✗ → ?; własne karty zaznaczone; zapis w `localStorage` per `gameId` + `playerId`; zakładka (mobile) / panel (desktop)
-- [x] **Web:** jeśli G7 jest gotowy – karty pokazane graczowi (`seenCards`) zaznaczane automatycznie
-- [x] **Testy:** Vitest – cykl stanów i pre-zaznaczenie; E2E – zaznaczenia przetrwają odświeżenie
+- [x] **Web:** `features/notebook`: suspects/weapons/rooms grid; a cell cycles empty → ✓ → ✗ → ?; own cards marked; saved in `localStorage` per `gameId` + `playerId`; a tab (mobile) / panel (desktop)
+- [x] **Web:** if G7 is ready – cards shown to the player (`seenCards`) are marked automatically
+- [x] **Tests:** Vitest – state cycle and pre-marking; E2E – marks survive a refresh
 
-#### G10 – Zagraj ponownie w tym samym pokoju
-Zależy od: G8
+#### G10 – Play again in the same room
+Depends on: G8
 
-- [x] **Game/API:** `room:restart` (tylko host, tylko `FINISHED`) → pokój wraca do `LOBBY` z tymi samymi graczami, postaciami i ustawieniami, nowym `gameId`
-- [x] **Web:** przycisk „Zagraj ponownie” dla hosta na `GameOverScreen`; pozostali automatycznie przechodzą do lobby; nowy notatnik (nowy `gameId`)
-- [x] **Testy:** E2E – po zakończeniu host restartuje, wszyscy są w lobby, można rozpocząć nową grę z nową kopertą
+- [x] **Game/API:** `room:restart` (host only, `FINISHED` only) → the room returns to `LOBBY` with the same players, characters, and settings, and a new `gameId`
+- [x] **Web:** a "Play again" button for the host on `GameOverScreen`; others automatically move to the lobby; a new notebook (new `gameId`)
+- [x] **Tests:** E2E – after the end the host restarts, everyone is in the lobby, a new game with a new envelope can be started
 
-### Odporność
+### Resilience
 
-#### R1 – Limit czasu tury
-Zależy od: L1, G7
+#### R1 – Turn time limit
+Depends on: L1, G7
 
-- [ ] **API:** `TurnClock` z wstrzykiwanym `Clock`; termin (`deadline`) w stanie publicznym; po upływie limitu tura kończy się automatycznie (zdarzenie „Czas minął”); obalający ma osobny limit 30 s, po którym serwer pokazuje losową pasującą kartę; bez limitu (`null`) brak timera tury
-- [ ] **API:** scenariusz: skrócenie limitów w testach
-- [ ] **Web:** licznik czasu przy aktywnym graczu i u obalającego
-- [ ] **Testy:** API (fałszywy zegar) – timeout tury i obalania; E2E – przy limicie skróconym scenariuszem tura przechodzi na następnego gracza
+- [ ] **API:** `TurnClock` with an injected `Clock`; a `deadline` in the public state; when the limit expires the turn ends automatically ("Time's up" event); the disprover has a separate 30 s limit, after which the server shows a random matching card; no limit (`null`) means no turn timer
+- [ ] **API:** scenario: shortening the limits in tests
+- [ ] **Web:** a countdown next to the active player and the disprover
+- [ ] **Tests:** API (fake clock) – turn and disprove timeout; E2E – with the limit shortened by a scenario, the turn passes to the next player
 
-#### R2 – Rozłączenia i powrót do gry
-Zależy od: R1
+#### R2 – Disconnections and returning to the game
+Depends on: R1
 
-- [ ] **API:** obecność graczy (connect/disconnect per gracz, wiele kart przeglądarki); rozłączony gracz zachowuje miejsce; jeśli ma turę lub obala – karencja 60 s (konfigurowalna), potem pominięcie tury / automatyczne pokazanie karty (wspólny mechanizm z R1)
-- [ ] **API:** po ponownym połączeniu: stan publiczny, ręka, oczekujące `disproveRequest`, `seenCards`
-- [ ] **Web:** wskaźnik rozłączonego gracza w `PlayersBar`; komunikat o ponownym łączeniu
-- [ ] **Testy:** API – karencja i pominięcie; E2E – gracz zamyka kontekst w trakcie swojej tury, inni widzą wskaźnik, po karencji tura przechodzi dalej; powrót przywraca rękę
+- [ ] **API:** player presence (connect/disconnect per player, multiple browser tabs); a disconnected player keeps their seat; if they have the turn or are disproving – a 60 s grace period (configurable), then the turn is skipped / the card is shown automatically (shared mechanism with R1)
+- [ ] **API:** after reconnecting: public state, hand, pending `disproveRequest`, `seenCards`
+- [ ] **Web:** a disconnected-player indicator in `PlayersBar`; a reconnecting message
+- [ ] **Tests:** API – grace period and skipping; E2E – a player closes their context during their turn, others see the indicator, after the grace period the turn moves on; returning restores the hand
 
-### Dopracowanie
+### Polish
 
-#### P1 – Responsywność, dostępność, pełne gry
-Zależy od: G4, G5, G9, G10, R2
+#### P1 – Responsiveness, accessibility, full games
+Depends on: G4, G5, G9, G10, R2
 
-- [ ] **Web:** dopracowanie 375×812 i 1440×900; pola dotykowe ≥ 44 px; fokus i pułapka fokusu w dialogach; obsługa klawiatury na planszy; `prefers-reduced-motion`
-- [ ] **Testy:** `@axe-core/playwright` na każdym ekranie w obu motywach; pełna gra 2 i 6 graczy (scenariusz) od lobby do zwycięzcy; zrzuty ekranów głównych widoków
+- [ ] **Web:** polish for 375×812 and 1440×900; touch targets ≥ 44 px; focus and focus trap in dialogs; keyboard support on the board; `prefers-reduced-motion`
+- [ ] **Tests:** `@axe-core/playwright` on every screen in both themes; a full 2- and 6-player game (scenario) from the lobby to the winner; screenshots of the main views
 
-#### P2 – Design w Figmie
-Zależy od: P1
+#### P2 – Design in Figma
+Depends on: P1
 
-- [ ] **Docs/Design:** eksport ekranów (mobile/desktop, oba motywy) do `docs/design/` i planszy jako SVG
-- [ ] **Figma:** wgranie ekranów jednym wywołaniem `html_to_figma` (limit MCP)
+- [ ] **Docs/Design:** export screens (mobile/desktop, both themes) to `docs/design/` and the board as SVG
+- [ ] **Figma:** upload the screens in a single `html_to_figma` call (MCP limit)
 
-#### P3 (opcjonalny) – Persystencja w bazie danych
-Zależy od: G8 (stabilne `GameRepository`/`SessionRepository`)
+#### P3 (optional) – Database persistence
+Depends on: G8 (stable `GameRepository`/`SessionRepository`)
 
-- [ ] **API/DB:** PostgreSQL + Prisma jako implementacje repozytoriów; migawki gry i log zdarzeń; wygasanie sesji
-- [ ] **Testy:** integracyjne na prawdziwej bazie (Docker Compose), odtworzenie pokoju po restarcie API
+- [ ] **API/DB:** PostgreSQL + Prisma as repository implementations; game snapshots and an event log; session expiry
+- [ ] **Tests:** integration tests on a real database (Docker Compose), restoring a room after an API restart
 
 ---
 
-## 7. Poza zakresem (do decyzji później)
+## 7. Out of scope (to be decided later)
 
-Opuszczanie pokoju i przekazanie roli hosta, wyrzucanie graczy, obserwatorzy, czat, boty, konta, ranking, publiczne wyszukiwanie pokoi, gra offline.
+Leaving a room and passing on the host role, kicking players, spectators, chat, bots, accounts, ranking, public room search, offline play.

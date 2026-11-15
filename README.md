@@ -1,83 +1,83 @@
 # The Last Alibi
 
-Dedukcyjna gra planszowa online dla 2–6 graczy (mechanika w stylu „kto, czym i gdzie”) z własną oprawą. Gracze dołączają do prywatnego pokoju po kodzie albo linku, wybierają postać, a potem na zmianę rzucają kośćmi, chodzą po planszy, sugerują, obalają i oskarżają. Wygrywa ten, kto pierwszy poprawnie wskaże zawartość koperty.
+An online deduction board game for 2–6 players (a "who, with what, and where" mechanic) with its own original presentation. Players join a private room via a code or a link, pick a character, and then take turns rolling dice, moving around the board, suggesting, disproving, and accusing. The first player to correctly name the contents of the envelope wins.
 
-- mobile first, układ responsywny na desktop;
-- motyw jasny / ciemny / systemowy, interfejs PL / EN;
-- notatnik detektywa zapisywany w przeglądarce;
-- link do pokoju (`/room/<kod>`), zapamiętany nick, zmiana nicku w pokoju;
-- obecność graczy: po 30 s nieobecności gracz w lobby opuszcza pokój, a w trakcie gry jego tury są pomijane, a karty pokazuje za niego serwer;
-- po zakończeniu gry wszyscy wracają do lobby tego samego pokoju z podsumowaniem ostatniej partii.
+- mobile first, responsive layout on desktop;
+- light / dark / system theme, PL / EN interface;
+- detective notebook saved in the browser;
+- room link (`/room/<code>`), remembered nickname, nickname change inside a room;
+- player presence: after 30 s of absence a player in the lobby leaves the room; during a game their turns are skipped and the server shows cards on their behalf;
+- after a game ends, everyone returns to the lobby of the same room with a summary of the last match.
 
-Zasady gry: [`docs/cluedo-rules.md`](docs/cluedo-rules.md) (sekcja „Implementation clarifications” jest wiążąca). Plan i architektura: [`docs/game-screens-plan.md`](docs/game-screens-plan.md).
+Game rules: [`docs/cluedo-rules.md`](docs/cluedo-rules.md) (the "Implementation clarifications" section is binding). Plan and architecture: [`docs/game-screens-plan.md`](docs/game-screens-plan.md).
 
-## Technologie
+## Technologies
 
-| Obszar | Technologie |
+| Area | Technologies |
 |---|---|
 | Monorepo | pnpm 10 (workspaces), Turborepo 2, TypeScript 5.9 (strict), Node.js ≥ 22 |
-| Domena (`packages/game`) | czysty TypeScript bez zależności runtime, niemutowalne funkcje zwracające `Result`, wstrzykiwany RNG |
-| Kontrakty (`packages/contracts`) | Zod 4 – schematy HTTP/WebSocket, typy zdarzeń Socket.IO, kody błędów |
-| API (`apps/api`) | NestJS 11, Socket.IO 4, repozytoria in-memory (interfejsy gotowe pod bazę danych) |
-| Web (`apps/web`) | React 19, Vite 7, Tailwind CSS 4 (tokeny CSS dla motywów), lucide-react, socket.io-client; bez Reduxa i bez biblioteki routingu |
-| Testy | Vitest (domena, API z `@nestjs/testing` i socket.io-client, web z Testing Library + jsdom), Playwright (E2E, projekty `mobile-chromium` i `desktop-chromium`) |
-| Uruchomienie | Docker (multi-stage), docker compose, nginx (statyczny web + proxy `/api` i `/socket.io`) |
+| Domain (`packages/game`) | pure TypeScript with no runtime dependencies, immutable functions returning `Result`, injected RNG |
+| Contracts (`packages/contracts`) | Zod 4 – HTTP/WebSocket schemas, Socket.IO event types, error codes |
+| API (`apps/api`) | NestJS 11, Socket.IO 4, in-memory repositories (interfaces ready for a database) |
+| Web (`apps/web`) | React 19, Vite 7, Tailwind CSS 4 (CSS tokens for themes), lucide-react, socket.io-client; no Redux and no routing library |
+| Tests | Vitest (domain, API with `@nestjs/testing` and socket.io-client, web with Testing Library + jsdom), Playwright (E2E, `mobile-chromium` and `desktop-chromium` projects) |
+| Deployment | Docker (multi-stage), docker compose, nginx (static web + proxy for `/api` and `/socket.io`) |
 
-### Architektura w skrócie
+### Architecture at a glance
 
 ```
-packages/game        reguły gry (czyste funkcje)          ◄── jedyne źródło reguł
-packages/contracts   Zod + typy wspólne dla API i web
-apps/api             transport (HTTP + Socket.IO), sesje, obecność, projekcje stanu
-apps/web             widoki; pokazuje tylko akcje dozwolone przez serwer
-apps/e2e             testy Playwright (fixture'y wielu graczy, Page Objects)
+packages/game        game rules (pure functions)          ◄── the only source of rules
+packages/contracts   Zod + types shared by API and web
+apps/api             transport (HTTP + Socket.IO), sessions, presence, state projections
+apps/web             views; shows only the actions allowed by the server
+apps/e2e             Playwright tests (multi-player fixtures, Page Objects)
 ```
 
-- **Serwer jest autorytatywny.** Klient wysyła intencję (np. `turn:move`), serwer waliduje ją funkcjami z `packages/game` i rozsyła stan.
-- **Projekcje.** Stan publiczny (`game:state`) dostają wszyscy, a stan prywatny (`game:private`: ręka, dozwolone akcje, osiągalne pola, prośba o obalenie, pokazane karty) tylko właściciel. Koperta i cudze karty nigdy nie trafiają do stanu publicznego.
-- **Tożsamość.** Gracz dostaje token sesji przy tworzeniu pokoju lub dołączaniu; socket uwierzytelnia się tokenem w handshake'u.
-- **Feature folders** w każdej warstwie; słowniki i18n per feature (EN + PL).
+- **The server is authoritative.** The client sends an intent (e.g. `turn:move`), the server validates it with functions from `packages/game` and broadcasts the state.
+- **Projections.** The public state (`game:state`) goes to everyone, while the private state (`game:private`: hand, allowed actions, reachable cells, disprove request, shown cards) goes only to its owner. The envelope and other players' cards never reach the public state.
+- **Identity.** A player receives a session token when creating or joining a room; the socket authenticates with the token in the handshake.
+- **Feature folders** in every layer; i18n dictionaries per feature (EN + PL).
 
-## Uruchomienie lokalne (dev)
+## Running locally (dev)
 
-Wymagania: Node.js ≥ 22 i pnpm 10 (`corepack enable`).
+Requirements: Node.js ≥ 22 and pnpm 10 (`corepack enable`).
 
 ```bash
 pnpm install
-pnpm --filter @mystery-game/game --filter @mystery-game/contracts build   # biblioteki współdzielone
+pnpm --filter @mystery-game/game --filter @mystery-game/contracts build   # shared libraries
 pnpm dev                                                                   # API :3000 + web :5173
 ```
 
-Aplikacja działa pod <http://localhost:5173>. Zmienne środowiskowe są opisane w [`.env.example`](.env.example):
+The app runs at <http://localhost:5173>. Environment variables are described in [`.env.example`](.env.example):
 
-| Zmienna | Domyślnie | Opis |
+| Variable | Default | Description |
 |---|---|---|
-| `PORT` | `3000` | port API |
-| `WEB_ORIGIN` | `http://localhost:5173` | origin weba (CORS) |
-| `PRESENCE_GRACE_MS` | `30000` | po ilu ms rozłączony gracz opuszcza lobby / zostaje oznaczony jako nieobecny w grze |
-| `ENABLE_TEST_API` | — | `1` włącza `POST /testing/rooms/:code/scenario` (tylko testy E2E) |
-| `VITE_API_URL` | `http://localhost:3000` | adres API dla weba (może być względny, np. `/api`, za reverse proxy) |
+| `PORT` | `3000` | API port |
+| `WEB_ORIGIN` | `http://localhost:5173` | web origin (CORS) |
+| `PRESENCE_GRACE_MS` | `30000` | how many ms after disconnecting a player leaves the lobby / is marked as away in a game |
+| `ENABLE_TEST_API` | — | `1` enables `POST /testing/rooms/:code/scenario` (E2E tests only) |
+| `VITE_API_URL` | `http://localhost:3000` | API address for the web app (can be relative, e.g. `/api`, behind a reverse proxy) |
 
-## Uruchomienie w Dockerze
+## Running in Docker
 
 ```bash
 docker compose up --build
 ```
 
-Gra jest dostępna pod <http://localhost:8080>; port zmienisz przez `WEB_PORT=9000 docker compose up`. Kontener `web` (nginx) serwuje zbudowaną aplikację i przekazuje `/api/*` oraz `/socket.io/*` do kontenera `api`, więc wszystko działa na jednym originie. Stan gier jest trzymany w pamięci API, więc restart kontenera kasuje pokoje.
+The game is available at <http://localhost:8080>; you can change the port with `WEB_PORT=9000 docker compose up`. The `web` container (nginx) serves the built app and forwards `/api/*` and `/socket.io/*` to the `api` container, so everything runs on a single origin. Game state is kept in the API's memory, so restarting the container wipes all rooms.
 
-## Testy i jakość
+## Tests and quality
 
 ```bash
-pnpm typecheck     # TypeScript we wszystkich pakietach
-pnpm test          # testy jednostkowe: domena, API, web (Vitest)
-pnpm build         # build wszystkich pakietów
-pnpm test:e2e      # Playwright; sam uruchamia API (:3100) i web (:5174)
+pnpm typecheck     # TypeScript in all packages
+pnpm test          # unit tests: domain, API, web (Vitest)
+pnpm build         # build all packages
+pnpm test:e2e      # Playwright; starts the API (:3100) and web (:5174) itself
 ```
 
-Przed pierwszym uruchomieniem E2E zainstaluj przeglądarkę: `pnpm --filter @mystery-game/e2e exec playwright install chromium`.
+Before running E2E for the first time, install the browser: `pnpm --filter @mystery-game/e2e exec playwright install chromium`.
 
-## Struktura repozytorium
+## Repository structure
 
 ```
 apps/
@@ -87,6 +87,6 @@ apps/
 packages/
   game/       src/{lobby,setup,board,movement,suggestion,accusation,turn-flow,presence,shared}
   contracts/  src/{session,rooms,game,testing}, errors.ts, events.ts
-docker/       konfiguracja nginx
-docs/         zasady, plan wdrożenia, referencje designu
+docker/       nginx configuration
+docs/         rules, implementation plan, design references
 ```
