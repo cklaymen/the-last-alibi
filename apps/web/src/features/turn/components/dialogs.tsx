@@ -39,8 +39,10 @@ export function SuggestAction({ game, myId, send }: ActionProps) {
   );
 }
 
-export function AccuseAction({ send }: ActionProps) {
+export function AccuseAction({ game, myId, send }: ActionProps) {
   const t = useT(turnMessages);
+  const lockedRoom =
+    game.settings.accusationPlace === "named_room" ? (myRoom(game, myId) ?? undefined) : undefined;
   const [open, setOpen] = useState(false);
   const { run, busy, error, clearError } = useCommand(send);
   const close = () => {
@@ -55,6 +57,7 @@ export function AccuseAction({ send }: ActionProps) {
       </button>
       {open && (
         <AccusationDialog
+          lockedRoom={lockedRoom}
           busy={busy}
           error={error}
           onClose={close}

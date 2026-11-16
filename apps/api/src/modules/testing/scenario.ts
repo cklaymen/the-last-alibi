@@ -19,8 +19,13 @@ export function applyScenario(game: Game, scenario: Scenario): Game {
   const summonedTo: Record<string, RoomId> = { ...play.summonedTo, ...byId(scenario.summonedTo) };
   const active = scenario.activePlayer !== undefined ? idOf(scenario.activePlayer) : undefined;
 
+  const settingsPatch = Object.fromEntries(
+    Object.entries(scenario.settings ?? {}).filter(([, v]) => v !== undefined),
+  );
+
   return {
     ...game,
+    settings: { ...game.settings, ...settingsPatch },
     play: {
       ...play,
       envelope: scenario.envelope ?? play.envelope,

@@ -154,7 +154,11 @@ describe("presence during a game", () => {
   it("game end returns to the lobby and removes away players", async () => {
     const { code, clients } = await startedRoom(app, ["Alice", "Bob", "Carol"]);
     const [alice, bob, carol] = track(clients) as [Client, Client, Client];
-    await applyScenario(app, code, { envelope: ENVELOPE, activePlayer: "Alice" });
+    await applyScenario(app, code, {
+      envelope: ENVELOPE,
+      activePlayer: "Alice",
+      pawns: { red: { kind: "room", roomId: "kitchen" } },
+    });
     const oldId = alice.lastRoom()!.id;
     carol.socket.disconnect();
     await waitFor(() => presenceOf(alice, carol.playerId) === "away");

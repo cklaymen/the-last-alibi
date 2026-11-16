@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { makeGame, makeMe } from "../game/testFixtures.js";
+import { makeGame, makeMe, makeSettings } from "../game/testFixtures.js";
 import { visibleActions, turnActions } from "./actions.js";
 import { TurnPanel } from "./TurnPanel.js";
 
@@ -102,5 +102,32 @@ describe("TurnPanel", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(send).not.toHaveBeenCalled();
+  });
+});
+
+describe("AccuseAction", () => {
+  const inLounge = (accusationPlace: "any_room" | "named_room") =>
+    makeGame({
+      settings: makeSettings({ accusationPlace }),
+      pawns: [{ characterId: "red", location: { kind: "room", roomId: "lounge" } }],
+    });
+  const me = makeMe({ availableActions: ["accuse"] });
+
+  it("named room: the room is locked to the current room", async () => {
+    render(<TurnPanel game={inLounge("named_room")} me={me} myId="p1" send={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Accuse" }));
+    const rooms = screen.getByRole("radiogroup", { name: "Room" });
+    const lounge = screen.getByRole("radio", { name: "Lounge" });
+    expect(rooms).toContainElement(lounge);
+    expect(lounge).toBeChecked();
+    expect(lounge).toBeDisabled();
+  });
+
+  it("any room: the room is free to choose", async () => {
+    render(<TurnPanel game={inLounge("any_room")} me={me} myId="p1" send={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: "Accuse" }));
+    const lounge = screen.getByRole("radio", { name: "Lounge" });
+    expect(lounge).not.toBeChecked();
+    expect(lounge).toBeEnabled();
   });
 });

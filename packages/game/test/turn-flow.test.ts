@@ -23,7 +23,7 @@ const base = (): Game =>
 
 describe("availableActions", () => {
   it("start of turn on a corridor cell", () => {
-    expect(availableActions(base(), RED)).toEqual(["roll", "accuse", "end_turn"]);
+    expect(availableActions(base(), RED)).toEqual(["roll", "end_turn"]);
   });
 
   it("start of turn in a secret-passage room", () => {
@@ -43,7 +43,7 @@ describe("availableActions", () => {
 
   it("after rolling", () => {
     const g = unwrap(rollDice(base(), RED, diceRng(2, 3)));
-    expect(availableActions(g, RED)).toEqual(["move", "accuse", "end_turn"]);
+    expect(availableActions(g, RED)).toEqual(["move", "end_turn"]);
   });
 
   it("after rolling inside a fully blocked room", () => {
@@ -56,7 +56,7 @@ describe("availableActions", () => {
   it("after moving onto a corridor cell", () => {
     let g = unwrap(rollDice(base(), RED, diceRng(1, 1)));
     g = unwrap(movePawn(g, RED, cell(23, 7)));
-    expect(availableActions(g, RED)).toEqual(["accuse", "end_turn"]);
+    expect(availableActions(g, RED)).toEqual(["end_turn"]);
   });
 
   it("after entering a room", () => {
@@ -94,16 +94,18 @@ describe("availableActions", () => {
   });
 
   it("an eliminated active player gets nothing", () => {
-    const g = unwrap(makeAccusation(base(), RED, { suspect: "red", weapon: "rope", room: "hall" }));
+    const inHall = withState(base(), { pawns: { red: room("hall") } });
+    const g = unwrap(makeAccusation(inHall, RED, { suspect: "red", weapon: "rope", room: "hall" }));
     expect(availableActions(g, RED)).toEqual([]);
-    expect(availableActions(g, GREEN)).toEqual(["roll", "accuse", "end_turn"]);
+    expect(availableActions(g, GREEN)).toEqual(["roll", "end_turn"]);
   });
 
   it("other players, unknown players, lobby and finished games get nothing", () => {
     expect(availableActions(base(), GREEN)).toEqual([]);
     expect(availableActions(base(), playerId("ghost"))).toEqual([]);
     expect(availableActions(lobbyWith(["red", "green"]), RED)).toEqual([]);
-    const won = unwrap(makeAccusation(base(), RED, { suspect: "yellow", weapon: "wrench", room: "study" }));
+    const inHall = withState(base(), { pawns: { red: room("hall") } });
+    const won = unwrap(makeAccusation(inHall, RED, { suspect: "yellow", weapon: "wrench", room: "study" }));
     expect(availableActions(won, RED)).toEqual([]);
     expect(availableActions(won, GREEN)).toEqual([]);
   });

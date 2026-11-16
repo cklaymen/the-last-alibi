@@ -13,7 +13,7 @@ import {
   returnToLobby,
   roomCode,
 } from "../src/index.js";
-import { codeOf, lobbyWith, pid, started, unwrap } from "./helpers.js";
+import { codeOf, lobbyWith, pid, room, started, unwrap, withState } from "./helpers.js";
 
 const host = { id: playerId("h"), name: "Host" };
 
@@ -100,7 +100,8 @@ describe("lobby", () => {
     const s = started(["red", "blue"]);
     expect(codeOf(returnToLobby(s, gameId("g2")))).toBe("GAME_NOT_FINISHED");
     const envelope = s.play!.envelope;
-    const finished = unwrap(makeAccusation(s, pid("red"), envelope));
+    const inRoom = withState(s, { pawns: { red: room("kitchen") } });
+    const finished = unwrap(makeAccusation(inRoom, pid("red"), envelope));
     const r = unwrap(returnToLobby(finished, gameId("g2")));
     expect(r.id).toBe("g2");
     expect(r.phase).toBe("LOBBY");

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { cardIdSchema, characterIdSchema, roomIdSchema, weaponIdSchema } from "../ids.js";
 import { locationSchema, tripleSchema } from "../game/index.js";
+import { updateSettingsSchema } from "../settings/index.js";
 
 /**
  * Body of POST /testing/rooms/:code/scenario (only when ENABLE_TEST_API=1).
@@ -17,5 +18,7 @@ export const scenarioSchema = z.object({
   activePlayer: z.string().optional(),
   /** Players summoned to a room by a suggestion (may suggest without moving). */
   summonedTo: z.record(z.string(), roomIdSchema).optional(),
+  /** House-rule overrides for the running game (only the given fields change). */
+  settings: updateSettingsSchema.optional(),
 });
 export type Scenario = z.infer<typeof scenarioSchema>;

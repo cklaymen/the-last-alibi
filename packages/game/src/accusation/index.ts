@@ -1,11 +1,28 @@
-import { requireActivePlayer } from "../shared/guards.js";
+import { requireActivePlayer, type TurnContext } from "../shared/guards.js";
 import { passTurn, withEvents, withPlay } from "../shared/play.js";
-import { fail, ok, type GameResult } from "../shared/result.js";
+import { fail, ok, type GameErrorCode, type GameResult } from "../shared/result.js";
 import type { Accusation, Game, PlayerId } from "../shared/types.js";
+
+/**
+ * House-rule checks for an accusation (after the common turn guards):
+ * NOT_IN_ROOM (pawn on a corridor) → ACCUSE_AFTER_SUGGESTION_DISABLED →
+ * WRONG_ROOM (only when `accusation` is given and the room must be the current one).
+ */
+export function accusationError(ctx: TurnContext, accusation?: Accusation): GameErrorCode | null {
+  const { location, turn, game } = ctx;
+  if (location.kind !== "room") return "NOT_IN_ROOM";
+  if (!game.settings.accuseAfterSuggestion && turn.hasSuggested)
+    return "ACCUSE_AFTER_SUGGESTION_DISABLED";
+  if (accusation && game.settings.accusationPlace === "named_room" && accusation.room !== location.roomId)
+    return "WRONG_ROOM";
+  return null;
+}
 
 export function makeAccusation(game: Game, playerId: PlayerId, accusation: Accusation): GameResult {
   const g = requireActivePlayer(game, playerId);
   if (!g.ok) return fail(g.code);
+  const error = accusationError(g.value, accusation);
+  if (error) return fail(error);
   const { play } = g.value;
   const { envelope } = play;
   const correct =
