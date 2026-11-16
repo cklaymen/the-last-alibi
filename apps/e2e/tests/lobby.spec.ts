@@ -52,3 +52,8 @@ test("refreshing the page keeps the player and their character", async ({ table 
   await expect(bob.page.getByText(`room: ${code}`)).toBeVisible();
   await expect(bob.lobby.character("Col. Yellow")).toHaveAttribute("aria-pressed", "true");
 });
+
+test("home screen shows version", async ({ page }) => {
+  await new JoinPage(page).open();
+  await expect(page.getByText(/^Version /)).toBeVisible();
+});

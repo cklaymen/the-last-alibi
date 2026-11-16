@@ -15,6 +15,9 @@ export function JoinScreen() {
       header={
         <p className="m-0 text-center text-2xl text-brand-strong">{t("tagline")}</p>
       }
+      footer={
+        <p className="m-0 text-xs text-muted">{t("version", { version: __APP_VERSION__ })}</p>
+      }
     >
       <JoinForm
         isLoading={isLoading}
