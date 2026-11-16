@@ -16,6 +16,8 @@ export interface Scenario {
   activePlayer?: string;
   summonedTo?: Record<string, string>;
   settings?: Record<string, unknown>;
+  roomCards?: Record<string, string>;
+  timeLimitsMs?: { turn?: number; disprove?: number };
 }
 
 /** Sets up game state through the test-only API (ENABLE_TEST_API=1). */
