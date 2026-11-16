@@ -212,7 +212,7 @@ export function factsOnly(input: DeductionInput): Deduction; // autoNotes off: o
 ```
 Algorithm (decided here): walk events, remembering the last `suggested` triple; `cannot_disprove(X)` → ✗ at X for its 3 cards; `card_shown(X → other ≠ me)` → constraint "X has one of {3 cards}"; seenCards → ✓; my hand and roomCards → ✗ at every other player. Then loop until no change (bound: 21 × players iterations): ✓ at X ⇒ ✗ at others; count(✓ at X) = cardCount ⇒ ✗ elsewhere at X; constraint with exactly one non-✗ card at X ⇒ ✓; card that is the only non-general-✓ card of its section (not mine, not room card) ⇒ envelope ⇒ ✗ at all players. Finally `maybe` = cards of unresolved constraints that are neither ✗ nor ✓ at X. General ✓ = ✓ at any player, in my hand, or a room card. Envelope also = not mine, not room card, ✗ at every other player.
 
-- [ ] **Step 1: Failing tests** (one per rule; build `events` by hand, 3 players `me`, `b`, `c`, `cardCount` 6 each):
+- [x] **Step 1: Failing tests** (one per rule; build `events` by hand, 3 players `me`, `b`, `c`, `cardCount` 6 each):
   - `cannot_disprove marks the three cards ✗ for that player`
   - `card shown to me marks ✓ and records shownToMe`
   - `card shown to someone else marks ? on non-✗ cards of that suggestion`
@@ -223,8 +223,8 @@ Algorithm (decided here): walk events, remembering the last `suggested` triple; 
   - `all others ✗ and not mine → envelope`; `last unexcluded card in a section → envelope`
   - `terminates on contradictory input` (e.g. ✓ from seenCards and ✗ from cannot_disprove for same card) – returns without throwing
   - `factsOnly returns only shownToMe ✓ cells`
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS (coverage of `deduction.ts` ≥ 90 % lines).
-- [ ] **Step 5:** Commit `feat(notebook): pure deduction engine`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS (coverage of `deduction.ts` ≥ 90 % lines).
+- [x] **Step 5:** Commit `feat(notebook): pure deduction engine`.
 
 ## Task L1: Lobby settings panel
 
