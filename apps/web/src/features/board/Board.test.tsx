@@ -58,4 +58,48 @@ describe("Board", () => {
     await userEvent.click(reset);
     expect(reset).toBeDisabled();
   });
+
+  it("tooltip on click shows the character and player, toggles off on a second click", async () => {
+    render(<Board game={makeGame()} me={makeMe()} myId="p1" />);
+    const white = screen.getByRole("img", { name: "Mrs. White – Kitchen" });
+    await userEvent.click(white);
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Mrs. White (Bob)");
+    await userEvent.click(white);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    await userEvent.click(screen.getByRole("img", { name: "Rope – Library" }));
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Rope");
+  });
+
+  it("no tooltip after a drag", async () => {
+    render(<Board game={makeGame()} me={makeMe()} myId="p1" />);
+    await userEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    const svg = screen.getByRole("region", { name: "Board" }).querySelector("svg")!;
+    const white = screen.getByRole("img", { name: "Mrs. White – Kitchen" });
+    fireEvent.pointerDown(svg, { pointerId: 1, clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(svg, { pointerId: 1, clientX: 40, clientY: 40 });
+    fireEvent.pointerUp(svg, { pointerId: 1, clientX: 40, clientY: 40 });
+    fireEvent.click(white);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("click on a token in a reachable room moves instead of showing a tooltip", async () => {
+    const onMove = vi.fn();
+    const me = makeMe({ reachable: [{ kind: "room", roomId: "kitchen" }] });
+    render(<Board game={makeGame()} me={me} myId="p1" onMove={onMove} />);
+    await userEvent.click(screen.getByRole("img", { name: "Mrs. White – Kitchen" }));
+    expect(onMove).toHaveBeenCalledWith({ kind: "room", roomId: "kitchen" });
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("room-card marker rendered for roomsWithCards", () => {
+    render(<Board game={makeGame({ roomsWithCards: ["hall", "lounge"] })} me={makeMe()} myId="p1" />);
+    expect(screen.getAllByRole("img", { name: "Face-down card" })).toHaveLength(2);
+  });
+
+  it("highlights the active pawn", () => {
+    render(<Board game={makeGame()} me={makeMe()} myId="p1" />);
+    const red = screen.getByRole("img", { name: "Ms. Red – corridor" });
+    expect(red.querySelector('[data-highlight="active"]')).not.toBeNull();
+    expect(screen.getByRole("img", { name: "Mrs. White – Kitchen" }).querySelector("[data-highlight]")).toBeNull();
+  });
 });

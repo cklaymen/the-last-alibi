@@ -7,6 +7,7 @@ import {
   type RoomId,
   type WeaponId,
 } from "@mystery-game/game";
+import { currentTurnSuggestion } from "../disprove/index.js";
 import { myPlayer } from "../players/index.js";
 import { cellCenter, roomSlot, type Point } from "./geometry.js";
 
@@ -93,4 +94,24 @@ export function placeWeapons(game: PublicGameState): PlacedWeapon[] {
 
 export function locationKey(loc: Location): string {
   return loc.kind === "room" ? `room:${loc.roomId}` : `cell:${loc.position.row}:${loc.position.col}`;
+}
+
+export interface BoardHighlights {
+  activeCharacter: CharacterId | null;
+  suggestedCharacter: CharacterId | null;
+  suggestedWeapon: WeaponId | null;
+  suggestedRoom: RoomId | null;
+}
+
+/** The active player's pawn and the current turn's suggestion (until the turn ends). */
+export function boardHighlights(game: PublicGameState): BoardHighlights {
+  const active =
+    game.status === "IN_PROGRESS" ? game.players.find((p) => p.id === game.turn.playerId) : undefined;
+  const s = currentTurnSuggestion(game)?.suggestion;
+  return {
+    activeCharacter: active?.characterId ?? null,
+    suggestedCharacter: s?.suspect ?? null,
+    suggestedWeapon: s?.weapon ?? null,
+    suggestedRoom: s?.room ?? null,
+  };
 }

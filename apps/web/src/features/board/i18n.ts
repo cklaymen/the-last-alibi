@@ -11,6 +11,8 @@ export const boardMessages = defineMessages({
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     resetZoom: "Reset zoom",
+    playedBy: "{character} ({player})",
+    roomCard: "Face-down card",
   },
   pl: {
     region: "Plansza",
@@ -22,5 +24,7 @@ export const boardMessages = defineMessages({
     zoomIn: "Przybliż",
     zoomOut: "Oddal",
     resetZoom: "Resetuj powiększenie",
+    playedBy: "{character} ({player})",
+    roomCard: "Zakryta karta",
   },
 });

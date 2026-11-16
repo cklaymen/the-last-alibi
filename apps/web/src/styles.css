@@ -141,3 +141,23 @@
     animation: urgent-pulse 0.9s ease-in-out infinite;
   }
 }
+
+/* Board highlight tokens (appended by the board feature). */
+:root {
+  --board-active: #e0901a;
+  --board-suggested: #c0392b;
+}
+:root[data-theme="dark"] {
+  --board-active: #f0a43a;
+  --board-suggested: #ff7b6b;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes board-active-pulse {
+    0%, 100% { stroke-opacity: 1; stroke-width: 2.5px; }
+    50% { stroke-opacity: 0.35; stroke-width: 4px; }
+  }
+  .board-active-ring {
+    animation: board-active-pulse 1.4s ease-in-out infinite;
+  }
+}
