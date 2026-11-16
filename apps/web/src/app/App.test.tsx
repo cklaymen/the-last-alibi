@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { saveSession } from "../features/session/index.js";
+import { testSettings } from "../test/renderWithGame.js";
 import { App } from "./App.js";
 
 type Handler = (...args: unknown[]) => void;
@@ -16,6 +17,7 @@ vi.mock("socket.io-client", () => ({ io: (...args: unknown[]) => ioMock(...args)
 const room = {
   id: "g", code: "1234", hostId: "p0", maxPlayers: 6, phase: "LOBBY", lastResult: null,
   players: [{ id: "p1", name: "Ada", presence: "online" }],
+  settings: testSettings,
 };
 
 async function enterRoom() {
