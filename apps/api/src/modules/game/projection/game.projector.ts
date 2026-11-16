@@ -4,6 +4,8 @@ import {
   characterIds,
   matchingCards,
   reachableFor,
+  roomIds,
+  visibleRoomCards,
   weaponIds,
   type Game,
   type Location,
@@ -118,8 +120,8 @@ export class GameProjector {
       settings: copySettings(game.settings),
       // Placeholder until turn/disprove timers exist (task T1).
       timer: null,
-      // Placeholder until room cards are dealt (task C1).
-      roomsWithCards: [],
+      // Which rooms hold a face-down card – never which card.
+      roomsWithCards: roomIds.filter((r) => play.roomCards[r] !== undefined),
     };
   }
 
@@ -146,8 +148,8 @@ export class GameProjector {
         .filter((r) => r.toPlayerId === playerId)
         .map((r) => ({ cardId: r.cardId, fromPlayerId: r.fromPlayerId })),
       envelope: this.isEliminated(play, playerId) ? copyTriple(play.envelope) : null,
-      // Placeholder until room cards are dealt (task C1).
-      roomCards: [],
+      // Only cards in rooms this player's pawn has stood in.
+      roomCards: visibleRoomCards(game, playerId),
     };
   }
 

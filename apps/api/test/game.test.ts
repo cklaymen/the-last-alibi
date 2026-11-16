@@ -267,6 +267,74 @@ describe("projection fields", () => {
   });
 });
 
+describe("face-down room cards", () => {
+  const startWithRoomCards = async (n: number) => {
+    const { code, clients } = await createRoom(app, ["Alice", "Bob", "Carol"]);
+    const [alice, bob, carol] = track(clients) as [Client, Client, Client];
+    expect(await alice.send("room:settings", { roomCards: n })).toEqual({ ok: true });
+    await alice.send("room:choose_character", { characterId: "red" });
+    await bob.send("room:choose_character", { characterId: "yellow" });
+    await carol.send("room:choose_character", { characterId: "white" });
+    expect(await alice.send("room:start")).toEqual({ ok: true });
+    await waitFor(() => clients.every((c) => c.lastPrivate() !== undefined && c.lastPublic() !== undefined));
+    return { code, alice, bob, carol };
+  };
+
+  it("game:state.roomsWithCards lists rooms; hands shrink by the room cards", async () => {
+    const { alice, bob, carol } = await startWithRoomCards(6);
+    const pub = carol.lastPublic()!;
+    expect(pub.roomsWithCards).toHaveLength(6);
+    expect(new Set(pub.roomsWithCards).size).toBe(6);
+    expect(alice.lastPublic()!.roomsWithCards).toEqual(pub.roomsWithCards);
+    const hands = [alice, bob, carol].map((c) => c.lastPrivate()!.hand);
+    expect(hands.flat()).toHaveLength(12);
+    expect(pub.players.map((p) => p.cardCount)).toEqual([4, 4, 4]);
+    // all pawns start on cells: nobody has stood in a room yet
+    for (const c of [alice, bob, carol]) expect(c.lastPrivate()!.roomCards).toEqual([]);
+  });
+
+  it("room card id reaches only players who stood in the room", async () => {
+    const { code, alice, bob, carol } = await startWithRoomCards(2);
+    const ROOM_CARD = "wrench";
+    await applyScenario(app, code, {
+      envelope: ENVELOPE,
+      hands: { ...HANDS, Carol: ["blue", "purple", "revolver", "lounge", "hall"] },
+      roomCards: { kitchen: ROOM_CARD, lounge: "dining_room" },
+      pawns: { red: { kind: "room", roomId: "kitchen" } },
+      summonedTo: { Alice: "kitchen" },
+      activePlayer: "Alice",
+    });
+    await waitFor(() => alice.lastPrivate()!.roomCards.length > 0);
+    // Alice stands in the kitchen; nobody has been in the lounge.
+    expect(alice.lastPrivate()!.roomCards).toEqual([{ roomId: "kitchen", cardId: ROOM_CARD }]);
+    expect(bob.lastPrivate()!.roomCards).toEqual([]);
+    expect([...carol.lastPublic()!.roomsWithCards].sort()).toEqual(["kitchen", "lounge"]);
+
+    // Alice summons Bob's character (yellow) to the kitchen → Bob may peek too.
+    expect(await alice.send("turn:suggest", { suspect: "yellow", weapon: "dagger" })).toEqual({ ok: true });
+    await waitFor(() => bob.lastPrivate()!.roomCards.length > 0);
+    expect(bob.lastPrivate()!.roomCards).toEqual([{ roomId: "kitchen", cardId: ROOM_CARD }]);
+    await settle();
+
+    // Carol never stood in a room: no room card in anything she received.
+    for (const e of carol.events) {
+      expect(valuesOfKey(e.payload, "cardId")).not.toContain(ROOM_CARD);
+      expect(valuesOfKey(e.payload, "cardId")).not.toContain("dining_room");
+      if (e.event === "game:private") expect(e.payload.roomCards).toEqual([]);
+    }
+    // No public payload (anyone's) ever carries room card ids.
+    for (const c of [alice, bob, carol]) {
+      for (const e of c.events) {
+        if (e.event !== "game:state") continue;
+        // settings.roomCards is the public count; any other value would be a leak.
+        expect(valuesOfKey(e.payload, "roomCards")).toEqual([e.payload.settings.roomCards]);
+        expect(typeof e.payload.settings.roomCards).toBe("number");
+        expect(valuesOfKey(e.payload, "cardId")).toEqual([]);
+      }
+    }
+  });
+});
+
 /** Invariants that must hold for every event received before FINISHED. */
 function assertPrivate(client: Client, e: RecordedEvent): void {
   if (e.event === "game:state") {
