@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CELLS,
   endTurn,
+  makeSuggestion,
   movePawn,
   playerId,
   reachableFor,
@@ -233,6 +234,46 @@ describe("useSecretPassage", () => {
 
   it("is rejected for other players", () => {
     expect(codeOf(useSecretPassage(inKitchen(), BLUE))).toBe("NOT_YOUR_TURN");
+  });
+});
+
+describe("suggestion replaces movement for a summoned player", () => {
+  // Summoned to the lounge (a secret-passage room); nobody can disprove purple/wrench/lounge.
+  const summoned = () =>
+    withState(base(), {
+      pawns: { red: room("lounge") },
+      turn: { suggestionRoom: "lounge" },
+      hands: { [RED]: ["rope"], [BLUE]: ["dagger"], [pid("green")]: ["hall"] },
+    });
+  const suggest = (g: Game) => unwrap(makeSuggestion(g, RED, "purple", "wrench"));
+
+  it("summoned player who suggested cannot roll (ALREADY_SUGGESTED)", () => {
+    expect(codeOf(rollDice(suggest(summoned()), RED, diceRng(1, 1)))).toBe("ALREADY_SUGGESTED");
+  });
+
+  it("summoned player who suggested cannot use the passage", () => {
+    expect(codeOf(useSecretPassage(suggest(summoned()), RED))).toBe("ALREADY_SUGGESTED");
+  });
+
+  it("summoned player who rolled, then suggested, cannot move", () => {
+    const g = suggest(rolled(summoned(), 1, 1));
+    expect(play(g).turn.hasSuggested).toBe(true);
+    expect(reachableFor(g, RED)).toEqual([]);
+    expect(codeOf(movePawn(g, RED, cell(18, 6)))).toBe("ALREADY_SUGGESTED");
+  });
+
+  it("summoned player may still roll and move instead of suggesting", () => {
+    const g = rolled(summoned(), 1, 1);
+    const moved = unwrap(movePawn(g, RED, cell(18, 6)));
+    expect(play(moved).pawns.red).toEqual(cell(18, 6));
+    expect(play(unwrap(useSecretPassage(summoned(), RED))).pawns.red).toEqual(room("conservatory"));
+  });
+
+  it("rollError order: ALREADY_ROLLED before ALREADY_MOVED before ALREADY_SUGGESTED", () => {
+    const all = withState(base(), { turn: { dice: [1, 1], hasMoved: true, hasSuggested: true } });
+    expect(codeOf(rollDice(all, RED, diceRng(1, 1)))).toBe("ALREADY_ROLLED");
+    const movedAndSuggested = withState(base(), { turn: { hasMoved: true, hasSuggested: true } });
+    expect(codeOf(rollDice(movedAndSuggested, RED, diceRng(1, 1)))).toBe("ALREADY_MOVED");
   });
 });
 

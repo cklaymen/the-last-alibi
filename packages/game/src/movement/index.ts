@@ -8,10 +8,14 @@ import { reachableLocations } from "./reachable.js";
 
 export { reachableLocations } from "./reachable.js";
 
-/** Command-specific guard for rolling (after the common guards). */
+/**
+ * Command-specific guard for rolling (after the common guards).
+ * A suggestion replaces movement, so nothing can be rolled after one.
+ */
 export function rollError(ctx: TurnContext): GameErrorCode | null {
   if (ctx.turn.dice) return "ALREADY_ROLLED";
   if (ctx.turn.hasMoved) return "ALREADY_MOVED";
+  if (ctx.turn.hasSuggested) return "ALREADY_SUGGESTED";
   return null;
 }
 
@@ -27,7 +31,7 @@ export function passageTarget(ctx: TurnContext): { code: GameErrorCode } | { to:
 
 function reachableIn(ctx: TurnContext): Location[] {
   const { turn, play } = ctx;
-  if (!turn.dice || turn.hasMoved) return [];
+  if (!turn.dice || turn.hasMoved || turn.hasSuggested) return [];
   return reachableLocations(play.pawns, ctx.character, turn.dice[0] + turn.dice[1], turn.leftRoom);
 }
 
@@ -49,6 +53,7 @@ export function movePawn(game: Game, playerId: PlayerId, to: Location): GameResu
   const ctx = g.value;
   if (!ctx.turn.dice) return fail("NOT_ROLLED");
   if (ctx.turn.hasMoved) return fail("ALREADY_MOVED");
+  if (ctx.turn.hasSuggested) return fail("ALREADY_SUGGESTED");
   const target = reachableIn(ctx).find((l) => sameLocation(l, to));
   if (!target) return fail("UNREACHABLE");
   const { play, turn, location } = ctx;

@@ -72,3 +72,22 @@ test("a player summoned by a suggestion can suggest on their turn without moving
   await expect(bob!.game.pawn("Col. Yellow")).toHaveAccessibleName("Col. Yellow – Kitchen");
   await expect(bob!.game.action("Suggest")).toBeVisible();
 });
+
+test("summoned player suggests, then Roll button is gone", async ({ table, request }) => {
+  const t = await table(3);
+  await t.start();
+  const [ada] = t.players;
+  await applyScenario(request, t.code, {
+    ...setup,
+    pawns: { red: room("kitchen") },
+    summonedTo: { Ada: "kitchen" },
+    activePlayer: "Ada",
+  });
+  await expect(ada!.game.action("Roll dice")).toBeVisible();
+  await expect(ada!.game.action("Secret passage")).toBeVisible();
+  await ada!.game.suggest("Prof. Purple", "Wrench");
+  await expect(ada!.game.log().getByText("Nobody could disprove.")).toBeVisible();
+  await expect(ada!.game.action("Roll dice")).toHaveCount(0);
+  await expect(ada!.game.action("Secret passage")).toHaveCount(0);
+  await expect(ada!.game.action("End turn")).toBeVisible();
+});

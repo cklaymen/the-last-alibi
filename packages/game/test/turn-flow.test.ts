@@ -77,9 +77,20 @@ describe("availableActions", () => {
     expect(availableActions(g, GREEN)).toEqual(["disprove"]);
     expect(availableActions(g, BLUE)).toEqual([]);
     const done = unwrap(disprove(g, GREEN, "hall"));
-    // summoned suggestion before rolling: per spec rolling stays available
-    expect(availableActions(done, RED)).toEqual(["roll", "accuse", "end_turn"]);
+    // a suggestion replaces movement: no roll after suggesting
+    expect(availableActions(done, RED)).toEqual(["accuse", "end_turn"]);
     expect(availableActions(done, GREEN)).toEqual([]);
+  });
+
+  it("availableActions after suggestion has no roll/passage/move", () => {
+    const inLounge = withState(base(), { pawns: { red: room("lounge") }, turn: { suggestionRoom: "lounge" } });
+    expect(availableActions(inLounge, RED)).toEqual(["roll", "passage", "suggest", "accuse", "end_turn"]);
+    const suggested = unwrap(makeSuggestion(inLounge, RED, "purple", "wrench"));
+    expect(availableActions(suggested, RED)).toEqual(["accuse", "end_turn"]);
+    const rolledThenSuggested = unwrap(
+      makeSuggestion(unwrap(rollDice(inLounge, RED, diceRng(1, 1))), RED, "purple", "wrench"),
+    );
+    expect(availableActions(rolledThenSuggested, RED)).toEqual(["accuse", "end_turn"]);
   });
 
   it("eliminated player can only disprove", () => {
