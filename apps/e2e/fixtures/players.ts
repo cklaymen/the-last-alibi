@@ -1,5 +1,6 @@
 import { expect, test as base, type BrowserContext, type Page } from "@playwright/test";
 import { GamePage } from "../pages/GamePage.js";
+import { WEB_URL } from "./urls.js";
 import { JoinPage } from "../pages/JoinPage.js";
 import { LobbyPage } from "../pages/LobbyPage.js";
 
@@ -42,7 +43,7 @@ export const test = base.extend<Fixtures>({
           ...(u.deviceScaleFactor ? { deviceScaleFactor: u.deviceScaleFactor } : {}),
           isMobile: u.isMobile ?? false,
           hasTouch: u.hasTouch ?? false,
-          baseURL: u.baseURL ?? "http://127.0.0.1:5174",
+          baseURL: u.baseURL ?? WEB_URL,
           locale: "en-US",
         });
         contexts.push(context);

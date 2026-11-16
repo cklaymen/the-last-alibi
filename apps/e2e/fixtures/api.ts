@@ -1,6 +1,7 @@
 import type { APIRequestContext } from "@playwright/test";
+import { API_URL } from "./urls.js";
 
-export const API_URL = "http://127.0.0.1:3100";
+export { API_URL };
 
 type Location =
   | { kind: "cell"; position: { row: number; col: number } }

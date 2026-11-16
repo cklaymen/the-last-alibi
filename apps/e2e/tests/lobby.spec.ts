@@ -1,8 +1,9 @@
 import { JoinPage } from "../pages/JoinPage.js";
 import { LobbyPage } from "../pages/LobbyPage.js";
 import { expect, test } from "../fixtures/players.js";
+import { WEB_URL } from "../fixtures/urls.js";
 
-const ctxOptions = { locale: "en-US", baseURL: "http://127.0.0.1:5174" };
+const ctxOptions = { locale: "en-US", baseURL: WEB_URL };
 
 test("players create and join a room, choose characters and the host starts", async ({ table }) => {
   const { players, code, start } = await table(2);

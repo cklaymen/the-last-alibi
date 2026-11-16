@@ -1,7 +1,8 @@
 import { JoinPage } from "../pages/JoinPage.js";
 import { expect, test } from "../fixtures/players.js";
+import { WEB_URL } from "../fixtures/urls.js";
 
-const ctxOptions = { locale: "en-US", baseURL: "http://127.0.0.1:5174" };
+const ctxOptions = { locale: "en-US", baseURL: WEB_URL };
 
 test("the URL reflects the room and a shared link lets a friend join with their nickname", async ({ page, browser }) => {
   const code = await new JoinPage(page).createRoom("Ada");

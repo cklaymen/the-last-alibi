@@ -1,10 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { API_PORT, API_URL, WEB_PORT, WEB_URL } from "./fixtures/urls.js";
 
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
   use: {
-    baseURL: "http://127.0.0.1:5174",
+    baseURL: WEB_URL,
     trace: "retain-on-failure",
   },
   projects: [
@@ -23,15 +24,14 @@ export default defineConfig({
   webServer: [
     {
       command: "pnpm --filter @mystery-game/api dev",
-      env: { PORT: "3100", WEB_ORIGIN: "http://127.0.0.1:5174", ENABLE_TEST_API: "1", PRESENCE_GRACE_MS: "5000" },
-      port: 3100,
+      env: { PORT: String(API_PORT), WEB_ORIGIN: WEB_URL, ENABLE_TEST_API: "1", PRESENCE_GRACE_MS: "5000" },
+      port: API_PORT,
       reuseExistingServer: false,
     },
     {
-      command:
-        "pnpm --filter @mystery-game/web exec vite --host 127.0.0.1 --port 5174",
-      env: { VITE_API_URL: "http://127.0.0.1:3100" },
-      port: 5174,
+      command: `pnpm --filter @mystery-game/web exec vite --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
+      env: { VITE_API_URL: API_URL },
+      port: WEB_PORT,
       reuseExistingServer: false,
     },
   ],
