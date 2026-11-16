@@ -128,7 +128,7 @@ const webAllowedGameValues = [
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "**/coverage/**", "**/.turbo/**", "**/playwright-report/**", "**/test-results/**"],
+    ignores: [".claude/**", "**/dist/**", "**/node_modules/**", "**/coverage/**", "**/.turbo/**", "**/playwright-report/**", "**/test-results/**"],
   },
   {
     files: ["**/*.{ts,tsx,mts,cts}"],
