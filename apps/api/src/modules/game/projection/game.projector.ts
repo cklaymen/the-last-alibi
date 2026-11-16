@@ -20,6 +20,7 @@ import type {
   RoomSummary,
 } from "@mystery-game/contracts";
 import { PresenceRegistry } from "../../presence/index.js";
+import { TurnClock } from "../clock/turn-clock.js";
 
 const copyTriple = (t: Triple): Triple => ({ suspect: t.suspect, weapon: t.weapon, room: t.room });
 
@@ -44,7 +45,10 @@ const copyLocation = (l: Location): PublicGameState["pawns"][number]["location"]
  */
 @Injectable()
 export class GameProjector {
-  public constructor(@Inject(PresenceRegistry) private readonly presence: PresenceRegistry) {}
+  public constructor(
+    @Inject(PresenceRegistry) private readonly presence: PresenceRegistry,
+    @Inject(TurnClock) private readonly clock: TurnClock,
+  ) {}
 
   public room(game: Game): RoomSummary {
     const last = game.lastResult;
@@ -118,8 +122,7 @@ export class GameProjector {
       winner: play.winner ? { playerId: play.winner.playerId, reason: play.winner.reason } : null,
       envelope: finished ? copyTriple(play.envelope) : null,
       settings: copySettings(game.settings),
-      // Placeholder until turn/disprove timers exist (task T1).
-      timer: null,
+      timer: finished ? null : this.clock.view(game.roomCode),
       // Which rooms hold a face-down card – never which card.
       roomsWithCards: roomIds.filter((r) => play.roomCards[r] !== undefined),
     };

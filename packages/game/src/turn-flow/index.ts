@@ -1,7 +1,7 @@
 import { accusationError } from "../accusation/index.js";
 import { passageTarget, reachableFor, rollError } from "../movement/index.js";
 import { requireActivePlayer } from "../shared/guards.js";
-import { passTurn, withPlay } from "../shared/play.js";
+import { nextPlayer, passTurn, startTurn, withEvents, withPlay } from "../shared/play.js";
 import { fail, ok, type GameResult } from "../shared/result.js";
 import type { ActionId, Game, PlayerId } from "../shared/types.js";
 import { isDisprover, suggestionRoomFor } from "../suggestion/index.js";
@@ -10,6 +10,14 @@ export function endTurn(game: Game, playerId: PlayerId): GameResult {
   const g = requireActivePlayer(game, playerId);
   if (!g.ok) return fail(g.code);
   return ok(withPlay(game, passTurn(g.value.play, playerId)));
+}
+
+/** The turn time limit ran out: emits `turn_timed_out` and starts the next player's turn. */
+export function timeOutTurn(game: Game, playerId: PlayerId): GameResult {
+  const g = requireActivePlayer(game, playerId);
+  if (!g.ok) return fail(g.code);
+  const timedOut = withEvents(g.value.play, { type: "turn_timed_out", playerId });
+  return ok(withPlay(game, startTurn(timedOut, nextPlayer(timedOut, playerId))));
 }
 
 /** The only source of allowed actions for the UI. */

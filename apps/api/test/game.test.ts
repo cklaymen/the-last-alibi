@@ -237,7 +237,7 @@ describe("suggestion, disprove, accusation, return to lobby (privacy)", () => {
 });
 
 describe("projection fields", () => {
-  it("game:state contains settings, timer null, roomsWithCards []; game:private contains roomCards []", async () => {
+  it("game:state contains settings, the turn timer, roomsWithCards []; game:private contains roomCards []", async () => {
     const { clients } = await createRoom(app, ["Alice", "Bob"]);
     const [alice, bob] = track(clients) as [Client, Client];
     expect(await alice.send("room:settings", { autoNotes: false })).toEqual({ ok: true });
@@ -248,7 +248,7 @@ describe("projection fields", () => {
     const pub = bob.lastPublic()!;
     expect(pub.settings).toEqual(bob.lastRoom()!.settings);
     expect(pub.settings.autoNotes).toBe(false);
-    expect(pub.timer).toBeNull();
+    expect(pub.timer).toMatchObject({ kind: "turn", playerId: pub.turn.playerId, durationMs: 90_000 });
     expect(pub.roomsWithCards).toEqual([]);
     expect(bob.lastPrivate()!.roomCards).toEqual([]);
   });

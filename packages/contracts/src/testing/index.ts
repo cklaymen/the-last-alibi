@@ -22,5 +22,12 @@ export const scenarioSchema = z.object({
   roomCards: z.partialRecord(roomIdSchema, cardIdSchema).optional(),
   /** House-rule overrides for the running game (only the given fields change). */
   settings: updateSettingsSchema.optional(),
+  /** Overrides the room's turn/disprove limits (ms) and restarts the countdowns. */
+  timeLimitsMs: z
+    .object({
+      turn: z.number().int().positive().optional(),
+      disprove: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 export type Scenario = z.infer<typeof scenarioSchema>;

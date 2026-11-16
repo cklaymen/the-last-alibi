@@ -14,7 +14,8 @@ import type {
 } from "@mystery-game/contracts";
 import type { CharacterId } from "@mystery-game/game";
 import { AppModule } from "../src/app.module.js";
-import { PRESENCE_OPTIONS } from "../src/modules/presence/index.js";
+import { CLOCK, type Clock } from "../src/modules/game/index.js";
+import { PRESENCE_OPTIONS, TIMER, type Timer } from "../src/modules/presence/index.js";
 
 export interface TestApp {
   url: string;
@@ -24,15 +25,61 @@ export interface TestApp {
 export interface StartOptions {
   /** Presence grace period (default: a long one so it never fires in a test). */
   graceMs?: number;
+  /** Fake time for both TIMER and CLOCK (default: real time). */
+  time?: FakeTime;
+}
+
+/** Manually advanced Timer + Clock; `advance` fires due callbacks in order. */
+export class FakeTime implements Timer, Clock {
+  private current = 0;
+  private tasks: { at: number; callback: () => void; cancelled: boolean }[] = [];
+
+  public now(): number {
+    return this.current;
+  }
+
+  public schedule(ms: number, callback: () => void): () => void {
+    const task = { at: this.current + ms, callback, cancelled: false };
+    this.tasks.push(task);
+    return () => {
+      task.cancelled = true;
+    };
+  }
+
+  public advance(ms: number): void {
+    const end = this.current + ms;
+    for (;;) {
+      const due = this.tasks
+        .filter((t) => !t.cancelled && t.at <= end)
+        .sort((a, b) => a.at - b.at)[0];
+      if (!due) break;
+      due.cancelled = true;
+      this.current = due.at;
+      due.callback();
+    }
+    this.current = end;
+  }
+
+  /** Number of scheduled callbacks still pending. */
+  public pending(): number {
+    return this.tasks.filter((t) => !t.cancelled).length;
+  }
 }
 
 export async function startApp(options: StartOptions = {}): Promise<TestApp> {
-  const moduleRef = await Test.createTestingModule({
+  let builder = Test.createTestingModule({
     imports: [AppModule.forRoot({ enableTestApi: true })],
   })
     .overrideProvider(PRESENCE_OPTIONS)
-    .useValue({ graceMs: options.graceMs ?? 60_000 })
-    .compile();
+    .useValue({ graceMs: options.graceMs ?? 60_000 });
+  if (options.time) {
+    builder = builder
+      .overrideProvider(TIMER)
+      .useValue(options.time)
+      .overrideProvider(CLOCK)
+      .useValue(options.time);
+  }
+  const moduleRef = await builder.compile();
   const app: INestApplication = moduleRef.createNestApplication({ logger: false });
   await app.listen(0, "127.0.0.1");
   const url = (await app.getUrl()).replace("[::1]", "127.0.0.1");
