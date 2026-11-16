@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_ROOM_SETTINGS,
   chooseCharacter,
   createGame,
   gameId,
@@ -28,6 +29,7 @@ describe("lobby", () => {
       players: [host],
       play: null,
       lastResult: null,
+      settings: DEFAULT_ROOM_SETTINGS,
     });
   });
 

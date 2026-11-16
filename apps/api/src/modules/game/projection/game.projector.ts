@@ -9,6 +9,7 @@ import {
   type Location,
   type PlayerId,
   type PlayState,
+  type RoomSettings,
   type Triple,
 } from "@mystery-game/game";
 import type {
@@ -18,9 +19,17 @@ import type {
 } from "@mystery-game/contracts";
 import { PresenceRegistry } from "../../presence/index.js";
 
-export const EVENT_WINDOW = 50;
-
 const copyTriple = (t: Triple): Triple => ({ suspect: t.suspect, weapon: t.weapon, room: t.room });
+
+const copySettings = (s: RoomSettings): RoomSummary["settings"] => ({
+  accusationPlace: s.accusationPlace,
+  accuseAfterSuggestion: s.accuseAfterSuggestion,
+  suggestAfterStaying: s.suggestAfterStaying,
+  turnTimeLimitSec: s.turnTimeLimitSec,
+  disproveTimeLimitSec: s.disproveTimeLimitSec,
+  roomCards: s.roomCards,
+  autoNotes: s.autoNotes,
+});
 
 const copyLocation = (l: Location): PublicGameState["pawns"][number]["location"] =>
   l.kind === "room"
@@ -57,6 +66,7 @@ export class GameProjector {
             envelope: copyTriple(last.envelope),
           }
         : null,
+      settings: copySettings(game.settings),
     };
   }
 
@@ -65,7 +75,6 @@ export class GameProjector {
     if (!play || game.phase === "LOBBY") return null;
     const finished = game.phase === "FINISHED";
     const { turn } = play;
-    const firstSeq = Math.max(0, play.events.length - EVENT_WINDOW);
     return {
       gameId: game.id,
       status: finished ? "FINISHED" : "IN_PROGRESS",
@@ -98,13 +107,19 @@ export class GameProjector {
         location: copyLocation(play.pawns[characterId]),
       })),
       weapons: weaponIds.map((weaponId) => ({ weaponId, roomId: play.weapons[weaponId] })),
-      events: play.events.slice(firstSeq).map((event, i) => ({
-        seq: firstSeq + i,
+      // Full history (the notebook deduces from it); seq = index in the log.
+      events: play.events.map((event, seq) => ({
+        seq,
         // Domain events are public by construction (no card ids); deep-copied via JSON.
         event: JSON.parse(JSON.stringify(event)) as PublicGameState["events"][number]["event"],
       })),
       winner: play.winner ? { playerId: play.winner.playerId, reason: play.winner.reason } : null,
       envelope: finished ? copyTriple(play.envelope) : null,
+      settings: copySettings(game.settings),
+      // Placeholder until turn/disprove timers exist (task T1).
+      timer: null,
+      // Placeholder until room cards are dealt (task C1).
+      roomsWithCards: [],
     };
   }
 
@@ -131,6 +146,8 @@ export class GameProjector {
         .filter((r) => r.toPlayerId === playerId)
         .map((r) => ({ cardId: r.cardId, fromPlayerId: r.fromPlayerId })),
       envelope: this.isEliminated(play, playerId) ? copyTriple(play.envelope) : null,
+      // Placeholder until room cards are dealt (task C1).
+      roomCards: [],
     };
   }
 

@@ -95,7 +95,7 @@
   - Wnioski liczone tylko z faktów (bez uwzględniania ręcznych znaczników).
 - [ ] Automatyczny ogólny znacznik: karta jest u kogoś (✓ u gracza lub w mojej ręce) → ✓. Wszyscy inni gracze mają ✗ i karta nie jest moja → wiersz wyróżniony jako „w kopercie”; również gdy to ostatnia niewykluczona karta w swojej sekcji.
 - [ ] „Kto pokazał” widać wyłącznie w kolumnach graczy: ✓ w kolumnie gracza, który mi pokazał kartę, wyróżnione (np. obwódka = „pokazał mi”), w `aria-label` komórki. Bez osobnej kropki z inicjałem przy karcie.
-- [ ] Serwer: wysyłać **pełną historię zdarzeń** zamiast ostatnich 50 (`EVENT_WINDOW` w `game.projector.ts`) – potrzebna do wnioskowania po odświeżeniu / na innym urządzeniu. Sprawdzić testy API zależne od okna.
+- [x] Serwer: wysyłać **pełną historię zdarzeń** zamiast ostatnich 50 (`EVENT_WINDOW` w `game.projector.ts`) – potrzebna do wnioskowania po odświeżeniu / na innym urządzeniu. Sprawdzić testy API zależne od okna.
 - [ ] Dostępność: tabela jako `<table>` z nagłówkami wierszy/kolumn, `aria-label` komórki: „karta – gracz – stan (automatycznie/ręcznie)”.
 
 #### 8g. Zwijane sekcje

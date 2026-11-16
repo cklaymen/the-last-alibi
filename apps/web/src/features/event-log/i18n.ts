@@ -17,6 +17,8 @@ export const eventLogMessages = defineMessages({
     accused_wrong: "{name} accuses {suspect} with the {weapon} in the {room} – wrong. {name} is out.",
     turn_ended: "{name} ended the turn.",
     turn_skipped: "{name} is away – turn skipped.",
+    turn_timed_out: "{name}'s time ran out.",
+    disprove_timed_out: "{name} did not choose in time – a random card was shown.",
     game_won: "{name} wins!",
   },
   pl: {
@@ -35,6 +37,8 @@ export const eventLogMessages = defineMessages({
     accused_wrong: "{name} oskarża: {suspect}, narzędzie: {weapon}, miejsce: {room} – błędnie. {name} odpada z gry.",
     turn_ended: "{name} kończy turę.",
     turn_skipped: "{name} jest nieobecny – tura pominięta.",
+    turn_timed_out: "Czas gracza {name} minął.",
+    disprove_timed_out: "{name} nie wybrał na czas – pokazano losową kartę.",
     game_won: "{name} wygrywa!",
   },
 });

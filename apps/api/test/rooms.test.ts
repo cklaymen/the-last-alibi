@@ -148,3 +148,56 @@ describe("removed commands", () => {
     expect(acked).toBe(false);
   });
 });
+
+describe("room:settings", () => {
+  it("defaults are in room:state", async () => {
+    const { clients } = await createRoom(app, ["Alice"]);
+    const [alice] = track(clients) as [Client];
+    expect(alice.lastRoom()!.settings).toEqual({
+      accusationPlace: "any_room",
+      accuseAfterSuggestion: true,
+      suggestAfterStaying: false,
+      turnTimeLimitSec: 90,
+      disproveTimeLimitSec: 30,
+      roomCards: 0,
+      autoNotes: true,
+    });
+  });
+
+  it("room:settings by host broadcasts room:state with new settings to all players", async () => {
+    const { clients } = await createRoom(app, ["Alice", "Bob"]);
+    const [alice, bob] = track(clients) as [Client, Client];
+    expect(await alice.send("room:settings", { turnTimeLimitSec: null, roomCards: 4 })).toEqual({ ok: true });
+    await waitFor(() => bob.lastRoom()?.settings.roomCards === 4);
+    expect(bob.lastRoom()!.settings.turnTimeLimitSec).toBeNull();
+    expect(bob.lastRoom()!.settings.disproveTimeLimitSec).toBe(30);
+  });
+
+  it("room:settings by non-host acks NOT_HOST", async () => {
+    const { clients } = await createRoom(app, ["Alice", "Bob"]);
+    const [, bob] = track(clients) as [Client, Client];
+    expect(await bob.send("room:settings", { roomCards: 2 })).toEqual({ ok: false, code: "NOT_HOST" });
+  });
+
+  it("room:settings with { roomCards: 99 } acks INVALID_PAYLOAD", async () => {
+    const { clients } = await createRoom(app, ["Alice"]);
+    const [alice] = track(clients) as [Client];
+    expect(await alice.send("room:settings", { roomCards: 99 })).toEqual({
+      ok: false,
+      code: "INVALID_PAYLOAD",
+    });
+    expect(await alice.send("room:settings", { turnTimeLimitSec: 45 })).toEqual({
+      ok: false,
+      code: "INVALID_PAYLOAD",
+    });
+  });
+
+  it("room:settings during a game acks GAME_NOT_IN_LOBBY", async () => {
+    const { clients } = await startedRoom(app, ["Alice", "Bob"]);
+    const [alice] = track(clients) as [Client, Client];
+    expect(await alice.send("room:settings", { roomCards: 2 })).toEqual({
+      ok: false,
+      code: "GAME_NOT_IN_LOBBY",
+    });
+  });
+});

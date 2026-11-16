@@ -83,6 +83,7 @@ export function startGame(game: Game, byPlayerId: PlayerId, rng: Rng): GameResul
       eliminated: [],
       summonedTo: {},
       reveals: [],
+      roomCards: {},
       events: [{ type: "game_started", firstPlayerId: first }],
       winner: null,
     },

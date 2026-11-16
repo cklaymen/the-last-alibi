@@ -30,6 +30,11 @@ const cases: [GameEvent, string][] = [
   ],
   [{ type: "turn_ended", playerId: "p1" }, "Alice ended the turn."],
   [{ type: "turn_skipped", playerId: "p2" }, "Bob is away – turn skipped."],
+  [{ type: "turn_timed_out", playerId: "p1" }, "Alice's time ran out."],
+  [
+    { type: "disprove_timed_out", playerId: "p3" },
+    "Cleo did not choose in time – a random card was shown.",
+  ],
   [{ type: "game_won", playerId: "p3", reason: "LAST_STANDING" }, "Cleo wins!"],
 ];
 

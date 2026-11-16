@@ -1,5 +1,15 @@
 import { fail, ok, type GameResult } from "../shared/result.js";
-import type { CharacterId, Game, GameId, Player, PlayerId, RoomCode } from "../shared/types.js";
+import {
+  DEFAULT_ROOM_SETTINGS,
+  type CharacterId,
+  type Game,
+  type GameId,
+  type Player,
+  type PlayerId,
+  type RoomCode,
+  type RoomSettings,
+} from "../shared/types.js";
+import { isValidSettings } from "./settings.js";
 
 export const MAX_PLAYERS = 6;
 
@@ -21,7 +31,24 @@ export function createGame(id: GameId, code: RoomCode, host: Player): Game {
     players: [host],
     play: null,
     lastResult: null,
+    settings: DEFAULT_ROOM_SETTINGS,
   };
+}
+
+/**
+ * Host changes house rules before the game starts; omitted fields keep their value.
+ * NOT_HOST | GAME_NOT_IN_LOBBY | INVALID_SETTINGS
+ */
+export function updateSettings(
+  game: Game,
+  byPlayerId: PlayerId,
+  patch: Partial<RoomSettings>,
+): GameResult {
+  if (byPlayerId !== game.hostId) return fail("NOT_HOST");
+  if (game.phase !== "LOBBY") return fail("GAME_NOT_IN_LOBBY");
+  const settings: RoomSettings = { ...game.settings, ...patch };
+  if (!isValidSettings(settings)) return fail("INVALID_SETTINGS");
+  return ok({ ...game, settings });
 }
 
 /** GAME_NOT_IN_LOBBY | PLAYER_ALREADY_JOINED | GAME_FULL | NAME_TAKEN */

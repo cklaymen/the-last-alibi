@@ -13,6 +13,7 @@ export type GameErrorCode =
   | "GAME_NOT_FINISHED"
   | "NAME_TAKEN"
   | "CANNOT_KICK_SELF"
+  | "INVALID_SETTINGS"
   // play
   | "GAME_NOT_IN_PROGRESS"
   | "NOT_YOUR_TURN"
@@ -25,7 +26,11 @@ export type GameErrorCode =
   | "NO_SECRET_PASSAGE"
   | "CANNOT_SUGGEST"
   | "NOT_YOUR_DISPROVE"
-  | "CARD_NOT_MATCHING";
+  | "CARD_NOT_MATCHING"
+  | "NOT_IN_ROOM"
+  | "WRONG_ROOM"
+  | "ACCUSE_AFTER_SUGGESTION_DISABLED"
+  | "ALREADY_SUGGESTED";
 
 export type GameResult =
   | { readonly ok: true; readonly game: Game }

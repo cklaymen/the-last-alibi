@@ -31,6 +31,11 @@ export const errorCodes = [
   "CANNOT_SUGGEST",
   "NOT_YOUR_DISPROVE",
   "CARD_NOT_MATCHING",
+  "NOT_IN_ROOM",
+  "WRONG_ROOM",
+  "ACCUSE_AFTER_SUGGESTION_DISABLED",
+  "ALREADY_SUGGESTED",
+  "INVALID_SETTINGS",
 ] as const;
 
 export const errorCodeSchema = z.enum(errorCodes);

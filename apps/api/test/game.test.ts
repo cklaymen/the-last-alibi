@@ -232,6 +232,41 @@ describe("suggestion, disprove, accusation, return to lobby (privacy)", () => {
   });
 });
 
+describe("projection fields", () => {
+  it("game:state contains settings, timer null, roomsWithCards []; game:private contains roomCards []", async () => {
+    const { clients } = await createRoom(app, ["Alice", "Bob"]);
+    const [alice, bob] = track(clients) as [Client, Client];
+    expect(await alice.send("room:settings", { autoNotes: false })).toEqual({ ok: true });
+    await alice.send("room:choose_character", { characterId: "red" });
+    await bob.send("room:choose_character", { characterId: "yellow" });
+    expect(await alice.send("room:start")).toEqual({ ok: true });
+    await waitFor(() => bob.lastPublic() !== undefined && bob.lastPrivate() !== undefined);
+    const pub = bob.lastPublic()!;
+    expect(pub.settings).toEqual(bob.lastRoom()!.settings);
+    expect(pub.settings.autoNotes).toBe(false);
+    expect(pub.timer).toBeNull();
+    expect(pub.roomsWithCards).toEqual([]);
+    expect(bob.lastPrivate()!.roomCards).toEqual([]);
+  });
+
+  it("game:state contains the full event history", async () => {
+    const { clients } = await startedRoom(app, ["Alice", "Bob"]);
+    const [alice, bob] = track(clients) as [Client, Client];
+    for (let i = 0; i < 30; i++) {
+      const active = i % 2 === 0 ? alice : bob;
+      expect(await active.send("turn:roll")).toEqual({ ok: true });
+      expect(await active.send("turn:end")).toEqual({ ok: true });
+    }
+    await settle();
+    const events = alice.lastPublic()!.events;
+    // game_started + 30 × (rolled + turn_ended)
+    expect(events.length).toBe(61);
+    expect(events[0]!.seq).toBe(0);
+    expect(events[0]!.event.type).toBe("game_started");
+    expect(events.map((e) => e.seq)).toEqual(events.map((_, i) => i));
+  });
+});
+
 /** Invariants that must hold for every event received before FINISHED. */
 function assertPrivate(client: Client, e: RecordedEvent): void {
   if (e.event === "game:state") {
