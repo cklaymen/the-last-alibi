@@ -32,6 +32,8 @@ export interface Deduction {
 
 const sections: readonly (readonly CardId[])[] = [characterIds, weaponIds, roomIds];
 const allCards: readonly CardId[] = sections.flat();
+/** One card of each section lies in the envelope. */
+const ENVELOPE_SIZE = sections.length;
 
 type Known = "has" | "not";
 /** "X has at least one of these cards" (X showed one of them to someone else). */
@@ -127,6 +129,11 @@ export function deduce(input: DeductionInput): Deduction {
   const constraints = collectFromEvents(input.events, grid, input.myId);
 
   const isGeneral = (card: CardId) => outside.has(card) || grid.heldByAnyone(card);
+  // "✗ at every other player ⇒ envelope" only holds once every face-down room card is known;
+  // otherwise such a card may still lie in a room I have not visited.
+  const dealt = input.players.reduce((sum, p) => sum + p.cardCount, 0);
+  const allRoomCardsKnown =
+    allCards.length - ENVELOPE_SIZE - dealt <= new Set(input.roomCards).size;
   const bound = allCards.length * Math.max(1, input.players.length);
 
   for (let i = 0; i < bound; i++) {
@@ -147,7 +154,7 @@ export function deduce(input: DeductionInput): Deduction {
       const candidates = section.filter((card) => !isGeneral(card));
       if (candidates.length === 1) envelope.add(candidates[0]!);
     }
-    for (const card of allCards) {
+    for (const card of allRoomCardsKnown ? allCards : []) {
       if (outside.has(card)) continue;
       if (others.every((id) => grid.get(id, card) === "not")) envelope.add(card);
     }

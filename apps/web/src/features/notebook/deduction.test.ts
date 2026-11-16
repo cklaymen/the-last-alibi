@@ -138,6 +138,30 @@ describe("deduction engine", () => {
     expect(d.general.white).toBeUndefined();
   });
 
+  it("all others ✗ is not envelope while some room cards are still unseen", () => {
+    const events: GameEvent[] = [
+      suggested("me", "white", "dagger", "study"),
+      { type: "cannot_disprove", playerId: "b" },
+      { type: "cannot_disprove", playerId: "c" },
+      { type: "no_one_disproved", suggesterId: "me" },
+    ];
+    // 5 + 5 + 5 dealt + 3 in the envelope = 18 → 3 cards lie face-down in rooms.
+    const fewer = [
+      { id: "me", cardCount: 5 },
+      { id: "b", cardCount: 5 },
+      { id: "c", cardCount: 5 },
+    ];
+    const unseen = deduce(input({ players: fewer, events, hand: ["study"], roomCards: ["red"] }));
+    expect(unseen.envelope.has("white")).toBe(false);
+    expect(unseen.envelope.has("dagger")).toBe(false);
+
+    const allSeen = deduce(
+      input({ players: fewer, events, hand: ["study"], roomCards: ["red", "rope", "hall"] }),
+    );
+    expect(allSeen.envelope.has("white")).toBe(true);
+    expect(allSeen.envelope.has("dagger")).toBe(true);
+  });
+
   it("last unexcluded card in a section → envelope", () => {
     const d = deduce(
       input({
