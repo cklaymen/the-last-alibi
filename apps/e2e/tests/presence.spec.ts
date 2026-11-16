@@ -23,7 +23,7 @@ test("during a game an away player's turn is skipped and they can come back", as
   const context = bob!.context;
   await bobPage.close();
   const bar = ada!.page.getByRole("region", { name: "Players" });
-  await expect(bar.getByRole("listitem").filter({ hasText: "Bob" })).toContainText(/offline|away/);
+  await expect(bar.getByRole("listitem").filter({ hasText: "Bob" })).toHaveAccessibleName(/ – (offline|away)/);
 
   await ada!.game.action("End turn").click();
   await expect(ada!.game.log().getByText("Bob is away – turn skipped.")).toBeVisible({ timeout: 15_000 });
@@ -33,5 +33,5 @@ test("during a game an away player's turn is skipped and they can come back", as
   const back = await context.newPage();
   await back.goto(url);
   await expect(back.getByRole("region", { name: "Your cards" }).getByText("Dagger")).toBeVisible();
-  await expect(bar.getByRole("listitem").filter({ hasText: "Bob" })).not.toContainText(/offline|away/);
+  await expect(bar.getByRole("listitem").filter({ hasText: "Bob" })).not.toHaveAccessibleName(/ – (offline|away)/);
 });

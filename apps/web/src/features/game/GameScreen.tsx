@@ -45,6 +45,7 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
           game={game}
           me={me}
           myId={myId}
+          toolbarStart={<PlayersBar game={game} myId={myId} />}
           onMove={(to) => {
             if (!move.busy) void move.run("turn:move", { to });
           }}
@@ -75,8 +76,6 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
             <Notebook />
           </div>
         </Collapsible>
-
-        <PlayersBar game={game} myId={myId} />
       </div>
     </main>
   );

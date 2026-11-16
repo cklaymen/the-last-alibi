@@ -33,6 +33,8 @@ type Props = {
   myId: string;
   /** Called when the player picks a highlighted destination. */
   onMove?: (to: Location) => void;
+  /** Rendered left of the zoom buttons in the toolbar row (e.g. the players bar). */
+  toolbarStart?: ReactNode;
 };
 
 /** Board corner each passage room touches, and the arrow towards its partner. */
@@ -46,7 +48,7 @@ const PASSAGE_MARKERS: Partial<Record<RoomId, { corner: "tl" | "tr" | "bl" | "br
 const PAWN_R = 7;
 const WEAPON_R = 7;
 
-export function Board({ game, me, myId, onMove }: Props) {
+export function Board({ game, me, myId, onMove, toolbarStart }: Props) {
   const t = useT(boardMessages);
   const card = useT(cardMessages);
   const { view, svgRef, zoomed, zoomIn, zoomOut, reset, handlers } = useBoardView();
@@ -256,16 +258,19 @@ export function Board({ game, me, myId, onMove }: Props) {
         </g>
       </svg>
 
-      <div className="mt-2 flex justify-end gap-1">
-        <ZoomButton label={t("zoomIn")} onClick={zoomIn}>
-          <Plus aria-hidden="true" className="size-5" />
-        </ZoomButton>
-        <ZoomButton label={t("zoomOut")} onClick={zoomOut} disabled={!zoomed}>
-          <Minus aria-hidden="true" className="size-5" />
-        </ZoomButton>
-        <ZoomButton label={t("resetZoom")} onClick={reset} disabled={!zoomed}>
-          <RotateCcw aria-hidden="true" className="size-5" />
-        </ZoomButton>
+      <div className="mt-2 flex items-center gap-2">
+        <div className="min-w-0 flex-1 overflow-x-auto">{toolbarStart}</div>
+        <div className="flex shrink-0 gap-1">
+          <ZoomButton label={t("zoomIn")} onClick={zoomIn}>
+            <Plus aria-hidden="true" className="size-5" />
+          </ZoomButton>
+          <ZoomButton label={t("zoomOut")} onClick={zoomOut} disabled={!zoomed}>
+            <Minus aria-hidden="true" className="size-5" />
+          </ZoomButton>
+          <ZoomButton label={t("resetZoom")} onClick={reset} disabled={!zoomed}>
+            <RotateCcw aria-hidden="true" className="size-5" />
+          </ZoomButton>
+        </div>
       </div>
     </section>
   );

@@ -11,6 +11,7 @@ export const playersMessages = defineMessages({
     active: "Active player",
     offline: "offline",
     away: "away",
+    eliminated: "eliminated",
   },
   pl: {
     region: "Gracze",
@@ -22,5 +23,6 @@ export const playersMessages = defineMessages({
     active: "Aktywny gracz",
     offline: "rozłączony",
     away: "nieobecny",
+    eliminated: "wyeliminowany",
   },
 });
