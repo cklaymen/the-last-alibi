@@ -47,12 +47,12 @@ test("a disprover shows a card that only the suggester sees", async ({ table, re
 
   await expect(ada!.game.actions().getByText("Cyd showed you a card:")).toBeVisible();
   await expect(
-    ada!.page.getByRole("region", { name: "Cards shown to you" }).getByText("Hall (from Cyd)"),
+    ada!.game.notebook().getByRole("button", { name: "Hall – Cyd – has (automatic) – shown to you" }),
   ).toBeVisible();
   await expect(bob!.game.log().getByText("Cyd showed a card to Ada.")).toBeVisible();
   await expect(bob!.game.actions().getByText("Cyd showed a card to Ada")).toBeVisible();
   await expect(bob!.page.getByText("Cyd showed you")).toHaveCount(0);
-  await expect(bob!.page.getByRole("region", { name: "Cards shown to you" }).getByText("Hall")).toHaveCount(0);
+  await expect(bob!.game.notebook().getByRole("button", { name: /^Hall – Cyd – has/ })).toHaveCount(0);
 });
 
 test("a player summoned by a suggestion can suggest on their turn without moving", async ({ table, request }) => {

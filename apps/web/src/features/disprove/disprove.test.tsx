@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import type { GameEvent, PublicGameState } from "@mystery-game/contracts";
 import { makeGame, makeMe } from "../game/testFixtures.js";
 import { DisprovePanel } from "./DisprovePanel.js";
-import { SeenCards } from "./SeenCards.js";
 import { currentTurnSuggestion, suggestionOutcome } from "./selectors.js";
 import { SuggestionResult } from "./SuggestionResult.js";
 
@@ -151,18 +150,5 @@ describe("DisprovePanel", () => {
   it("renders nothing without a request", () => {
     const { container } = render(<DisprovePanel game={makeGame()} me={makeMe()} send={vi.fn()} />);
     expect(container).toBeEmptyDOMElement();
-  });
-});
-
-describe("SeenCards", () => {
-  it("lists cards shown to me", () => {
-    const game = withEvents([
-      { type: "suggested", playerId: "p1", suggestion: triple },
-      { type: "card_shown", playerId: "p2", toPlayerId: "p1" },
-    ]);
-    const me = makeMe({ seenCards: [{ cardId: "dagger", fromPlayerId: "p2" }] });
-    render(<SeenCards game={game} me={me} />);
-    const region = screen.getByRole("region", { name: "Cards shown to you" });
-    expect(within(region).getByText("Dagger (from Bob)")).toBeInTheDocument();
   });
 });

@@ -1,54 +1,33 @@
 import { describe, expect, it } from "vitest";
-import {
-  autoMark,
-  cycle,
-  emptyNotebook,
-  loadNotebook,
-  markOf,
-  nextMark,
-  notebookKey,
-  saveNotebook,
-} from "./notebookModel.js";
+import { cycleCell, cycleGeneral, cycleManual, effectiveMark, emptyManual, notebookKey, parseManual } from "./notebookModel.js";
 
 describe("notebook model", () => {
-  it("cycles empty → has → not → maybe → empty", () => {
-    expect(nextMark("empty")).toBe("has");
-    expect(nextMark("has")).toBe("not");
-    expect(nextMark("not")).toBe("maybe");
-    expect(nextMark("maybe")).toBe("empty");
-    let s = emptyNotebook;
-    for (const expected of ["has", "not", "maybe", "empty"] as const) {
-      s = cycle(s, "rope");
-      expect(markOf(s, "rope")).toBe(expected);
-    }
+  it("cycleManual order: auto → has → not → maybe → auto", () => {
+    expect(cycleManual(undefined)).toBe("has");
+    expect(cycleManual("has")).toBe("not");
+    expect(cycleManual("not")).toBe("maybe");
+    expect(cycleManual("maybe")).toBeUndefined();
   });
 
-  it("pre-marks known cards as has only when empty", () => {
-    let s = cycle(cycle(emptyNotebook, "hall"), "hall"); // hall = not
-    s = autoMark(s, ["red", "hall"]);
-    expect(markOf(s, "red")).toBe("has");
-    expect(markOf(s, "hall")).toBe("not");
+  it("manual mark wins over auto", () => {
+    expect(effectiveMark("not", "has")).toEqual({ mark: "not", source: "manual" });
+    expect(effectiveMark(undefined, "has")).toEqual({ mark: "has", source: "auto" });
+    expect(effectiveMark("empty", undefined)).toEqual({ mark: "empty", source: "auto" });
   });
 
-  it("does not re-mark a card the player changed afterwards", () => {
-    let s = autoMark(emptyNotebook, ["dagger"]);
-    s = cycle(cycle(cycle(s, "dagger"), "dagger"), "dagger"); // back to empty
-    expect(markOf(s, "dagger")).toBe("empty");
-    s = autoMark(s, ["dagger", "study"]);
-    expect(markOf(s, "dagger")).toBe("empty");
-    expect(markOf(s, "study")).toBe("has");
+  it("only manual marks are stored; cycling back to auto removes the entry", () => {
+    let s = cycleCell(emptyManual, "p2", "hall");
+    expect(s.cells).toEqual({ p2: { hall: "has" } });
+    for (let i = 0; i < 3; i++) s = cycleCell(s, "p2", "hall");
+    expect(s.cells).toEqual({ p2: {} });
+    expect(cycleGeneral(emptyManual, "rope").general).toEqual({ rope: "has" });
   });
 
-  it("is keyed by game and player and survives a reload", () => {
-    expect(notebookKey("g1", "p1")).toBe("notebook:g1:p1");
-    const key = notebookKey("g1", "p1");
-    saveNotebook(key, cycle(emptyNotebook, "kitchen"));
-    expect(markOf(loadNotebook(key), "kitchen")).toBe("has");
-    expect(loadNotebook(notebookKey("g2", "p1"))).toEqual(emptyNotebook);
-  });
-
-  it("ignores corrupt storage", () => {
-    localStorage.setItem("notebook:x:y", "{nope");
-    expect(loadNotebook("notebook:x:y")).toEqual(emptyNotebook);
+  it("uses a v2 key and parses corrupt or v1 data as empty", () => {
+    expect(notebookKey("g", "p")).toBe("notebook:v2:g:p");
+    expect(parseManual("{bad")).toEqual(emptyManual);
+    expect(parseManual(JSON.stringify({ marks: { hall: "has" }, auto: [] }))).toEqual(emptyManual);
+    const s = { general: { hall: "not" }, cells: { p2: { rope: "maybe" } } };
+    expect(parseManual(JSON.stringify(s))).toEqual(s);
   });
 });

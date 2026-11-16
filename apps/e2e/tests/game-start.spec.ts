@@ -28,6 +28,7 @@ test("after start every player sees only their own cards; refresh restores the h
 });
 
 test("players bar sits next to the zoom buttons, which stay visible with 6 players at 360 px", async ({ table }) => {
+  test.slow(); // six browser contexts
   const t = await table(6);
   await t.start();
   const page = t.players[0]!.page;

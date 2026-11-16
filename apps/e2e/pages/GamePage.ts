@@ -7,8 +7,18 @@ export class GamePage {
     return this.page.getByRole("region", { name: "Board" });
   }
 
+  notebook() {
+    return this.page.getByRole("region", { name: "Notebook" });
+  }
+
+  /** Rows of my own cards in the notebook table. */
   hand() {
-    return this.page.getByRole("region", { name: "Your cards" });
+    return this.notebook().locator("tr[data-in-hand]");
+  }
+
+  /** A notebook cell button by card, column ("Overall" or a player name) and state. */
+  notebookCell(card: string, column: string, state: string) {
+    return this.notebook().getByRole("button", { name: new RegExp(`^${card} – ${column} – ${state} `) });
   }
 
   log() {
@@ -29,7 +39,7 @@ export class GamePage {
 
   async expectInGame(): Promise<void> {
     await expect(this.board()).toBeVisible();
-    await expect(this.hand()).toBeVisible();
+    await expect(this.notebook()).toBeVisible();
   }
 
   async pick(dialog: string, group: string, option: string): Promise<void> {

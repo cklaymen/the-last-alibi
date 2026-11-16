@@ -32,6 +32,6 @@ test("during a game an away player's turn is skipped and they can come back", as
   // Bob comes back (same browser) and is online again
   const back = await context.newPage();
   await back.goto(url);
-  await expect(back.getByRole("region", { name: "Your cards" }).getByText("Dagger")).toBeVisible();
+  await expect(back.getByRole("region", { name: "Notebook" }).locator("tr[data-in-hand]").getByText("Dagger")).toBeVisible();
   await expect(bar.getByRole("listitem").filter({ hasText: "Bob" })).not.toHaveAccessibleName(/ – (offline|away)/);
 });

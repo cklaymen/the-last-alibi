@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
-import { DisprovePanel, SeenCards, SuggestionResult } from "../disprove/index.js";
+import { DisprovePanel, SuggestionResult } from "../disprove/index.js";
 import { RoomCardPeek } from "../room-cards/index.js";
 import { TimerBar, isUrgent, useCountdown } from "../timer/index.js";
 import { TurnPanel, type Send } from "../turn/index.js";
@@ -20,7 +20,6 @@ export const actionSlots: readonly ActionSlot[] = [
   TurnPanel,
   DisprovePanel,
   SuggestionResult,
-  SeenCards,
   RoomCardPeek,
 ];
 

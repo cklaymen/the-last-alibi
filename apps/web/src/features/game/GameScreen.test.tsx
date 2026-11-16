@@ -34,8 +34,9 @@ describe("GameScreen", () => {
     const players = within(screen.getByRole("region", { name: "Players" })).getAllByRole("listitem");
     expect(players).toHaveLength(3);
     expect(players[0]).toHaveAttribute("aria-current", "true");
-    const hand = within(screen.getByRole("region", { name: "Your cards" })).getAllByRole("listitem");
-    expect(hand.map((li) => li.textContent)).toEqual(["Mr. Green", "Rope", "Hall"]);
+    const notebook = screen.getByRole("region", { name: "Notebook" });
+    const hand = [...notebook.querySelectorAll("tr[data-in-hand] th")].map((th) => th.textContent);
+    expect(hand).toEqual(["Mr. Green(in hand)", "Rope(in hand)", "Hall(in hand)"]);
     expect(screen.getByRole("region", { name: "Event log" })).toBeInTheDocument();
     expect(screen.queryByText(/You are out/)).toBeNull();
   });
@@ -72,6 +73,7 @@ describe("GameScreen", () => {
     expect(env).toHaveTextContent("Prof. Purple");
     expect(env).toHaveTextContent("Dagger");
     expect(env).toHaveTextContent("Study");
-    expect(screen.getAllByText("out").length).toBeGreaterThan(0);
+    const players = within(screen.getByRole("region", { name: "Players" })).getAllByRole("listitem");
+    expect(players[0]).toHaveAccessibleName(/ – eliminated$/);
   });
 });

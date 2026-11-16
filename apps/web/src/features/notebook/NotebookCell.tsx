@@ -1,8 +1,4 @@
-import type { CardId } from "@mystery-game/game";
-import { useT } from "../../shared/i18n/index.js";
-import { CardIcon, cardMessages } from "../cards/index.js";
-import { notebookMessages } from "./i18n.js";
-import { markSymbol as symbol, type Mark } from "./notebookModel.js";
+import { markSymbol, type Mark } from "./notebookModel.js";
 
 const tone: Record<Mark, string> = {
   empty: "text-muted",
@@ -11,29 +7,42 @@ const tone: Record<Mark, string> = {
   maybe: "text-fg",
 };
 
-type Props = { card: CardId; mark: Mark; onToggle: (card: CardId) => void };
+type Props = {
+  label: string;
+  mark: Mark;
+  source: "manual" | "auto";
+  /** "Shown to me" fact: drawn with an outline. */
+  shown?: boolean;
+  /** Missing = locked (my own card). */
+  onToggle?: (() => void) | undefined;
+};
 
-export function NotebookCell({ card, mark, onToggle }: Props) {
-  const t = useT(notebookMessages);
-  const tc = useT(cardMessages);
+/** One notebook cell: manual marks are full strength, automatic ones lighter. */
+export function NotebookCell({ label, mark, source, shown = false, onToggle }: Props) {
+  const symbol = (
+    <span
+      aria-hidden="true"
+      className={`inline-flex size-6 items-center justify-center rounded font-bold ${tone[mark]} ${
+        source === "auto" ? "opacity-55" : ""
+      } ${shown ? "outline-2 outline-brand-strong" : ""}`}
+    >
+      {mark === "empty" ? <span className="opacity-40">·</span> : markSymbol[mark]}
+    </span>
+  );
+  if (!onToggle)
+    return (
+      <span role="img" aria-label={label} className="flex h-9 items-center justify-center">
+        {symbol}
+      </span>
+    );
   return (
-    <li>
-      <button
-        type="button"
-        aria-label={t("cell", { card: tc(card), state: t(mark) })}
-        onClick={() => onToggle(card)}
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded border border-line bg-surface px-2 text-left text-sm text-fg hover:bg-surface-2"
-      >
-        <span className="flex min-w-0 items-center gap-2">
-          <CardIcon id={card} size={18} />
-          <span className={`truncate ${mark === "not" ? "text-muted line-through" : ""}`}>
-            {tc(card)}
-          </span>
-        </span>
-        <span aria-hidden="true" className={`w-4 shrink-0 text-center font-bold ${tone[mark]}`}>
-          {symbol[mark]}
-        </span>
-      </button>
-    </li>
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onToggle}
+      className="flex h-9 w-full items-center justify-center rounded hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-brand"
+    >
+      {symbol}
+    </button>
   );
 }

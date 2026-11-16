@@ -21,8 +21,8 @@ test("the suggestion dialog marks cards in my hand and my notebook notes", async
   await expect(ada.game.hand().getByText("Candlestick")).toBeVisible();
   await openNotebook(ada.page);
   const notebook = ada.page.getByRole("region", { name: "Notebook" });
-  await notebook.getByRole("button", { name: /^Dagger: / }).click();
-  await expect(notebook.getByRole("button", { name: /^Dagger: / })).not.toHaveAccessibleName("Dagger: empty");
+  await notebook.getByRole("button", { name: "Dagger – Overall – empty (automatic)" }).click();
+  await expect(notebook.getByRole("button", { name: "Dagger – Overall – has (manual)" })).toBeVisible();
 
   await ada.game.action("Suggest").click();
   const dialog = ada.page.getByRole("dialog", { name: "Make a suggestion" });

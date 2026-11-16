@@ -1,71 +1,64 @@
 import type { CardId } from "@mystery-game/game";
 
-/** Pure notebook model: marks per card plus the cards already auto-marked once. */
+/** Pure notebook model: only manual marks are stored; automatic ones are derived (deduction.ts). */
 export type Mark = "empty" | "has" | "not" | "maybe";
-export const marks: readonly Mark[] = ["empty", "has", "not", "maybe"];
+export type ManualMark = Exclude<Mark, "empty">;
 export const markSymbol: Record<Mark, string> = { empty: "", has: "✓", not: "✗", maybe: "?" };
 
-export interface NotebookState {
-  marks: Partial<Record<CardId, Mark>>;
-  /** Cards auto-marked from hand / seen cards; never re-marked after the player changes them. */
-  auto: CardId[];
+export interface ManualMarks {
+  general: Partial<Record<CardId, ManualMark>>;
+  /** Per other player id. */
+  cells: Record<string, Partial<Record<CardId, ManualMark>>>;
 }
 
-export const emptyNotebook: NotebookState = { marks: {}, auto: [] };
+export const emptyManual: ManualMarks = { general: {}, cells: {} };
 
-export function markOf(state: NotebookState, card: CardId): Mark {
-  return state.marks[card] ?? "empty";
+/** v2 key: older (v1) notebooks are deliberately ignored. */
+export const notebookKey = (gameId: string, playerId: string) => `notebook:v2:${gameId}:${playerId}`;
+
+const order: readonly (ManualMark | undefined)[] = [undefined, "has", "not", "maybe"];
+
+/** auto → has → not → maybe → auto */
+export function cycleManual(m: ManualMark | undefined): ManualMark | undefined {
+  return order[(order.indexOf(m) + 1) % order.length];
 }
 
-export function nextMark(mark: Mark): Mark {
-  return marks[(marks.indexOf(mark) + 1) % marks.length]!;
+/** A manual mark always wins over the automatic one. */
+export function effectiveMark(
+  manual?: Mark,
+  auto?: Mark,
+): { mark: Mark; source: "manual" | "auto" } {
+  if (manual && manual !== "empty") return { mark: manual, source: "manual" };
+  return { mark: auto ?? "empty", source: "auto" };
 }
 
-/** empty → has → not → maybe → empty */
-export function cycle(state: NotebookState, card: CardId): NotebookState {
-  return { ...state, marks: { ...state.marks, [card]: nextMark(markOf(state, card)) } };
+function withMark<T extends Partial<Record<CardId, ManualMark>>>(rec: T, card: CardId, m: ManualMark | undefined): T {
+  const next = { ...rec };
+  if (m) next[card] = m;
+  else delete next[card];
+  return next;
 }
 
-/** Marks each new known card "has" if it is still empty; each card is handled once. */
-export function autoMark(state: NotebookState, cards: readonly CardId[]): NotebookState {
-  const fresh = cards.filter((card) => !state.auto.includes(card));
-  if (fresh.length === 0) return state;
-  const next = { ...state.marks };
-  for (const card of fresh) if ((next[card] ?? "empty") === "empty") next[card] = "has";
-  return { marks: next, auto: [...state.auto, ...new Set(fresh)] };
+/** Cycles the manual general mark of `card`. */
+export function cycleGeneral(s: ManualMarks, card: CardId): ManualMarks {
+  return { ...s, general: withMark(s.general, card, cycleManual(s.general[card])) };
 }
 
-export const notebookKey = (gameId: string, playerId: string) =>
-  `notebook:${gameId}:${playerId}`;
-
-function isNotebook(value: unknown): value is NotebookState {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  return typeof v.marks === "object" && v.marks !== null && Array.isArray(v.auto);
+/** Cycles the manual mark of `card` in `playerId`'s column. */
+export function cycleCell(s: ManualMarks, playerId: string, card: CardId): ManualMarks {
+  const col = s.cells[playerId] ?? {};
+  return { ...s, cells: { ...s.cells, [playerId]: withMark(col, card, cycleManual(col[card])) } };
 }
+
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 
 /** Parses a stored notebook; anything corrupt becomes the empty notebook. */
-export function parseNotebook(raw: string | null): NotebookState {
+export function parseManual(raw: string | null): ManualMarks {
   try {
-    const parsed: unknown = raw ? JSON.parse(raw) : null;
-    return isNotebook(parsed) ? parsed : emptyNotebook;
+    const v: unknown = raw ? JSON.parse(raw) : null;
+    if (!isRecord(v) || !isRecord(v.general) || !isRecord(v.cells)) return emptyManual;
+    return v as unknown as ManualMarks;
   } catch {
-    return emptyNotebook;
-  }
-}
-
-export function loadNotebook(key: string): NotebookState {
-  try {
-    return parseNotebook(localStorage.getItem(key));
-  } catch {
-    return emptyNotebook;
-  }
-}
-
-export function saveNotebook(key: string, state: NotebookState): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(state));
-  } catch {
-    /* storage unavailable */
+    return emptyManual;
   }
 }

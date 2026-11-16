@@ -3,7 +3,6 @@ import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts"
 import { Board } from "../board/index.js";
 import { EnvelopeCards } from "../cards/index.js";
 import { EventLog } from "../event-log/index.js";
-import { CardHand } from "../hand/index.js";
 import { Notebook } from "../notebook/index.js";
 import { PlayersBar, myPlayer } from "../players/index.js";
 import { CommandError, useCommand, type Send } from "../turn/index.js";
@@ -71,10 +70,7 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
         </Collapsible>
 
         <Collapsible id="notebook" title={t("notebook")}>
-          <div className="flex flex-col gap-4">
-            <CardHand hand={me.hand} />
-            <Notebook />
-          </div>
+          <Notebook />
         </Collapsible>
       </div>
     </main>

@@ -23,10 +23,10 @@ describe("card picker annotations", () => {
     expect(within(green).queryByTitle(/^Notebook:/)).toBeNull();
 
     const notebook = screen.getByRole("region", { name: "Notebook" });
-    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green: empty" }));
-    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green: has" }));
+    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – empty (automatic)" }));
+    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – has (manual)" }));
     expect(within(green).getByTitle("Notebook: not")).toHaveTextContent("✗");
-    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green: not" }));
+    await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – not (manual)" }));
     expect(within(green).getByTitle("Notebook: maybe")).toHaveTextContent("?");
   });
 
