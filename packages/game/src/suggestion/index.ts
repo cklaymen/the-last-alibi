@@ -1,5 +1,6 @@
 import { requireActivePlayer, inProgress, type TurnContext } from "../shared/guards.js";
 import { playerOfCharacter, withEvents, withPlay } from "../shared/play.js";
+import { pick } from "../shared/random.js";
 import { fail, ok, type GameErrorCode, type GameResult } from "../shared/result.js";
 import type {
   CardId,
@@ -8,6 +9,7 @@ import type {
   GameEvent,
   PendingSuggestion,
   PlayerId,
+  Rng,
   RoomId,
   Suggestion,
   WeaponId,
@@ -103,4 +105,22 @@ export function disprove(game: Game, playerId: PlayerId, cardId: CardId): GameRe
       ),
     ),
   );
+}
+
+/**
+ * The pending disprover shows a random matching card (chosen with `rng`).
+ * Reason "timeout" emits `disprove_timed_out` right before `card_shown`.
+ */
+export function autoDisprove(game: Game, rng: Rng, reason: "timeout" | "away"): GameResult {
+  const play = inProgress(game);
+  if (!play) return fail("GAME_NOT_IN_PROGRESS");
+  const pending = play.turn.pendingSuggestion;
+  if (!pending) return fail("NOT_YOUR_DISPROVE");
+  const { disproverId } = pending;
+  const options = matchingCards(play.hands[disproverId] ?? [], pending.suggestion);
+  const before =
+    reason === "timeout"
+      ? withPlay(game, withEvents(play, { type: "disprove_timed_out", playerId: disproverId }))
+      : game;
+  return disprove(before, disproverId, pick(options, rng));
 }

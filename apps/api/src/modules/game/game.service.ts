@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import {
+  autoDisprove,
   gameId,
   removePlayer,
   resolveAway,
   returnToLobby,
+  timeOutTurn,
   type Game,
   type PlayerId,
 } from "@mystery-game/game";
@@ -12,6 +14,7 @@ import { AppError } from "../../shared/app-error.js";
 import { parseOrThrow } from "../../shared/validation.js";
 import { PresenceRegistry } from "../presence/index.js";
 import { SESSION_REPOSITORY, type SessionRepository } from "../session/index.js";
+import { TurnClock, type TimerKind } from "./clock/turn-clock.js";
 import type { CommandDeps, CommandEffects, CommandHandler } from "./commands/index.js";
 import {
   CONNECTION_CONTROL,
@@ -41,6 +44,7 @@ export class GameService {
     @Inject(SESSION_REPOSITORY) private readonly sessions: SessionRepository,
     @Inject(GAME_NOTIFIER) private readonly notifier: GameNotifier,
     @Inject(CONNECTION_CONTROL) private readonly connections: ConnectionControl,
+    @Inject(TurnClock) private readonly clock: TurnClock,
   ) {
     this.deps = { newRng: rngFactory, diceQueue, newId: randomUUID };
   }
@@ -77,8 +81,22 @@ export class GameService {
       return;
     }
     this.games.save(settled);
+    this.clock.sync(settled, (kind, key) => this.timeout(settled.roomCode, kind, key));
     this.publisher.publish(settled);
     for (const id of removed) this.release(settled.roomCode, id);
+  }
+
+  /** A turn/disprove countdown expired; stale expiries (turn already changed) are ignored. */
+  public timeout(roomCode: string, kind: TimerKind, key: string): void {
+    if (!this.clock.isCurrent(roomCode, key)) return;
+    const game = this.games.get(roomCode);
+    const play = game?.play;
+    if (!game || !play) return;
+    const result =
+      kind === "turn"
+        ? timeOutTurn(game, play.turn.playerId)
+        : autoDisprove(game, this.deps.newRng(), "timeout");
+    if (result.ok) this.commit(result.game);
   }
 
   /** A player was created over HTTP: they get the grace period to connect. */
@@ -153,6 +171,7 @@ export class GameService {
   private deleteRoom(roomCode: string): void {
     const game = this.games.get(roomCode);
     this.games.delete(roomCode);
+    this.clock.forget(roomCode);
     this.sessions.deleteRoom(roomCode);
     this.presence.forgetRoom(roomCode);
     for (const p of game?.players ?? []) this.connections.disconnectPlayer(p.id);

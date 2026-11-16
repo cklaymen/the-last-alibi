@@ -23,6 +23,8 @@ export {
 export { matchingCards, makeSuggestion, disprove } from "./suggestion/index.js";
 export { makeAccusation } from "./accusation/index.js";
 export { endTurn, availableActions } from "./turn-flow/index.js";
+export { timeOutTurn } from "./turn-flow/index.js";
+export { autoDisprove } from "./suggestion/index.js";
 
 export const gameId = (v: string) => v as import("./shared/types.js").GameId;
 export const playerId = (v: string) =>

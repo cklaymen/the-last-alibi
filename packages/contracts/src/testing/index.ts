@@ -17,5 +17,12 @@ export const scenarioSchema = z.object({
   activePlayer: z.string().optional(),
   /** Players summoned to a room by a suggestion (may suggest without moving). */
   summonedTo: z.record(z.string(), roomIdSchema).optional(),
+  /** Overrides the room's turn/disprove limits (ms) and restarts the countdowns. */
+  timeLimitsMs: z
+    .object({
+      turn: z.number().int().positive().optional(),
+      disprove: z.number().int().positive().optional(),
+    })
+    .optional(),
 });
 export type Scenario = z.infer<typeof scenarioSchema>;

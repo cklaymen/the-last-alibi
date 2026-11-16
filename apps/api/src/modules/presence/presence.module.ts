@@ -9,6 +9,6 @@ import { systemTimer, TIMER } from "./timer.js";
     { provide: PRESENCE_OPTIONS, useFactory: () => presenceOptionsFromEnv() },
     PresenceRegistry,
   ],
-  exports: [PresenceRegistry],
+  exports: [PresenceRegistry, TIMER],
 })
 export class PresenceModule {}

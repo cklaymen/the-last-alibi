@@ -4,3 +4,5 @@ export { GameProjector } from "./projection/game.projector.js";
 export { StatePublisher } from "./notifier/state.publisher.js";
 export { GAME_REPOSITORY, type GameRepository } from "./repository/game.repository.js";
 export { DiceQueue, RNG_FACTORY, type RngFactory } from "./rng.js";
+export { CLOCK, systemClock, type Clock } from "./clock/clock.js";
+export { TurnClock, type TimeLimitsOverride } from "./clock/turn-clock.js";

@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Param, Post } from "@nestjs/common";
 import { scenarioSchema } from "@mystery-game/contracts";
 import { parseOrThrow } from "../../shared/validation.js";
-import { DiceQueue, GameService } from "../game/index.js";
+import { DiceQueue, GameService, TurnClock } from "../game/index.js";
 import { applyScenario } from "./scenario.js";
 
 /** Test-only endpoints; the module is registered only when ENABLE_TEST_API=1. */
@@ -10,6 +10,7 @@ export class TestingController {
   public constructor(
     @Inject(GameService) private readonly games: GameService,
     @Inject(DiceQueue) private readonly diceQueue: DiceQueue,
+    @Inject(TurnClock) private readonly turnClock: TurnClock,
   ) {}
 
   @Post("rooms/:code/scenario")
@@ -18,6 +19,9 @@ export class TestingController {
     const scenario = parseOrThrow(scenarioSchema, body);
     const game = applyScenario(this.games.load(code), scenario);
     if (scenario.dice) this.diceQueue.enqueue(code, scenario.dice);
+    // A scenario may hand the turn to someone else without a turn event: restart the countdowns.
+    if (scenario.timeLimitsMs) this.turnClock.setOverride(code, scenario.timeLimitsMs);
+    else if (scenario.activePlayer !== undefined) this.turnClock.reset(code);
     this.games.commit(game);
     return { ok: true };
   }

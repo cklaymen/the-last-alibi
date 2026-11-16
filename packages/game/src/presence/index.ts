@@ -1,7 +1,6 @@
-import { pick } from "../shared/random.js";
 import { nextPlayer, startTurn, withEvents, withPlay } from "../shared/play.js";
 import type { Game, PlayState, PlayerId, Rng } from "../shared/types.js";
-import { disprove, matchingCards } from "../suggestion/index.js";
+import { autoDisprove } from "../suggestion/index.js";
 
 /**
  * Applies the rules for players who are away (offline for too long) during a
@@ -21,8 +20,7 @@ export function resolveAway(game: Game, away: readonly PlayerId[], rng: Rng): Ga
     const pending = play.turn.pendingSuggestion;
     if (pending) {
       if (!away.includes(pending.disproverId)) return current;
-      const options = matchingCards(play.hands[pending.disproverId] ?? [], pending.suggestion);
-      const result = disprove(current, pending.disproverId, pick(options, rng));
+      const result = autoDisprove(current, rng, "away");
       if (!result.ok) return current;
       current = result.game;
       continue;
