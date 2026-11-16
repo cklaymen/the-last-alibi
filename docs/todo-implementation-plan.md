@@ -234,10 +234,10 @@ Spec: "Shared – settings set by host in lobby, visible to all"; options of ite
 
 **Interfaces:** Consumes `room.settings`, `send("room:settings", patch)`. Controls (EN labels used by tests): "Accusation location" (Any room / The named room), "Accuse after suggestion in the same turn" (checkbox), "Suggest after staying in a room" (checkbox), "Turn time limit" (None/30 s/…/180 s), "Time to show a card" (None/15 s/…/60 s), "Face-down cards in rooms" (0–8), "Automatic notes" (checkbox). Host: editable (`ToggleGroup`/`<select>`/checkbox), sends a one-field patch on change; others: same controls `disabled` (read-only). Option lists come from the exported domain constants (static data – allowed).
 
-- [ ] **Step 1: Failing tests:** `host sees enabled controls with defaults` (Turn time limit = "90 s"); `guest sees disabled controls`; `changing a value sends room:settings with a one-field patch`; `server error code is shown`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** `settings.spec.ts`: `host changes turn limit, guest sees it`; `settings survive a finished game` (scenario: correct accusation ⇒ back in lobby, value kept).
-- [ ] **Step 6:** Commit `feat(lobby): room settings panel`.
+- [x] **Step 1: Failing tests:** `host sees enabled controls with defaults` (Turn time limit = "90 s"); `guest sees disabled controls`; `changing a value sends room:settings with a one-field patch`; `server error code is shown`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** `settings.spec.ts`: `host changes turn limit, guest sees it`; `settings survive a finished game` (scenario: correct accusation ⇒ back in lobby, value kept).
+- [x] **Step 6:** Commit `feat(lobby): room settings panel`.
 
 ## Task A1: Accusation rules (items 1 and 2)
 
@@ -247,11 +247,11 @@ Spec: todo 1, 2. Depends on: S0.
 
 **Interfaces – Produces:** `export function accusationError(ctx: TurnContext, accusation?: Accusation): GameErrorCode | null` in `accusation/index.ts` – order: `NOT_IN_ROOM` (pawn on a cell) → `ACCUSE_AFTER_SUGGESTION_DISABLED` (`!settings.accuseAfterSuggestion && turn.hasSuggested`) → `WRONG_ROOM` (only when `accusation` given, `named_room` and `accusation.room !== current room`). `availableActions` pushes `"accuse"` only when `accusationError(ctx) === null`. `AccusationDialog` gets `lockedRoom?: RoomId` (room grid preselected and disabled).
 
-- [ ] **Step 1: Failing domain tests:** `accusing from a corridor fails NOT_IN_ROOM`; `any_room: accusing from any room naming another room is allowed`; `named_room: naming another room fails WRONG_ROOM`; `named_room: naming current room is allowed`; `accuse after suggestion allowed by default`; `disabled option: after suggestion fails ACCUSE_AFTER_SUGGESTION_DISABLED, before suggestion allowed`; `availableActions omits accuse on a corridor and after suggestion when disabled`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: Web:** `AccuseAction` passes `lockedRoom={myRoom(game, myId)}` when `game.settings.accusationPlace === "named_room"`. Test `AccusationDialog locks the room` (radio disabled + checked).
-- [ ] **Step 6: E2E:** `Accuse button hidden on a corridor`; `named room: room is locked to the current room`.
-- [ ] **Step 7:** Commit `feat(rules): accusation only from a room, optional accuse-after-suggestion`.
+- [x] **Step 1: Failing domain tests:** `accusing from a corridor fails NOT_IN_ROOM`; `any_room: accusing from any room naming another room is allowed`; `named_room: naming another room fails WRONG_ROOM`; `named_room: naming current room is allowed`; `accuse after suggestion allowed by default`; `disabled option: after suggestion fails ACCUSE_AFTER_SUGGESTION_DISABLED, before suggestion allowed`; `availableActions omits accuse on a corridor and after suggestion when disabled`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: Web:** `AccuseAction` passes `lockedRoom={myRoom(game, myId)}` when `game.settings.accusationPlace === "named_room"`. Test `AccusationDialog locks the room` (radio disabled + checked).
+- [x] **Step 6: E2E:** `Accuse button hidden on a corridor`; `named room: room is locked to the current room`.
+- [x] **Step 7:** Commit `feat(rules): accusation only from a room, optional accuse-after-suggestion`.
 
 ## Task M1: No movement after a suggestion (item 3)
 
@@ -261,10 +261,10 @@ Spec: todo 3. Depends on: S0.
 
 **Interfaces:** `rollError` order: `ALREADY_ROLLED` → `ALREADY_MOVED` → `ALREADY_SUGGESTED` (`turn.hasSuggested`). `movePawn` fails `ALREADY_SUGGESTED` and `reachableIn` returns `[]` when `turn.hasSuggested`. Passage inherits via `rollError`.
 
-- [ ] **Step 1: Failing tests:** `summoned player who suggested cannot roll (ALREADY_SUGGESTED)`; `…cannot use the passage`; `summoned player who rolled, then suggested, cannot move` (Review Focus 1); `availableActions after suggestion has no roll/passage/move`; `summoned player may still roll and move instead of suggesting`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** (`suggestion.spec.ts`): `summoned player suggests, then Roll button is gone`.
-- [ ] **Step 6:** Commit `feat(rules): suggestion replaces movement for a summoned player`.
+- [x] **Step 1: Failing tests:** `summoned player who suggested cannot roll (ALREADY_SUGGESTED)`; `…cannot use the passage`; `summoned player who rolled, then suggested, cannot move` (Review Focus 1); `availableActions after suggestion has no roll/passage/move`; `summoned player may still roll and move instead of suggesting`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** (`suggestion.spec.ts`): `summoned player suggests, then Roll button is gone`.
+- [x] **Step 6:** Commit `feat(rules): suggestion replaces movement for a summoned player`.
 
 ## Task M2: Suggest after staying in a room (item 4)
 
@@ -295,10 +295,10 @@ export function visibleRoomCards(game: Game, playerId: PlayerId): { roomId: Room
 ```
 Setup: after the envelope, shuffle the remaining 18 cards; take `settings.roomCards` from the top into that many distinct random rooms (`shuffle(roomIds)`), deal the rest round-robin. Hands never contain room cards, so disproving is unchanged. Projector: `roomsWithCards = Object.keys(play.roomCards)`, `privateState.roomCards = visibleRoomCards(game, playerId)`.
 
-- [ ] **Step 1: Failing tests:** `roomCards=0 deals as before`; `roomCards=8: 8 distinct rooms, 10 dealt cards, all 21 accounted for, none in hands/envelope`; `roomsVisitedBy includes moved, passage and summoned rooms`; `visibleRoomCards only for visited rooms`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: API test** `room card id reaches only players who stood in the room` – record every event received by a third player's socket and assert the card id never appears (Review Focus 3); `game:state.roomsWithCards lists rooms`.
-- [ ] **Step 6:** Commit `feat(rules): face-down cards in rooms (setup + private projection)`.
+- [x] **Step 1: Failing tests:** `roomCards=0 deals as before`; `roomCards=8: 8 distinct rooms, 10 dealt cards, all 21 accounted for, none in hands/envelope`; `roomsVisitedBy includes moved, passage and summoned rooms`; `visibleRoomCards only for visited rooms`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: API test** `room card id reaches only players who stood in the room` – record every event received by a third player's socket and assert the card id never appears (Review Focus 3); `game:state.roomsWithCards lists rooms`.
+- [x] **Step 6:** Commit `feat(rules): face-down cards in rooms (setup + private projection)`.
 
 ## Task T1: Turn and disprove time limits – domain and API (items 5, 6)
 
@@ -325,11 +325,11 @@ export interface Clock { now(): number }  export const CLOCK = Symbol("CLOCK");
 ```
 Decided semantics: *turn key* = `${gameId}:${index of last game_started|turn_ended|turn_skipped|turn_timed_out event}`; *disprove key* = `${turnKey}:${events.length at suggestion}`. `sync` (called by `GameService.commit` after save, and on `deleteRoom` → `forget`): no limit / not IN_PROGRESS → cancel all; pending suggestion → pause the turn timer (store remaining) and start disprove timer for a new disprove key; no pending → new turn key starts a full turn timer, same key resumes the paused remainder. Expiry → `GameService.timeout(roomCode, kind, key)`: ignore unless `isCurrent`; apply `timeOutTurn` or `autoDisprove(…, "timeout")`, then `commit`. Uses the existing `TIMER` (presence) and new `CLOCK` providers.
 
-- [ ] **Step 1: Failing domain tests:** `timeOutTurn passes the turn and emits turn_timed_out`; `timeOutTurn fails DISPROVE_PENDING`; `autoDisprove timeout shows one matching card, emits disprove_timed_out then card_shown`; existing presence tests still pass.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: Failing API tests** (fake `Timer` + fake `Clock`): `turn ends after the limit`; `no timer when limit is None`; `turn timer pauses during disprove and resumes with remaining time` (limit 90 s, 40 s elapsed, disprove 10 s → remainingMs 50 000); `disprove timeout shows a random card to the suggester only`; `stale timeout is ignored` (turn ended manually before expiry); `timer cleared when game finishes / room deleted`; `game:state.timer has kind, playerId, remainingMs, durationMs`.
-- [ ] **Step 6:** Implement → PASS. Run the DoD commands.
-- [ ] **Step 7:** Commit `feat(api): turn and disprove time limits`.
+- [x] **Step 1: Failing domain tests:** `timeOutTurn passes the turn and emits turn_timed_out`; `timeOutTurn fails DISPROVE_PENDING`; `autoDisprove timeout shows one matching card, emits disprove_timed_out then card_shown`; existing presence tests still pass.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: Failing API tests** (fake `Timer` + fake `Clock`): `turn ends after the limit`; `no timer when limit is None`; `turn timer pauses during disprove and resumes with remaining time` (limit 90 s, 40 s elapsed, disprove 10 s → remainingMs 50 000); `disprove timeout shows a random card to the suggester only`; `stale timeout is ignored` (turn ended manually before expiry); `timer cleared when game finishes / room deleted`; `game:state.timer has kind, playerId, remainingMs, durationMs`.
+- [x] **Step 6:** Implement → PASS. Run the DoD commands.
+- [x] **Step 7:** Commit `feat(api): turn and disprove time limits`.
 
 ## Task U2: Suggestion result in the action section (item 8a)
 
@@ -349,10 +349,10 @@ export function suggestionOutcome(game: PublicGameState, me: PrivateGameState): 
 ```
 Texts (EN/PL): suggester – "Nobody could disprove" / "Nikt nie mógł obalić", "{name} showed you a card:" / "{name} pokazał Ci kartę:" + `CardTile`; others – "Nobody could disprove {name}'s suggestion" / "Nikt nie mógł obalić sugestii gracza {name}", "{by} showed a card to {name}" / "{by} pokazał kartę graczowi {name}". `latestShownToMe` is reimplemented on top of `suggestionOutcome` (or removed with its callers).
 
-- [ ] **Step 1: Failing tests:** `none for suggester`, `shown with card for suggester`, `shown without card for others`, `null after turn_ended`, `pending while waiting`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E:** 3 players – `A sees "B showed you a card: Rope" in Actions; C sees "B showed a card to A" and not "Rope"`.
-- [ ] **Step 6:** Commit `feat(web): suggestion result in the action section`.
+- [x] **Step 1: Failing tests:** `none for suggester`, `shown with card for suggester`, `shown without card for others`, `null after turn_ended`, `pending while waiting`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E:** 3 players – `A sees "B showed you a card: Rope" in Actions; C sees "B showed a card to A" and not "Rope"`.
+- [x] **Step 6:** Commit `feat(web): suggestion result in the action section`.
 
 ## Task T2: Timer bar and urgent highlight (items 5, 6 UI; 8c urgent)
 
