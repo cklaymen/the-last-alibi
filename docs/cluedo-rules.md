@@ -86,6 +86,7 @@ Players and setup
 - Six weapons start in six different random rooms.
 - The red character (Miss Scarlett equivalent) moves first if played; play then continues clockwise by seat order around the board (`SEAT_ORDER`), skipping unplayed characters.
 - The 18 remaining cards are dealt round-robin; with 4 or 5 players some players hold one card more (2 players: 9/9).
+- **Room cards (host option "Face-down cards in rooms", 0–8, default 0):** before dealing, that many of the shuffled remaining cards are placed face down in as many different random rooms (at most one per room); the rest is dealt as usual. A player whose pawn has stood in such a room this game – by moving, by secret passage or by being moved there by a suggestion – may secretly look at that card (it stays in the room). Room cards belong to nobody and are never used for disproving. Everybody sees which rooms hold a card, never which card.
 
 Movement
 - Roll two dice and move horizontally/vertically up to the total. No diagonal moves, no passing through occupied corridor squares; a room may hold any number of tokens.
@@ -95,7 +96,9 @@ Movement
 - A player may end the turn at any time during their own turn (except while a suggestion is waiting to be disproved), including without using the full roll.
 
 Suggestions
-- Allowed only in the room the player entered this turn (by moving or by secret passage), or in the room they were moved to by another player's suggestion since their last turn (they may suggest there without moving). Staying in a room without either does not allow a suggestion. One suggestion per turn.
+- Allowed only in the room the player entered this turn (by moving or by secret passage), or in the room they were moved to by another player's suggestion since their last turn (they may suggest there without moving). By default, staying in a room without either does not allow a suggestion. One suggestion per turn.
+- **A suggestion replaces movement:** after suggesting, a player can no longer roll, move or use a secret passage that turn (this matters for a player moved by someone else's suggestion: they either move, or suggest in that room – not both).
+- **Host option "Suggest after staying in a room" (default off):** a player who starts the turn in a room may suggest there without moving, as long as they have not rolled or moved yet (as in the official rulebook).
 - The named suspect token (any of the six) and weapon are moved to that room.
 
 Disproving
@@ -104,20 +107,25 @@ Disproving
 - Only the suggester sees the shown card; everyone sees who showed a card or that nobody could.
 
 Accusations and end of game
-- A player may accuse at any point of their own turn (before rolling, after moving, after a suggestion), except while a suggestion is waiting to be disproved. Any room may be named, and the player does not need to be in a room.
+- A player may accuse on their own turn, except while a suggestion is waiting to be disproved, and **only while their pawn stands in a room** (not on a corridor square).
+- **Host option "Accusation location":** `any room` (default) – the accuser may stand in any room and name any room; `the named room` – the accuser must name the room they stand in.
+- **Host option "Accuse after suggestion in the same turn" (default on, as in the rulebook):** when off, a player who suggested this turn cannot accuse until their next turn.
 - The accuser privately sees the envelope. A correct accusation wins. A wrong one eliminates the player: their turn ends, they take no more turns, their token stays on the board (it can still be moved by suggestions) and they keep disproving.
 - **House rule:** when only one non-eliminated player remains, that player wins automatically (so the official "no one wins" ending cannot occur).
 
 Deviations from the official rules (intentional)
 - Movement is "up to" the dice total instead of exactly the number rolled.
-- A suggestion requires entering the room this turn (or being moved there); simply staying in a room does not allow a new suggestion.
-- An accusation can be made from anywhere, not only from inside a room.
+- By default a suggestion requires entering the room this turn (or being moved there); simply staying in a room does not allow a new suggestion. The official behaviour is available as the host option "Suggest after staying in a room".
 - Last non-eliminated player wins automatically (see house rule).
-- 2-player games use normal dealing (9/9) instead of the official 4-cards-in-rooms variant; clue cards are not used.
+- 2-player games use normal dealing (9/9) by default; the official 4-cards-in-rooms variant is available through the "Face-down cards in rooms" option (set it to 4). Clue cards are not used.
 
 Online-specific rules
-- The host sets a turn time limit in the lobby (none / 60 / 90 / 120 / 180 s, default 120 s). When it runs out, the turn ends automatically. A disprover has 30 s; after that the server shows one of their matching cards at random.
-- A disconnected player keeps their seat. If it is their turn or they must disprove, they get a 60 s grace period, after which their turn is skipped or a matching card is shown automatically.
+- All house-rule options are set by the host in the lobby only, are visible to every player and are kept when the room returns to the lobby after a game.
+- **Turn time limit:** none / 30 / 60 / 90 / 120 / 180 s, default 90 s. When it runs out, the server ends the turn. The turn timer is paused (not reset) while a suggestion is waiting to be disproved and resumes with the remaining time.
+- **Time to show a card:** none / 15 / 30 / 45 / 60 s, default 30 s. When it runs out, the server shows one of the disprover's matching cards at random.
+- Both timers are shown to every player; the last 10 s are highlighted for the player who has to act.
+- **Automatic notes** (default on): the notebook fills in conclusions that follow from the game history; manual marks always take precedence. When off, only facts (cards shown to the player) are filled in.
+- A disconnected player keeps their seat. After a **30 s** grace period (`DEFAULT_GRACE_MS`, configurable with `PRESENCE_GRACE_MS`) they leave the lobby, or – in a game – become "away": their turns are skipped and a matching card is shown automatically when they must disprove.
 - After the game the host can restart the room: everybody returns to the lobby with the same players and characters.
 
 ## Character mapping (in-game identity)

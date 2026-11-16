@@ -274,10 +274,10 @@ Spec: todo 4. Depends on: M1.
 
 **Interfaces:** `suggestionRoomFor(ctx)` additionally allows the current room when `ctx.game.settings.suggestAfterStaying && !turn.hasMoved && turn.dice === null && location.kind === "room"` (still once per turn). `startTurn` is **not** changed.
 
-- [ ] **Step 1: Failing tests:** `default: staying in a room does not allow a suggestion (CANNOT_SUGGEST)`; `option on: player starting in a room may suggest without moving`; `option on: after rolling the option no longer applies`; `option on: after suggesting cannot roll (ALREADY_SUGGESTED)`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E:** `with the option on, a player starting in a room sees Suggest before rolling` (set via `room:settings` in lobby, positions via scenario).
-- [ ] **Step 6:** Commit `feat(rules): optional suggestion after staying in a room`.
+- [x] **Step 1: Failing tests:** `default: staying in a room does not allow a suggestion (CANNOT_SUGGEST)`; `option on: player starting in a room may suggest without moving`; `option on: after rolling the option no longer applies`; `option on: after suggesting cannot roll (ALREADY_SUGGESTED)`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E:** `with the option on, a player starting in a room sees Suggest before rolling` (set via `room:settings` in lobby, positions via scenario).
+- [x] **Step 6:** Commit `feat(rules): optional suggestion after staying in a room`.
 
 ## Task C1: Face-down room cards – domain and API (item 7)
 
@@ -362,10 +362,10 @@ Spec: 5 (bar in the action section, visible to everyone), 6, 8c (last **10 s** r
 
 **Interfaces – Produces:** `useCountdown(timer: PublicGameState["timer"]): { leftMs: number; fraction: number } | null` – deadline = `performance.now() + remainingMs` captured when the `timer` object changes; ticks with `requestAnimationFrame`/1 s interval; `URGENT_MS = 10_000`; `isUrgent(leftMs) = leftMs <= URGENT_MS`. `TimerBar`: `role="timer"`, `aria-label` "Time left for {name}: {seconds} s" (PL "Pozostały czas gracza {name}: {seconds} s"), progress bar coloured `--color-urgent` when urgent. ActionSection: `timerUrgent = isUrgent && timer.playerId === myId`.
 
-- [ ] **Step 1: Failing tests** (fake timers): `counts down from remainingMs`; `resets when a new timer object arrives`; `null timer renders nothing`; `urgent at 10 s`; `ActionSection data-attention="urgent" for my timer in last 10 s`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** (`timeLimitsMs: { turn: 3000 }` via scenario): `both players see the timer; when it ends the turn passes and the log shows "time ran out"`; disprove variant with `{ disprove: 3000 }`.
-- [ ] **Step 6:** Commit `feat(web): turn/disprove timer bar`.
+- [x] **Step 1: Failing tests** (fake timers): `counts down from remainingMs`; `resets when a new timer object arrives`; `null timer renders nothing`; `urgent at 10 s`; `ActionSection data-attention="urgent" for my timer in last 10 s`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** (`timeLimitsMs: { turn: 3000 }` via scenario): `both players see the timer; when it ends the turn passes and the log shows "time ran out"`; disprove variant with `{ disprove: 3000 }`.
+- [x] **Step 6:** Commit `feat(web): turn/disprove timer bar`.
 
 ## Task C2: Room card peek (item 7 UI, preview)
 
@@ -375,7 +375,7 @@ Spec: 7 "preview for the player whose pawn stands in the room". Depends on: C1, 
 
 **Interfaces:** Shows `me.roomCards` entry for the room my pawn is in now: "Face-down card in this room:" / "Zakryta karta w tym pokoju:" + `CardTile`. (Board marker: B1. Notebook use: N2.)
 
-- [ ] **Steps:** failing test `shows the card only when my pawn is in that room` → implement → PASS → E2E `player entering a room with a card sees it, the other player does not` (scenario `roomCards`) → commit `feat(web): peek at face-down room card`.
+- [x] **Steps:** failing test `shows the card only when my pawn is in that room` → implement → PASS → E2E `player entering a room with a card sees it, the other player does not` (scenario `roomCards`) → commit `feat(web): peek at face-down room card`.
 
 ## Task P1: Compact players bar in the board toolbar (item 8h)
 
@@ -385,7 +385,7 @@ Spec: 8h. Depends on: U1.
 
 **Interfaces:** `PlayersBar` chips: avatar + truncated name; badges on the avatar for card count, offline/away, eliminated; full info in `aria-label` (e.g. "Ann – Ms. Red – 6 cards – offline – eliminated"); active player `aria-current="true"` + accent ring.
 
-- [ ] **Steps:** failing tests `chip aria-label has full info`, `active chip has aria-current` → implement → PASS → E2E `players bar is in the same row as zoom buttons and zoom buttons stay visible with 6 players at 360 px` → commit `feat(web): compact players bar next to map controls`.
+- [x] **Steps:** failing tests `chip aria-label has full info`, `active chip has aria-current` → implement → PASS → E2E `players bar is in the same row as zoom buttons and zoom buttons stay visible with 6 players at 360 px` → commit `feat(web): compact players bar next to map controls`.
 
 ## Task B1: Board highlights, tooltips, room-card markers (items 8i, 8j, 7 marker)
 
@@ -395,7 +395,7 @@ Spec: 8i, 8j, 7 "board marker". Depends on: U2 (`currentTurnSuggestion`), S0 (`r
 
 **Interfaces – Produces:** `boardHighlights(game): { activeCharacter: CharacterId | null; suggestedCharacter: CharacterId | null; suggestedWeapon: WeaponId | null; suggestedRoom: RoomId | null }` in `board/selectors.ts`. `useBoardView` exposes `wasDrag(): boolean` (pointer moved > 5 px since pointerdown). Pawns/weapons get `pointerEvents` enabled with a hit area no larger than their slot; click: if `wasDrag()` → ignore; if the location under the token is in `me.reachable` → call `onMove` (no tooltip); else toggle tooltip (character: name + player nick if played; weapon: name). Desktop: also on hover. Room with a face-down card: small card icon at the room label with `aria-label` "Face-down card" / "Zakryta karta". Active pawn: accent pulsing ring distinct from the "my pawn" ring; suggested pawn/weapon: highlight ring until turn ends. Animations off under reduced motion.
 
-- [ ] **Steps:** failing tests `boardHighlights` (active, suggestion until turn_ended), `tooltip on click, not after drag`, `click on token in a reachable room moves`, `room-card marker rendered for roomsWithCards` → implement → PASS → E2E `tapping a pawn shows its name; moving still works` → commit `feat(board): highlights, tooltips, room-card markers`.
+- [x] **Steps:** failing tests `boardHighlights` (active, suggestion until turn_ended), `tooltip on click, not after drag`, `click on token in a reachable room moves`, `room-card marker rendered for roomsWithCards` → implement → PASS → E2E `tapping a pawn shows its name; moving still works` → commit `feat(board): highlights, tooltips, room-card markers`.
 
 ## Task N2: Notebook table merged with "My cards" (items 8e, 8f UI)
 
@@ -416,10 +416,10 @@ export function useNotebookMarks(): (card: CardId) => Mark;      // general mark
 ```
 Table: `<table>` per section (suspects/weapons/rooms) with `<th scope="row">` icon + name (truncating) | general cell | one narrow (~28 px) column per **other** player in turn order, header = colour dot with initial, tooltip with full nick (hover + tap), greyed if eliminated. My-hand rows: distinct background/border + ✓, locked (general and player cells ✗, no buttons). Auto values lighter (`text-muted`), manual normal. "Shown to me" ✓ has an outline and "shown to you" in `aria-label`. Cell `aria-label`: "{card} – {player} – {state} ({automatic|manual})". Envelope rows highlighted. `room.settings.autoNotes === false` → use `factsOnly`. Deduction input built from `game.events.map(e => e.event)`, `game.players`, `me.hand`, `me.seenCards`, `me.roomCards.map(r => r.cardId)`.
 
-- [ ] **Step 1: Failing tests:** `cycleManual order`; `manual mark wins over auto`; `only manual marks are stored (v2 key), old v1 key ignored`; `hand rows are locked and ✓`; `shown-to-me cell has outline + aria-label`; `columns toggle persists`; `autoNotes off shows no automatic marks except facts`; `eliminated player header greyed`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E:** update `notebook.spec.ts` (manual marks survive reload; B cannot disprove ⇒ ✗ automatically in B's column), `GamePage` helpers; `6-player table fits 360 px` (`document.documentElement.scrollWidth <= 360`, Review Focus 5).
-- [ ] **Step 6:** Commit `feat(notebook): merged notebook table with automatic deductions`.
+- [x] **Step 1: Failing tests:** `cycleManual order`; `manual mark wins over auto`; `only manual marks are stored (v2 key), old v1 key ignored`; `hand rows are locked and ✓`; `shown-to-me cell has outline + aria-label`; `columns toggle persists`; `autoNotes off shows no automatic marks except facts`; `eliminated player header greyed`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E:** update `notebook.spec.ts` (manual marks survive reload; B cannot disprove ⇒ ✗ automatically in B's column), `GamePage` helpers; `6-player table fits 360 px` (`document.documentElement.scrollWidth <= 360`, Review Focus 5).
+- [x] **Step 6:** Commit `feat(notebook): merged notebook table with automatic deductions`.
 
 ## Task D1: Rules documentation sync
 
@@ -427,10 +427,10 @@ Spec: "Shared – update `docs/cluedo-rules.md`", "To verify". Depends on: A1, M
 
 **Files:** Modify `docs/cluedo-rules.md`, `README.md` (settings + version), `docs/todo.md` (tick items).
 
-- [ ] **Step 1:** "Implementation clarifications": accusation only from a room (default any room; option named room); accuse-after-suggestion option; suggestion replaces movement for summoned players; suggest-after-staying option; room cards option (0–8, peeking rules, not used for disproving).
-- [ ] **Step 2:** "Deviations": remove "accusation from anywhere"; rewrite "suggestion requires entering" as default with option; 2-player line mentions the room-cards option.
-- [ ] **Step 3:** "Online-specific rules": turn limit none/30/60/90/120/180 s, default 90 s, paused while disproving; disprove limit none/15/30/45/60 s, default 30 s, random card on expiry; disconnected players: **30 s** grace (`DEFAULT_GRACE_MS`/`PRESENCE_GRACE_MS`), then away = turns skipped / cards shown automatically.
-- [ ] **Step 4:** Commit `docs: sync rules with room settings and timers`.
+- [x] **Step 1:** "Implementation clarifications": accusation only from a room (default any room; option named room); accuse-after-suggestion option; suggestion replaces movement for summoned players; suggest-after-staying option; room cards option (0–8, peeking rules, not used for disproving).
+- [x] **Step 2:** "Deviations": remove "accusation from anywhere"; rewrite "suggestion requires entering" as default with option; 2-player line mentions the room-cards option.
+- [x] **Step 3:** "Online-specific rules": turn limit none/30/60/90/120/180 s, default 90 s, paused while disproving; disprove limit none/15/30/45/60 s, default 30 s, random card on expiry; disconnected players: **30 s** grace (`DEFAULT_GRACE_MS`/`PRESENCE_GRACE_MS`), then away = turns skipped / cards shown automatically.
+- [x] **Step 4:** Commit `docs: sync rules with room settings and timers`.
 
 ---
 

@@ -38,6 +38,10 @@ apps/e2e             Playwright tests (multi-player fixtures, Page Objects)
 - **Identity.** A player receives a session token when creating or joining a room; the socket authenticates with the token in the handshake.
 - **Feature folders** in every layer; i18n dictionaries per feature (EN + PL).
 
+## Room settings
+
+The host sets house rules in the lobby (visible to everyone, kept between games): accusation location (any room / the named room), accusing after a suggestion in the same turn, suggesting after staying in a room, turn time limit (none–180 s, default 90 s), time to show a card (none–60 s, default 30 s), face-down cards in rooms (0–8) and automatic notes. Details: `docs/cluedo-rules.md` → "Implementation clarifications".
+
 ## Running locally (dev)
 
 Requirements: Node.js ≥ 22 and pnpm 10 (`corepack enable`).
@@ -85,7 +89,7 @@ pnpm build         # build all packages
 pnpm test:e2e      # Playwright; starts the API (:3100) and web (:5174) itself
 ```
 
-Before running E2E for the first time, install the browser: `pnpm --filter @mystery-game/e2e exec playwright install chromium`.
+Before running E2E for the first time, install the browser: `pnpm --filter @mystery-game/e2e exec playwright install chromium`. Set `E2E_API_PORT` / `E2E_WEB_PORT` to run the suite on other ports (e.g. several checkouts in parallel).
 
 ## Repository structure
 

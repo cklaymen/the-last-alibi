@@ -9,8 +9,8 @@ test("actions stay visible after scrolling to the notebook", async ({ table }) =
   await expect(ada.game.actions()).toHaveAttribute("data-attention", "action");
   await expect(t.players[1]!.game.actions()).toHaveAttribute("data-attention", "none");
 
-  // The last notebook cell (Study) is the bottom of the right column.
-  const lastCell = ada.game.section("Notebook").getByRole("button", { name: /^Study: / });
+  // The last notebook row (Study) is the bottom of the right column.
+  const lastCell = ada.game.notebook().getByRole("rowheader", { name: /^Study/ });
   await lastCell.scrollIntoViewIfNeeded();
   await expect(lastCell).toBeInViewport();
   await expect(ada.game.actions()).toBeInViewport();
