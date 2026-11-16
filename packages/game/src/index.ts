@@ -10,6 +10,7 @@ export {
   kickPlayer,
   returnToLobby,
   isNameTaken,
+  updateSettings,
 } from "./lobby/index.js";
 export { resolveAway } from "./presence/index.js";
 export { startGame } from "./setup/index.js";

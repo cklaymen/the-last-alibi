@@ -78,6 +78,43 @@ export type Envelope = Triple;
 export type Suggestion = Triple;
 export type Accusation = Triple;
 
+// ── Room settings (house rules, chosen by the host in the lobby) ───────────
+
+/** Turn time limit options in seconds; null = no limit. */
+export const turnTimeLimits = [null, 30, 60, 90, 120, 180] as const;
+/** Disprove time limit options in seconds; null = no limit. */
+export const disproveTimeLimits = [null, 15, 30, 45, 60] as const;
+/** Maximum number of cards laid out face down in rooms. */
+export const MAX_ROOM_CARDS = 8;
+
+/** Where an accusation may be made: in any room, or only in the named room. */
+export const accusationPlaces = ["any_room", "named_room"] as const;
+export type AccusationPlace = (typeof accusationPlaces)[number];
+
+export type TurnTimeLimit = (typeof turnTimeLimits)[number];
+export type DisproveTimeLimit = (typeof disproveTimeLimits)[number];
+
+export interface RoomSettings {
+  readonly accusationPlace: AccusationPlace;
+  readonly accuseAfterSuggestion: boolean;
+  readonly suggestAfterStaying: boolean;
+  readonly turnTimeLimitSec: TurnTimeLimit;
+  readonly disproveTimeLimitSec: DisproveTimeLimit;
+  /** Integer 0..MAX_ROOM_CARDS. */
+  readonly roomCards: number;
+  readonly autoNotes: boolean;
+}
+
+export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
+  accusationPlace: "any_room",
+  accuseAfterSuggestion: true,
+  suggestAfterStaying: false,
+  turnTimeLimitSec: 90,
+  disproveTimeLimitSec: 30,
+  roomCards: 0,
+  autoNotes: true,
+};
+
 // ── Play state ──────────────────────────────────────────────────────────────
 
 export type ActionId =
@@ -152,6 +189,10 @@ export type GameEvent =
   | { readonly type: "turn_ended"; readonly playerId: PlayerId }
   /** The player was away (offline too long); the server ended their turn. */
   | { readonly type: "turn_skipped"; readonly playerId: PlayerId }
+  /** The turn time limit ran out; the server ended the turn. */
+  | { readonly type: "turn_timed_out"; readonly playerId: PlayerId }
+  /** The disprove time limit ran out; emitted right before the automatic card_shown. */
+  | { readonly type: "disprove_timed_out"; readonly playerId: PlayerId }
   | {
       readonly type: "game_won";
       readonly playerId: PlayerId;
@@ -178,6 +219,8 @@ export interface PlayState {
   /** Players moved by someone else's suggestion since their last turn. */
   readonly summonedTo: Readonly<Record<string, RoomId>>;
   readonly reveals: readonly Reveal[];
+  /** Cards laid face down in rooms (secret; never in public state). Empty when settings.roomCards = 0. */
+  readonly roomCards: Readonly<Partial<Record<RoomId, CardId>>>;
   readonly events: readonly GameEvent[];
   readonly winner: { readonly playerId: PlayerId; readonly reason: WinReason } | null;
 }
@@ -202,4 +245,6 @@ export interface Game {
   readonly play: PlayState | null;
   /** Result of the previous game in this room; null before the first one ends. */
   readonly lastResult: LastResult | null;
+  /** House rules; changed by the host in LOBBY only, kept across restarts. */
+  readonly settings: RoomSettings;
 }

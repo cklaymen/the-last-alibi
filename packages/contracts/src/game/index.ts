@@ -5,6 +5,7 @@ import {
   roomIdSchema,
   weaponIdSchema,
 } from "../ids.js";
+import { roomSettingsSchema } from "../settings/index.js";
 
 export const positionSchema = z.object({
   row: z.number().int().min(0).max(24),
@@ -56,12 +57,24 @@ export const gameEventSchema = z.discriminatedUnion("type", [
   }),
   z.object({ type: z.literal("turn_ended"), playerId: z.string() }),
   z.object({ type: z.literal("turn_skipped"), playerId: z.string() }),
+  z.object({ type: z.literal("turn_timed_out"), playerId: z.string() }),
+  /** Emitted right before the automatic card_shown. */
+  z.object({ type: z.literal("disprove_timed_out"), playerId: z.string() }),
   z.object({
     type: z.literal("game_won"),
     playerId: z.string(),
     reason: z.enum(["ACCUSATION", "LAST_STANDING"]),
   }),
 ]);
+
+/** Running countdown (turn or disprove); null when no limit applies. */
+export const gameTimerSchema = z.object({
+  kind: z.enum(["turn", "disprove"]),
+  /** Player whose time is running. */
+  playerId: z.string(),
+  remainingMs: z.number().int().min(0),
+  durationMs: z.number().int().positive(),
+});
 
 /** Broadcast to everyone in the room (`game:state`). Never contains hidden cards. */
 export const publicGameStateSchema = z.object({
@@ -100,6 +113,11 @@ export const publicGameStateSchema = z.object({
     .nullable(),
   /** Revealed only when status === "FINISHED". */
   envelope: tripleSchema.nullable(),
+  /** House rules this game is played with. */
+  settings: roomSettingsSchema,
+  timer: gameTimerSchema.nullable(),
+  /** Rooms holding a face-down room card (ids of the cards stay private). */
+  roomsWithCards: z.array(roomIdSchema),
 });
 
 /** Sent only to one player (`game:private`). */
@@ -121,6 +139,8 @@ export const privateGameStateSchema = z.object({
   seenCards: z.array(z.object({ cardId: cardIdSchema, fromPlayerId: z.string() })),
   /** The envelope, visible to a player eliminated by a wrong accusation. */
   envelope: tripleSchema.nullable(),
+  /** Room cards of the rooms this player has stood in. */
+  roomCards: z.array(z.object({ roomId: roomIdSchema, cardId: cardIdSchema })),
 });
 
 // ── Commands (socket payloads) ─────────────────────────────────────────────
@@ -136,6 +156,7 @@ export type Position = z.infer<typeof positionSchema>;
 export type Location = z.infer<typeof locationSchema>;
 export type Triple = z.infer<typeof tripleSchema>;
 export type GameEvent = z.infer<typeof gameEventSchema>;
+export type GameTimer = z.infer<typeof gameTimerSchema>;
 export type PublicGameState = z.infer<typeof publicGameStateSchema>;
 export type PrivateGameState = z.infer<typeof privateGameStateSchema>;
 export type MoveCommand = z.infer<typeof moveCommandSchema>;

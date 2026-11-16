@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { characterIdSchema } from "../ids.js";
 import { tripleSchema } from "../game/index.js";
+import { roomSettingsSchema } from "../settings/index.js";
 import { playerNameSchema, roomCodeSchema, sessionSchema } from "../session/index.js";
 
 export const createRoomSchema = z.object({ playerName: playerNameSchema });
@@ -41,6 +42,7 @@ export const roomSummarySchema = z.object({
   phase: z.enum(["LOBBY", "IN_PROGRESS", "FINISHED"]),
   players: z.array(playerSummarySchema),
   lastResult: lastResultSchema.nullable(),
+  settings: roomSettingsSchema,
 });
 
 /** Response of POST /rooms, POST /rooms/join and GET /rooms/:code/session. */

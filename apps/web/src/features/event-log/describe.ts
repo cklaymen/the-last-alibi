@@ -66,6 +66,10 @@ export function describeEvent(event: GameEvent, ctx: DescribeContext): Described
       return { key: "turn_ended", params: { name: name(event.playerId) } };
     case "turn_skipped":
       return { key: "turn_skipped", params: { name: name(event.playerId) } };
+    case "turn_timed_out":
+      return { key: "turn_timed_out", params: { name: name(event.playerId) } };
+    case "disprove_timed_out":
+      return { key: "disprove_timed_out", params: { name: name(event.playerId) } };
     case "game_won":
       return { key: "game_won", params: { name: name(event.playerId) } };
   }

@@ -1,5 +1,19 @@
 /** Test-only builders for game states (imported by *.test.tsx files only). */
-import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
+import type { PrivateGameState, PublicGameState, RoomSettings } from "@mystery-game/contracts";
+
+/** Default room settings (mirror of DEFAULT_ROOM_SETTINGS). */
+export function makeSettings(overrides: Partial<RoomSettings> = {}): RoomSettings {
+  return {
+    accusationPlace: "any_room",
+    accuseAfterSuggestion: true,
+    suggestAfterStaying: false,
+    turnTimeLimitSec: 90,
+    disproveTimeLimitSec: 30,
+    roomCards: 0,
+    autoNotes: true,
+    ...overrides,
+  };
+}
 
 export function makeGame(overrides: Partial<PublicGameState> = {}): PublicGameState {
   return {
@@ -31,6 +45,9 @@ export function makeGame(overrides: Partial<PublicGameState> = {}): PublicGameSt
     events: [],
     winner: null,
     envelope: null,
+    settings: makeSettings(),
+    timer: null,
+    roomsWithCards: [],
     ...overrides,
   };
 }
@@ -45,6 +62,7 @@ export function makeMe(overrides: Partial<PrivateGameState> = {}): PrivateGameSt
     disproveRequest: null,
     seenCards: [],
     envelope: null,
+    roomCards: [],
     ...overrides,
   };
 }

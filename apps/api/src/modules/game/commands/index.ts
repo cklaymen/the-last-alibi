@@ -10,6 +10,7 @@ import { renameHandler } from "./rename.handler.js";
 import { rollHandler } from "./roll.handler.js";
 import { startHandler } from "./start.handler.js";
 import { suggestHandler } from "./suggest.handler.js";
+import { settingsHandler } from "./settings.handler.js";
 
 export type { CommandDeps, CommandEffects, CommandHandler } from "./command.js";
 
@@ -26,4 +27,5 @@ export const commandHandlers: readonly CommandHandler[] = [
   disproveHandler,
   accuseHandler,
   endTurnHandler,
+  settingsHandler,
 ];

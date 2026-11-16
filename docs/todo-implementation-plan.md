@@ -123,24 +123,24 @@ export type RoomSettings; export type UpdateSettingsRequest;
 ```
 - Projector placeholders (filled later): `timer: null` (T1), `roomsWithCards: []` and `roomCards: []` (C1). Projector sends **all** events (delete `EVENT_WINDOW`; `seq` = index).
 
-- [ ] **Step 1: Write failing domain tests** in `packages/game/test/settings.test.ts`:
+- [x] **Step 1: Write failing domain tests** in `packages/game/test/settings.test.ts`:
   - `createGame uses DEFAULT_ROOM_SETTINGS` → `expect(game.settings).toEqual({ accusationPlace: "any_room", accuseAfterSuggestion: true, suggestAfterStaying: false, turnTimeLimitSec: 90, disproveTimeLimitSec: 30, roomCards: 0, autoNotes: true })`
   - `host updates settings in lobby` → `updateSettings(g, host, { turnTimeLimitSec: 30 })` ok, other fields unchanged
   - `non-host is rejected` → `NOT_HOST`; `after start is rejected` → `GAME_NOT_IN_LOBBY`
   - `invalid values are rejected` → `{ turnTimeLimitSec: 45 }`, `{ disproveTimeLimitSec: 90 }`, `{ roomCards: 9 }`, `{ roomCards: 1.5 }` → `INVALID_SETTINGS`
   - `settings survive returnToLobby` → finish a game, `returnToLobby` keeps `settings`
   - `startGame initialises roomCards to {}`
-- [ ] **Step 2:** Run `pnpm --filter @mystery-game/game test` → FAIL (`updateSettings` not exported).
-- [ ] **Step 3:** Implement the types and `updateSettings` above; export `updateSettings`, `DEFAULT_ROOM_SETTINGS`, `turnTimeLimits`, `disproveTimeLimits`, `MAX_ROOM_CARDS` from `src/index.ts`.
-- [ ] **Step 4:** Run game tests → PASS.
-- [ ] **Step 5: Failing API tests** (`apps/api/test/rooms.test.ts`, `game.test.ts`):
+- [x] **Step 2:** Run `pnpm --filter @mystery-game/game test` → FAIL (`updateSettings` not exported).
+- [x] **Step 3:** Implement the types and `updateSettings` above; export `updateSettings`, `DEFAULT_ROOM_SETTINGS`, `turnTimeLimits`, `disproveTimeLimits`, `MAX_ROOM_CARDS` from `src/index.ts`.
+- [x] **Step 4:** Run game tests → PASS.
+- [x] **Step 5: Failing API tests** (`apps/api/test/rooms.test.ts`, `game.test.ts`):
   - `room:settings by host broadcasts room:state with new settings to all players`
   - `room:settings by non-host acks NOT_HOST`; `room:settings with { roomCards: 99 } acks INVALID_PAYLOAD` (Zod) 
   - `game:state contains settings, timer null, roomsWithCards []`; `game:private contains roomCards []`
   - `game:state contains the full event history` – produce > 50 events (e.g. 30 × roll+end_turn via scenario dice) and assert `events.length === play.events.length` and `events[0].seq === 0`
-- [ ] **Step 6:** Implement contracts, `settings.handler.ts` (`event: "room:settings"`, `schema: updateSettingsSchema`, `execute: (g, p, payload) => updateSettings(g, p, payload)`), register it, projector fields. Web: add EN/PL error texts for the 5 codes, `describe.ts` cases (`turn_timed_out`: "{name}'s time ran out" / "Czas gracza {name} minął"; `disprove_timed_out`: "{name} did not choose in time – a random card was shown" / "{name} nie wybrał na czas – pokazano losową kartę"), fixtures get the new fields.
-- [ ] **Step 7:** `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green.
-- [ ] **Step 8:** Commit `feat(settings): room settings, new error codes/events and projection fields`.
+- [x] **Step 6:** Implement contracts, `settings.handler.ts` (`event: "room:settings"`, `schema: updateSettingsSchema`, `execute: (g, p, payload) => updateSettings(g, p, payload)`), register it, projector fields. Web: add EN/PL error texts for the 5 codes, `describe.ts` cases (`turn_timed_out`: "{name}'s time ran out" / "Czas gracza {name} minął"; `disprove_timed_out`: "{name} did not choose in time – a random card was shown" / "{name} nie wybrał na czas – pokazano losową kartę"), fixtures get the new fields.
+- [x] **Step 7:** `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green.
+- [x] **Step 8:** Commit `feat(settings): room settings, new error codes/events and projection fields`.
 
 ## Task V1: App version on the home screen
 

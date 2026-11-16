@@ -13,6 +13,7 @@ import type {
   RenamePlayerRequest,
   RoomSummary,
 } from "./rooms/index.js";
+import type { UpdateSettingsRequest } from "./settings/index.js";
 
 /**
  * Socket.IO event names. Identity comes from the handshake (`auth: { token }`);
@@ -25,6 +26,8 @@ export const ClientEvents = {
   start: "room:start",
   kick: "room:kick",
   rename: "room:rename",
+  /** Host only, LOBBY only; partial settings. */
+  updateSettings: "room:settings",
   roll: "turn:roll",
   move: "turn:move",
   passage: "turn:passage",
@@ -49,6 +52,7 @@ export interface ClientToServerEvents {
   "room:start": (payload: Record<string, never>, ack: Ack) => void;
   "room:kick": (payload: KickPlayerRequest, ack: Ack) => void;
   "room:rename": (payload: RenamePlayerRequest, ack: Ack) => void;
+  "room:settings": (payload: UpdateSettingsRequest, ack: Ack) => void;
   "turn:roll": (payload: Record<string, never>, ack: Ack) => void;
   "turn:move": (payload: MoveCommand, ack: Ack) => void;
   "turn:passage": (payload: Record<string, never>, ack: Ack) => void;

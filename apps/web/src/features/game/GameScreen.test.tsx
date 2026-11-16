@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { GameContext, type GameContextValue } from "./GameContext.js";
 import { GameScreen } from "./GameScreen.js";
-import { makeGame, makeMe } from "./testFixtures.js";
+import { makeGame, makeMe, makeSettings } from "./testFixtures.js";
 
 function renderScreen(overrides: Partial<GameContextValue> = {}) {
   const value: GameContextValue = {
-    room: { id: "g1", code: "ABCD", hostId: "p1", maxPlayers: 6, phase: "IN_PROGRESS", players: [], lastResult: null },
+    room: { id: "g1", code: "ABCD", hostId: "p1", maxPlayers: 6, phase: "IN_PROGRESS", players: [], lastResult: null, settings: makeSettings() },
     myId: "p1",
     game: makeGame(),
     me: makeMe(),

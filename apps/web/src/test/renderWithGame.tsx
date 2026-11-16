@@ -1,8 +1,23 @@
 import type { ReactElement } from "react";
 import { render } from "@testing-library/react";
 import { vi } from "vitest";
-import type { PrivateGameState, PublicGameState, RoomSummary } from "@mystery-game/contracts";
+import type {
+  PrivateGameState,
+  PublicGameState,
+  RoomSettings,
+  RoomSummary,
+} from "@mystery-game/contracts";
 import { GameContext, type GameContextValue } from "../features/game/index.js";
+
+export const testSettings: RoomSettings = {
+  accusationPlace: "any_room",
+  accuseAfterSuggestion: true,
+  suggestAfterStaying: false,
+  turnTimeLimitSec: 90,
+  disproveTimeLimitSec: 30,
+  roomCards: 0,
+  autoNotes: true,
+};
 
 export const testRoom: RoomSummary = {
   id: "game-1",
@@ -15,6 +30,7 @@ export const testRoom: RoomSummary = {
     { id: "p2", name: "Bob", characterId: "blue", presence: "online" },
   ],
   lastResult: null,
+  settings: testSettings,
 };
 
 export const testGame: PublicGameState = {
@@ -31,6 +47,9 @@ export const testGame: PublicGameState = {
   events: [],
   winner: null,
   envelope: null,
+  settings: testSettings,
+  timer: null,
+  roomsWithCards: [],
 };
 
 export const testMe: PrivateGameState = {
@@ -42,6 +61,7 @@ export const testMe: PrivateGameState = {
   disproveRequest: null,
   seenCards: [],
   envelope: null,
+  roomCards: [],
 };
 
 /** Renders `ui` inside a fake GameContext; `send` is a vi.fn resolving { ok: true }. */
