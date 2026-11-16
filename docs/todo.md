@@ -56,19 +56,19 @@
 - [ ] Selektor wyniku na bazie zdarzeń `suggested` / `card_shown` / `no_one_disproved` od ostatniego `turn_ended` (rozszerzenie `latestShownToMe` z `disprove/selectors.ts`).
 
 #### 8b. Sekcja akcji zawsze widoczna (sticky)
-- [ ] Desktop: prawa kolumna z sekcją akcji przyklejona u góry (`sticky top-…`).
-- [ ] Mobile: sekcja akcji stoi normalnie pod planszą; gdy nie mieści się na ekranie (plansza za wysoka) – przyklejona do dołu ekranu, po przewinięciu niżej – przyklejona do góry. Natywnie: `position: sticky; top: 0; bottom: 0`, bez JS.
+- [x] Desktop: prawa kolumna z sekcją akcji przyklejona u góry (`sticky top-…`).
+- [x] Mobile: sekcja akcji stoi normalnie pod planszą; gdy nie mieści się na ekranie (plansza za wysoka) – przyklejona do dołu ekranu, po przewinięciu niżej – przyklejona do góry. Natywnie: `position: sticky; top: 0; bottom: 0`, bez JS.
   - Warunek: sekcja musi być bezpośrednim dzieckiem `<main>` (na mobile np. `display: contents` na wrapperze prawej kolumny), inaczej sticky działa tylko w obrębie kolumny.
   - Jeśli to się nie sprawdzi – kompromis prostym CSS, bez nasłuchiwania scrolla.
 - [ ] Sekcja akcji obejmuje: `TurnPanel`, `DisprovePanel`, wynik sugestii (8a), timer (pkt 5/6). Zadbać o tło i cień, żeby nie zlewała się z treścią pod spodem.
 
 #### 8c. Sekcja akcji przyciąga uwagę, gdy muszę coś zrobić
-- [ ] Gdy mam akcję do wykonania (moja tura z dostępnymi akcjami lub muszę pokazać kartę): pomarańczowo-żółte wyróżnienie z ramką, delikatnie mieniące się (animowana ramka/gradient).
+- [x] Gdy mam akcję do wykonania (moja tura z dostępnymi akcjami lub muszę pokazać kartę): pomarańczowo-żółte wyróżnienie z ramką, delikatnie mieniące się (animowana ramka/gradient).
 - [ ] Gdy kończy się czas na decyzję (np. ostatnie 10 s – do ustalenia przy pkt 5/6): dodatkowo pulsujące mruganie na czerwono, razem z timerem. **Zależy od pkt 5 i 6** (timery).
-- [ ] Animacje wyłączone przy `prefers-reduced-motion` (zostaje statyczny kolor/ramka). Kolory jako tokeny motywu (jasny/ciemny).
+- [x] Animacje wyłączone przy `prefers-reduced-motion` (zostaje statyczny kolor/ramka). Kolory jako tokeny motywu (jasny/ciemny).
 
 #### 8d. Kolejność sekcji
-- [ ] Dziennik zdarzeń bezpośrednio pod sekcją akcji (na desktopie i mobile).
+- [x] Dziennik zdarzeń bezpośrednio pod sekcją akcji (na desktopie i mobile).
 - [ ] Następnie połączony notatnik z kartami (8e). Pasek graczy przeniesiony pod planszę (8h).
 
 #### 8e. Notatnik-tabela połączony z „Moje karty”
@@ -77,7 +77,7 @@
 - [ ] Nagłówek kolumny gracza: kropka w kolorze postaci z inicjałem nicku, tooltip z pełnym nickiem (hover + tap). Gracze, którzy odpadli, zostają (nadal obalają sugestie) – nagłówek wyszarzony.
 - [ ] Karty z mojej ręki: inne tło i ramka wiersza + ✓, **zablokowane** (ogólny znacznik i komórki graczy = ✗, bez edycji).
 - [ ] Usunąć listę `SeenCards` („Widziane karty”) – świeży wynik trafia do sekcji akcji (8a), historia do notatnika i dziennika.
-- [ ] Usunąć osobny przycisk „Notatnik” na mobile (zastępuje go zwijanie z 8g).
+- [x] Usunąć osobny przycisk „Notatnik” na mobile (zastępuje go zwijanie z 8g).
 - [ ] Jeden przełącznik „pokaż/ukryj kolumny graczy” (domyślnie widoczne), stan w `localStorage`. Po ukryciu zostaje widok jak dziś: karta + ogólny znacznik.
 - [ ] Mobile: przy 5 innych graczach kolumny ok. 28 px muszą się zmieścić na 360 px bez poziomego przewijania strony (nazwa karty się skraca).
 
@@ -99,8 +99,8 @@
 - [ ] Dostępność: tabela jako `<table>` z nagłówkami wierszy/kolumn, `aria-label` komórki: „karta – gracz – stan (automatycznie/ręcznie)”.
 
 #### 8g. Zwijane sekcje
-- [ ] Dziennik zdarzeń i notatnik z kartami zwijane/rozwijane (natywnie `<details>`/`<summary>` lub przycisk z `aria-expanded`), domyślnie rozwinięte.
-- [ ] Stan zwinięcia zapamiętany per przeglądarka (`localStorage`, z try/catch).
+- [x] Dziennik zdarzeń i notatnik z kartami zwijane/rozwijane (natywnie `<details>`/`<summary>` lub przycisk z `aria-expanded`), domyślnie rozwinięte.
+- [x] Stan zwinięcia zapamiętany per przeglądarka (`localStorage`, z try/catch).
 
 #### 8h. Skondensowany pasek graczy w linii z przyciskami mapy
 - [ ] `PlayersBar` w jednej linii z przyciskami mapy (+ / − / reset), pod planszą: gracze po lewej, przyciski po prawej – na desktopie i mobile.

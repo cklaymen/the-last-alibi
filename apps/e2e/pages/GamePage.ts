@@ -47,6 +47,21 @@ export class GamePage {
     await this.page.getByRole("button", { name: "Confirm suggestion" }).click();
   }
 
+  /** The sticky action section (turn panel, disprove panel, …). */
+  actions() {
+    return this.page.getByRole("region", { name: "Actions" });
+  }
+
+  /** A section of the game screen by its accessible name (e.g. "Event log", "Notebook"). */
+  section(name: string) {
+    return this.page.getByRole("region", { name, exact: true });
+  }
+
+  /** The clickable header that collapses / expands a section ("Event log", "Notebook"). */
+  sectionToggle(title: string) {
+    return this.page.locator("summary").filter({ hasText: title });
+  }
+
   async accuse(suspect: string, weapon: string, room: string): Promise<void> {
     await this.action("Accuse").click();
     await this.pick("Make an accusation", "Suspect", suspect);

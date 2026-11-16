@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { NotebookPen, UserX } from "lucide-react";
+import { UserX } from "lucide-react";
 import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
 import { Board } from "../board/index.js";
 import { EnvelopeCards } from "../cards/index.js";
-import { DisprovePanel, SeenCards } from "../disprove/index.js";
 import { EventLog } from "../event-log/index.js";
 import { CardHand } from "../hand/index.js";
 import { Notebook } from "../notebook/index.js";
 import { PlayersBar, myPlayer } from "../players/index.js";
-import { CommandError, TurnPanel, useCommand, type Send } from "../turn/index.js";
+import { CommandError, useCommand, type Send } from "../turn/index.js";
 import { useT } from "../../shared/i18n/index.js";
+import { Collapsible } from "../../shared/ui/Collapsible.js";
+import { ActionSection } from "./ActionSection.js";
 import { useGame } from "./GameContext.js";
 import { gameScreenMessages } from "./i18n.js";
 
@@ -28,10 +28,14 @@ export function GameScreen() {
 
 type LayoutProps = { game: PublicGameState; me: PrivateGameState; myId: string; send: Send };
 
+/**
+ * Board column | right column: Actions → Event log → hand + Notebook → Players.
+ * Below `lg` the right column is `display: contents`, so the sticky action section is a
+ * direct child of <main> and sticks to the top or bottom of the viewport.
+ */
 export function GameLayout({ game, me, myId, send }: LayoutProps) {
   const t = useT(gameScreenMessages);
   const move = useCommand(send);
-  const [notebookOpen, setNotebookOpen] = useState(false);
   const eliminated = myPlayer(game, myId)?.eliminated ?? false;
 
   return (
@@ -48,7 +52,7 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
         <CommandError message={move.error} />
       </div>
 
-      <div className="flex min-w-0 flex-col gap-4">
+      <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-4">
         {eliminated && (
           <div className="flex flex-col gap-3 rounded border-2 border-danger bg-surface p-3">
             <p className="m-0 flex items-center gap-2 font-bold text-danger">
@@ -59,34 +63,20 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
           </div>
         )}
 
-        <div className="order-2 lg:order-1">
-          <PlayersBar game={game} myId={myId} />
-        </div>
-        <div className="order-1 flex flex-col gap-3 lg:order-2">
-          <TurnPanel game={game} me={me} myId={myId} send={send} />
-          <DisprovePanel game={game} me={me} send={send} />
-          <SeenCards game={game} me={me} />
-        </div>
-        <div className="order-3">
-          <CardHand hand={me.hand} />
-        </div>
-        <div className="order-4 lg:order-5">
+        <ActionSection game={game} me={me} myId={myId} send={send} />
+
+        <Collapsible id="log" title={t("log")}>
           <EventLog game={game} />
-        </div>
-        <div className="order-5 flex flex-col gap-2 lg:order-4">
-          <button
-            type="button"
-            aria-expanded={notebookOpen}
-            onClick={() => setNotebookOpen((o) => !o)}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded border border-line bg-surface px-4 py-2 font-bold text-fg lg:hidden"
-          >
-            <NotebookPen aria-hidden="true" className="size-5" />
-            {t("notebook")}
-          </button>
-          <div className={notebookOpen ? "" : "hidden lg:block"}>
+        </Collapsible>
+
+        <Collapsible id="notebook" title={t("notebook")}>
+          <div className="flex flex-col gap-4">
+            <CardHand hand={me.hand} />
             <Notebook />
           </div>
-        </div>
+        </Collapsible>
+
+        <PlayersBar game={game} myId={myId} />
       </div>
     </main>
   );

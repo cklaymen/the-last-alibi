@@ -2,9 +2,8 @@ import type { Page } from "@playwright/test";
 import { applyScenario, ENVELOPE, HANDS_3, room } from "../fixtures/api.js";
 import { expect, test } from "../fixtures/players.js";
 
+/** The notebook section is expanded by default on every viewport. */
 async function openNotebook(page: Page): Promise<void> {
-  if ((page.viewportSize()?.width ?? 0) < 1024)
-    await page.getByRole("button", { name: "Notebook" }).click();
   await expect(page.getByRole("region", { name: "Notebook" })).toBeVisible();
 }
 
@@ -24,8 +23,6 @@ test("the suggestion dialog marks cards in my hand and my notebook notes", async
   const notebook = ada.page.getByRole("region", { name: "Notebook" });
   await notebook.getByRole("button", { name: /^Dagger: / }).click();
   await expect(notebook.getByRole("button", { name: /^Dagger: / })).not.toHaveAccessibleName("Dagger: empty");
-  if ((ada.page.viewportSize()?.width ?? 0) < 1024)
-    await ada.page.getByRole("button", { name: "Notebook" }).click();
 
   await ada.game.action("Suggest").click();
   const dialog = ada.page.getByRole("dialog", { name: "Make a suggestion" });
