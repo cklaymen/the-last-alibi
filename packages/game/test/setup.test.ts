@@ -9,6 +9,7 @@ import {
   roomCode,
   roomIds,
   startGame,
+  updateSettings,
   weaponIds,
   type CharacterId,
 } from "../src/index.js";
@@ -105,5 +106,53 @@ describe("startGame state", () => {
     expect(roomIds).toContain(a.envelope.room);
     const c = play(started(["red", "white"], constRng(0.999)));
     expect(c.envelope).not.toEqual(play(started(["red", "white"], constRng(0))).envelope);
+  });
+});
+
+describe("startGame room cards", () => {
+  const startWith = (n: number, chars: readonly CharacterId[], rng = constRng(0)) => {
+    const lobby = unwrap(updateSettings(lobbyWith(chars), pid(chars[0] as CharacterId), { roomCards: n }));
+    return play(unwrap(startGame(lobby, lobby.hostId, rng)));
+  };
+
+  it("roomCards=0 deals as before", () => {
+    const makers = [() => constRng(0), () => constRng(0.999), () => seqRng([0.13, 0.71, 0.42, 0.9])];
+    for (const make of makers) {
+      const a = startWith(0, ["red", "white", "blue"], make());
+      const b = play(started(["red", "white", "blue"], make()));
+      expect(a.roomCards).toEqual({});
+      expect(a.hands).toEqual(b.hands);
+      expect(a.envelope).toEqual(b.envelope);
+      expect(a.weapons).toEqual(b.weapons);
+    }
+  });
+
+  it.each(rngs.map((r, i) => [i, r] as const))(
+    "roomCards=8: 8 distinct rooms, 10 dealt cards, all 21 accounted for, none in hands/envelope (rng %i)",
+    (_, rng) => {
+      const p = startWith(8, ["red", "white"], rng);
+      const entries = Object.entries(p.roomCards);
+      expect(entries).toHaveLength(8);
+      for (const [roomId] of entries) expect(roomIds).toContain(roomId);
+      const roomCardIds = entries.map(([, c]) => c);
+      expect(new Set(roomCardIds).size).toBe(8);
+      const dealt = Object.values(p.hands).flat();
+      expect(dealt).toHaveLength(10);
+      expect(p.turnOrder.map((id) => p.hands[id]?.length)).toEqual([5, 5]);
+      const env = [p.envelope.suspect, p.envelope.weapon, p.envelope.room];
+      for (const c of roomCardIds) {
+        expect(dealt).not.toContain(c);
+        expect(env).not.toContain(c);
+      }
+      const all = [...dealt, ...env, ...roomCardIds];
+      expect(all).toHaveLength(21);
+      expect(new Set(all)).toEqual(new Set([...characterIds, ...weaponIds, ...roomIds]));
+    },
+  );
+
+  it("roomCards=3 with 3 players deals 15 cards 5/5/5", () => {
+    const p = startWith(3, ["red", "white", "blue"], seqRng([0.3, 0.6, 0.1, 0.8]));
+    expect(Object.keys(p.roomCards)).toHaveLength(3);
+    expect(p.turnOrder.map((id) => p.hands[id]?.length)).toEqual([5, 5, 5]);
   });
 });

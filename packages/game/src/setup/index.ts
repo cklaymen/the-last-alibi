@@ -24,7 +24,8 @@ export const MIN_PLAYERS = 2;
  * Host only, LOBBY only, ≥2 players, all with a character
  * (NOT_HOST | GAME_NOT_IN_LOBBY | NOT_ENOUGH_PLAYERS | CHARACTER_REQUIRED).
  * All 6 pawns on START_POSITIONS, weapons in 6 different random rooms,
- * turn order by SEAT_ORDER, envelope + round-robin deal, event game_started.
+ * turn order by SEAT_ORDER, envelope, `settings.roomCards` face-down cards in
+ * distinct random rooms, round-robin deal of the rest, event game_started.
  */
 export function startGame(game: Game, byPlayerId: PlayerId, rng: Rng): GameResult {
   if (byPlayerId !== game.hostId) return fail("NOT_HOST");
@@ -60,8 +61,20 @@ export function startGame(game: Game, byPlayerId: PlayerId, rng: Rng): GameResul
     ([...characterIds, ...weaponIds, ...roomIds] as CardId[]).filter((c) => !hidden.has(c)),
     rng,
   );
+  // Face-down room cards come off the top of the shuffled deck into distinct random rooms.
+  // With roomCards = 0 no extra rng is consumed, so the deal is unchanged.
+  const roomCardCount = game.settings.roomCards;
+  const roomCards: Partial<Record<RoomId, CardId>> = {};
+  if (roomCardCount > 0) {
+    const cardRooms = shuffle(roomIds, rng);
+    deck.slice(0, roomCardCount).forEach((card, i) => {
+      roomCards[cardRooms[i] as RoomId] = card;
+    });
+  }
+  const toDeal = deck.slice(roomCardCount);
+
   const hands: Record<string, CardId[]> = Object.fromEntries(turnOrder.map((id) => [id, []]));
-  deck.forEach((card, i) => hands[turnOrder[i % turnOrder.length] as PlayerId]?.push(card));
+  toDeal.forEach((card, i) => hands[turnOrder[i % turnOrder.length] as PlayerId]?.push(card));
 
   const first = turnOrder[0] as PlayerId;
   const play: PlayState = startTurn(
@@ -83,7 +96,7 @@ export function startGame(game: Game, byPlayerId: PlayerId, rng: Rng): GameResul
       eliminated: [],
       summonedTo: {},
       reveals: [],
-      roomCards: {},
+      roomCards,
       events: [{ type: "game_started", firstPlayerId: first }],
       winner: null,
     },

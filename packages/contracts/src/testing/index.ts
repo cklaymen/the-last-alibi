@@ -17,5 +17,7 @@ export const scenarioSchema = z.object({
   activePlayer: z.string().optional(),
   /** Players summoned to a room by a suggestion (may suggest without moving). */
   summonedTo: z.record(z.string(), roomIdSchema).optional(),
+  /** Face-down room cards; replaces the dealt ones entirely (hands are not adjusted). */
+  roomCards: z.partialRecord(roomIdSchema, cardIdSchema).optional(),
 });
 export type Scenario = z.infer<typeof scenarioSchema>;

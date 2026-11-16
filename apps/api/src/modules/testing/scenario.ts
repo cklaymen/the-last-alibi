@@ -28,6 +28,7 @@ export function applyScenario(game: Game, scenario: Scenario): Game {
       summonedTo,
       pawns: { ...play.pawns, ...scenario.pawns },
       weapons: { ...play.weapons, ...scenario.weapons },
+      roomCards: scenario.roomCards ?? play.roomCards,
       turn: active
         ? {
             playerId: active,
