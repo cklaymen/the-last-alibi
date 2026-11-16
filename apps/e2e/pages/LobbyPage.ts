@@ -21,4 +21,18 @@ export class LobbyPage {
   startButton() {
     return this.page.getByRole("button", { name: "Start game" });
   }
+
+  settings() {
+    return this.page.getByRole("region", { name: "Room settings" });
+  }
+
+  /** A room-settings control (select or checkbox) by its exact EN label. */
+  setting(label: string) {
+    return this.settings().getByLabel(label, { exact: true });
+  }
+
+  /** Text of the selected option of a room-settings select. */
+  selected(label: string) {
+    return this.setting(label).locator("option:checked");
+  }
 }

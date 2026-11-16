@@ -10,6 +10,7 @@ import { CharacterPicker } from "./CharacterPicker.js";
 import { lobbyMessages } from "./i18n.js";
 import { LastGame } from "./LastGame.js";
 import { PlayerList } from "./PlayerList.js";
+import { RoomSettingsPanel } from "./RoomSettingsPanel.js";
 
 export function LobbyScreen() {
   const t = useT(lobbyMessages);
@@ -54,6 +55,7 @@ export function LobbyScreen() {
         myId={myId}
         onChoose={(characterId) => void run(send("room:choose_character", { characterId }))}
       />
+      <RoomSettingsPanel />
       {!connected ? (
         <p role="status" className="m-0 text-center text-sm text-muted">
           {t("reconnecting")}
