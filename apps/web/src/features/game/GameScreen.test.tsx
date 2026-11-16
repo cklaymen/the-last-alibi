@@ -40,6 +40,26 @@ describe("GameScreen", () => {
     expect(screen.queryByText(/You are out/)).toBeNull();
   });
 
+  it("renders Actions, Event log and Notebook in this DOM order", () => {
+    renderScreen();
+    const regions = screen
+      .getAllByRole("region")
+      .map((el) => el.getAttribute("aria-label"))
+      .filter((name) => name === "Actions" || name === "Event log" || name === "Notebook");
+    expect(regions).toEqual(["Actions", "Event log", "Notebook"]);
+    expect(screen.queryByRole("button", { name: "Notebook" })).toBeNull();
+  });
+
+  it("Actions has data-attention=\"action\" on my turn", () => {
+    renderScreen({ me: makeMe({ availableActions: ["roll", "accuse"] }) });
+    expect(screen.getByRole("region", { name: "Actions" })).toHaveAttribute("data-attention", "action");
+  });
+
+  it("Actions has data-attention=\"none\" when I have nothing to do", () => {
+    renderScreen();
+    expect(screen.getByRole("region", { name: "Actions" })).toHaveAttribute("data-attention", "none");
+  });
+
   it("shows the eliminated banner and my envelope", () => {
     const game = makeGame();
     game.players[0] = { ...game.players[0]!, eliminated: true };

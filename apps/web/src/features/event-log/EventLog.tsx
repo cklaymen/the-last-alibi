@@ -6,7 +6,10 @@ import { useT } from "../../shared/i18n/index.js";
 import { describeEvent } from "./describe.js";
 import { eventLogMessages } from "./i18n.js";
 
-/** Public event log, oldest first; scrolls to the newest entry. */
+/**
+ * Public event log, oldest first; scrolls to the newest entry.
+ * The visible heading comes from the surrounding `Collapsible` on the game screen.
+ */
 export function EventLog({ game }: { game: PublicGameState }) {
   const t = useT(eventLogMessages);
   const card = useT(cardMessages);
@@ -22,7 +25,6 @@ export function EventLog({ game }: { game: PublicGameState }) {
 
   return (
     <section aria-label={t("region")} className="flex min-h-0 flex-col gap-2">
-      <h2 className="m-0 text-base font-bold">{t("region")}</h2>
       <div ref={scroller} className="max-h-64 overflow-y-auto rounded border border-line bg-surface lg:max-h-72">
         {count === 0 ? (
           <p className="m-0 p-3 text-sm text-muted">{t("empty")}</p>

@@ -2,10 +2,8 @@ import { applyScenario, ENVELOPE, HANDS_2 } from "../fixtures/api.js";
 import { expect, test } from "../fixtures/players.js";
 import type { Page } from "@playwright/test";
 
-/** On mobile the notebook is a tab behind a toggle; on desktop it is always shown. */
+/** The notebook section is expanded by default on every viewport. */
 async function openNotebook(page: Page): Promise<void> {
-  if ((page.viewportSize()?.width ?? 0) < 1024)
-    await page.getByRole("button", { name: "Notebook" }).click();
   await expect(page.getByRole("region", { name: "Notebook" })).toBeVisible();
 }
 

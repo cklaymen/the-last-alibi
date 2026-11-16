@@ -179,10 +179,10 @@ export function Collapsible(props: { id: string; title: string; defaultOpen?: bo
 ```
 Layout (both viewports): board column | right column = ActionSection → EventLog (Collapsible id `log`) → hand + Notebook (Collapsible id `notebook`) → PlayersBar (moved under the board by P1). Remove the mobile "Notebook" toggle button. Mobile sticky: the right-column wrapper gets `display: contents` below `lg`, ActionSection is a direct child of `<main>` with `position: sticky; top: 0; bottom: 0; z-index` + surface background + shadow token. Desktop: right column `lg:sticky lg:top-3` on ActionSection only.
 
-- [ ] **Step 1: Failing tests:** `selectors.test.ts` – `attentionFor` returns `"none"` for `[]`, `"action"` for `["disprove"]`, `"urgent"` for `["roll"]` with `true`. `Collapsible.test.tsx` – `defaults open`, `toggle persists to localStorage key ui:collapsed:log`, `works when localStorage throws`. `GameScreen.test.tsx` – regions appear in DOM order `Actions`, `Event log`, `Notebook`; `Actions has data-attention="action" on my turn`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS.
-- [ ] **Step 5: E2E** `layout.spec.ts`: `actions stay visible after scrolling to the notebook` (mobile + desktop: scroll notebook into view, `expect(actions).toBeInViewport()`); `event log collapses and stays collapsed after reload`. Update `GamePage` with `actions()`, `section(name)`.
-- [ ] **Step 6:** DoD commands green; commit `feat(web): sticky action section, section order, collapsible log/notebook`.
+- [x] **Step 1: Failing tests:** `selectors.test.ts` – `attentionFor` returns `"none"` for `[]`, `"action"` for `["disprove"]`, `"urgent"` for `["roll"]` with `true`. `Collapsible.test.tsx` – `defaults open`, `toggle persists to localStorage key ui:collapsed:log`, `works when localStorage throws`. `GameScreen.test.tsx` – regions appear in DOM order `Actions`, `Event log`, `Notebook`; `Actions has data-attention="action" on my turn`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS.
+- [x] **Step 5: E2E** `layout.spec.ts`: `actions stay visible after scrolling to the notebook` (mobile + desktop: scroll notebook into view, `expect(actions).toBeInViewport()`); `event log collapses and stays collapsed after reload`. Update `GamePage` with `actions()`, `section(name)`.
+- [x] **Step 6:** DoD commands green; commit `feat(web): sticky action section, section order, collapsible log/notebook`.
 
 ## Task N1: Notebook deduction engine (pure)
 
