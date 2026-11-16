@@ -4,7 +4,15 @@ Otwarty backlog / wymagania bieżącej partii prac. Cykl życia (todo → plan �
 
 ## Do zrobienia
 
-_Brak nowych wymagań._
+- [ ] **Podejrzenie – info o pomieszczeniu:** w oknie rzucania podejrzenia przy pomieszczeniu pokazać, czy mam je na ręce albo czy już wiem, kto je ma (tak jak dziś przy narzędziach i postaciach).
+- [ ] **Ściąga z zasad:** przycisk w linii górnego paska nawigacji otwierający krótkie, zwięzłe streszczenie zasad i przebiegu gry (bez nadmiaru tekstu).
+- [ ] **Spójne tooltipy:** tooltipy działają wszędzie tak samo – w tabeli notatnika po najechaniu na inicjał/awatar gracza pokazuje się tooltip jak na mapie.
+- [ ] **Tooltipy na mapie ucinane na brzegach:** naprawić przy możliwie najmniejszym skomplikowaniu logiki tooltipów.
+- [ ] **Ucięta ramka gracza na liście graczy:** ramka (obwódka) gracza jest delikatnie ucinana, jakby rodzic miał `overflow` – poprawić, żeby wyglądało estetycznie.
+- [ ] **Notatnik – karty na ręce:** karty, które mam na ręce, oznaczyć chipem podobnym do tego w oknie podejrzenia/oskarżenia; jeśli brakuje miejsca – sama ikonka łapki z tooltipem.
+- [ ] **Zmiana nazwy sekcji:** sekcja „Notatnik” → „Karty” (EN: „Notebook” → „Cards”; i18n, testy e2e korzystające z nazwy, dokumentacja).
+- [ ] **Dziennik – ikonki:** przy wpisach o podejrzeniach używać ikonek (postać, narzędzie, pomieszczenie), żeby log był czytelniejszy.
+- [ ] **Konfiguracja pokoju – wyjaśnienia ustawień:** przy każdym ustawieniu pokoju przycisk (np. ikonka „i”/„?”) pokazujący dokładniejsze wyjaśnienie, co dane ustawienie zmienia w rozgrywce – obecnie nie jest to intuicyjne.
 
 ## Otwarte z wcześniejszych planów (nieprzypisane, do decyzji)
 
