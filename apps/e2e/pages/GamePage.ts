@@ -66,7 +66,12 @@ export class GamePage {
     await this.action("Accuse").click();
     await this.pick("Make an accusation", "Suspect", suspect);
     await this.pick("Make an accusation", "Weapon", weapon);
-    await this.pick("Make an accusation", "Room", room);
+    const roomRadio = this.page
+      .getByRole("dialog", { name: "Make an accusation" })
+      .getByRole("radiogroup", { name: "Room" })
+      .getByRole("radio", { name: room });
+    // With the "named room" rule the room is preselected and locked.
+    if (await roomRadio.isEnabled()) await roomRadio.click();
     await this.page.getByRole("button", { name: "Confirm accusation" }).click();
   }
 }
