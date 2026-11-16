@@ -11,6 +11,7 @@ export const joinMessages = defineMessages({
     join_room: "Join room",
     join_room_heading: "Join room {code}",
     create_instead: "Create a new room instead",
+    version: "Version {version}",
   },
   pl: {
     tagline: "Kto ma ostatnie alibi?",
@@ -22,5 +23,6 @@ export const joinMessages = defineMessages({
     join_room: "Dołącz do pokoju",
     join_room_heading: "Dołącz do pokoju {code}",
     create_instead: "Utwórz nowy pokój",
+    version: "Wersja {version}",
   },
 });

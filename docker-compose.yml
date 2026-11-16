@@ -18,6 +18,8 @@ services:
     build:
       context: .
       target: web
+      args:
+        GIT_SHA: ${GIT_SHA:-}
     # Bound to localhost only: from outside the app is reachable just through the tunnel.
     ports:
       - "127.0.0.1:${WEB_PORT:-8080}:80"

@@ -150,11 +150,11 @@ Spec: todo item 9. Depends on: —.
 
 **Interfaces – Produces:** `formatBuildVersion(isoUtc: Date, sha?: string): string` → `"2026-11-16T14:32Z"` or `"2026-11-16T14:32Z (13c8392)"`; global `declare const __APP_VERSION__: string`.
 
-- [ ] **Step 1: Failing tests** `version.test.ts`: `formats to minutes in UTC` (`new Date("2026-11-16T14:32:59.999Z")` → `"2026-11-16T14:32Z"`); `appends short sha` (`"abc1234"` → `"… (abc1234)"`); `empty sha is ignored`.
-- [ ] **Step 2:** Run `pnpm --filter @mystery-game/web test version` → FAIL.
-- [ ] **Step 3:** Implement `formatBuildVersion`. In `vite.config.ts` use the function form `defineConfig(({ command }) => …)` and `define: { __APP_VERSION__: JSON.stringify(command === "serve" ? "dev" : formatBuildVersion(new Date(), process.env.GIT_SHA)) }` (no git calls – `.git` is dockerignored). `Dockerfile` build stage: `ARG GIT_SHA=` + `ENV GIT_SHA=$GIT_SHA`; compose `web.build.args: { GIT_SHA: ${GIT_SHA:-} }`. `JoinScreen` footer: small muted text `t("version", { version: __APP_VERSION__ })` – EN "Version {version}", PL "Wersja {version}".
-- [ ] **Step 4:** Unit tests PASS; E2E `home screen shows version` → `getByText(/^Version /)` visible (dev server ⇒ "Version dev").
-- [ ] **Step 5:** Commit `feat(web): show build version on home screen`.
+- [x] **Step 1: Failing tests** `version.test.ts`: `formats to minutes in UTC` (`new Date("2026-11-16T14:32:59.999Z")` → `"2026-11-16T14:32Z"`); `appends short sha` (`"abc1234"` → `"… (abc1234)"`); `empty sha is ignored`.
+- [x] **Step 2:** Run `pnpm --filter @mystery-game/web test version` → FAIL.
+- [x] **Step 3:** Implement `formatBuildVersion`. In `vite.config.ts` use the function form `defineConfig(({ command }) => …)` and `define: { __APP_VERSION__: JSON.stringify(command === "serve" ? "dev" : formatBuildVersion(new Date(), process.env.GIT_SHA)) }` (no git calls – `.git` is dockerignored). `Dockerfile` build stage: `ARG GIT_SHA=` + `ENV GIT_SHA=$GIT_SHA`; compose `web.build.args: { GIT_SHA: ${GIT_SHA:-} }`. `JoinScreen` footer: small muted text `t("version", { version: __APP_VERSION__ })` – EN "Version {version}", PL "Wersja {version}".
+- [x] **Step 4:** Unit tests PASS; E2E `home screen shows version` → `getByText(/^Version /)` visible (dev server ⇒ "Version dev").
+- [x] **Step 5:** Commit `feat(web): show build version on home screen`.
 
 ## Task U1: Action section, layout order, collapsible sections
 

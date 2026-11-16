@@ -19,6 +19,9 @@ COPY . .
 # The web talks to the API through nginx on the same origin (/api, /socket.io).
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
+# Optional short commit hash shown next to the build date (`.git` is not in the context).
+ARG GIT_SHA=
+ENV GIT_SHA=$GIT_SHA
 RUN pnpm turbo run build --filter=@mystery-game/api --filter=@mystery-game/web
 
 FROM base AS api

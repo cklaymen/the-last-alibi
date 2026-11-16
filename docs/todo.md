@@ -124,11 +124,11 @@
 - [ ] Teksty i18n (PL/EN).
 
 ### 9. Wersja aplikacji na ekranie głównym
-- [ ] Wersja = data i godzina buildu w UTC, format ISO 8601 z dokładnością do minut, np. `2026-11-16T14:32Z`.
-- [ ] Wyliczana przy buildzie weba (`define` w `apps/web/vite.config.ts`, np. `__APP_VERSION__`), bez gita – `.git` jest w `.dockerignore`.
-- [ ] Opcjonalnie krótki hash commita obok daty, np. `2026-11-16T14:32Z (13c8392)`: przekazany jako `ARG GIT_SHA` w `Dockerfile` / `build.args` w `docker-compose.yml` (`GIT_SHA=$(git rev-parse --short HEAD) docker compose build`); brak → pokazujemy samą datę.
-- [ ] UI: dyskretny tekst w stopce ekranu głównego (mały, przygaszony), np. „Wersja 2026-11-16T14:32Z”; i18n PL/EN.
-- [ ] Lokalnie (`pnpm dev`) wersja = `dev`.
+- [x] Wersja = data i godzina buildu w UTC, format ISO 8601 z dokładnością do minut, np. `2026-11-16T14:32Z`.
+- [x] Wyliczana przy buildzie weba (`define` w `apps/web/vite.config.ts`, np. `__APP_VERSION__`), bez gita – `.git` jest w `.dockerignore`.
+- [x] Opcjonalnie krótki hash commita obok daty, np. `2026-11-16T14:32Z (13c8392)`: przekazany jako `ARG GIT_SHA` w `Dockerfile` / `build.args` w `docker-compose.yml` (`GIT_SHA=$(git rev-parse --short HEAD) docker compose build`); brak → pokazujemy samą datę.
+- [x] UI: dyskretny tekst w stopce ekranu głównego (mały, przygaszony), np. „Wersja 2026-11-16T14:32Z”; i18n PL/EN.
+- [x] Lokalnie (`pnpm dev`) wersja = `dev`.
 
 ### Wspólne dla 1, 2, 4, 5, 6, 7, 8f
 - [ ] Ustawienia pokoju (`settings`) w stanie gry i kontraktach, ustawiane przez hosta tylko w lobby, widoczne dla wszystkich graczy; zachowane przy restarcie pokoju.
