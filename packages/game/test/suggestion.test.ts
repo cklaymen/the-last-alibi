@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  availableActions,
   disprove,
   endTurn,
   makeAccusation,
@@ -216,5 +217,39 @@ describe("disprove", () => {
 
   it("is rejected when the game is not in progress", () => {
     expect(codeOf(disprove({ ...pending(), phase: "FINISHED" }, GREEN, "hall"))).toBe("GAME_NOT_IN_PROGRESS");
+  });
+});
+
+describe("makeSuggestion — suggest after staying (house rule)", () => {
+  const staying = (suggestAfterStaying: boolean): Game => {
+    const g = inHall({ turn: { suggestionRoom: null } });
+    return { ...g, settings: { ...g.settings, suggestAfterStaying } };
+  };
+
+  it("default: staying in a room does not allow a suggestion (CANNOT_SUGGEST)", () => {
+    expect(codeOf(makeSuggestion(staying(false), RED, "purple", "rope"))).toBe("CANNOT_SUGGEST");
+  });
+
+  it("option on: player starting in a room may suggest without moving", () => {
+    const g = staying(true);
+    expect(availableActions(g, RED)).toContain("suggest");
+    const after = unwrap(disprove(unwrap(makeSuggestion(g, RED, "yellow", "wrench")), GREEN, "hall"));
+    expect(codeOf(makeSuggestion(after, RED, "purple", "rope"))).toBe("CANNOT_SUGGEST");
+  });
+
+  it("option on: after rolling the option no longer applies", () => {
+    const afterRoll = unwrap(rollDice(staying(true), RED, diceRng(1, 1)));
+    expect(codeOf(makeSuggestion(afterRoll, RED, "purple", "rope"))).toBe("CANNOT_SUGGEST");
+  });
+
+  it("option on: after suggesting cannot roll (ALREADY_SUGGESTED)", () => {
+    const after = unwrap(disprove(unwrap(makeSuggestion(staying(true), RED, "yellow", "wrench")), GREEN, "hall"));
+    expect(codeOf(rollDice(after, RED, diceRng(1, 1)))).toBe("ALREADY_SUGGESTED");
+    expect(availableActions(after, RED)).not.toContain("roll");
+  });
+
+  it("option on: not on a corridor cell", () => {
+    const g = withState(staying(true), { pawns: { red: cell(7, 16) } });
+    expect(codeOf(makeSuggestion(g, RED, "purple", "rope"))).toBe("CANNOT_SUGGEST");
   });
 });

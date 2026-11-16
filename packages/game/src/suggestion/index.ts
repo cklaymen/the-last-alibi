@@ -21,11 +21,16 @@ export function matchingCards(hand: readonly CardId[], suggestion: Suggestion): 
   );
 }
 
-/** Command-specific guard for suggesting; returns the room of the suggestion. */
+/**
+ * Command-specific guard for suggesting; returns the room of the suggestion.
+ * Allowed once per turn in the room entered (or summoned to) this turn, or –
+ * with the `suggestAfterStaying` house rule – in the current room before rolling or moving.
+ */
 export function suggestionRoomFor(ctx: TurnContext): { code: GameErrorCode } | { room: RoomId } {
-  const { location, turn } = ctx;
-  if (location.kind !== "room" || location.roomId !== turn.suggestionRoom || turn.hasSuggested)
-    return { code: "CANNOT_SUGGEST" };
+  const { location, turn, game } = ctx;
+  if (location.kind !== "room" || turn.hasSuggested) return { code: "CANNOT_SUGGEST" };
+  const stayed = game.settings.suggestAfterStaying && !turn.hasMoved && turn.dice === null;
+  if (location.roomId !== turn.suggestionRoom && !stayed) return { code: "CANNOT_SUGGEST" };
   return { room: location.roomId };
 }
 

@@ -122,3 +122,20 @@ test("the suggestion result stays in the action section until the turn ends", as
     await expect(p.game.actions().getByRole("region", { name: "Suggestion result" })).toHaveCount(0);
   }
 });
+
+test("with the option on, a player starting in a room sees Suggest before rolling", async ({ table, request }) => {
+  const t = await table(2);
+  const [ada] = t.players;
+  await ada!.lobby.setting("Suggest after staying in a room").click();
+  await expect(ada!.lobby.setting("Suggest after staying in a room")).toBeChecked();
+  await t.start();
+  await applyScenario(request, t.code, {
+    envelope: ENVELOPE,
+    pawns: { red: room("kitchen") },
+    activePlayer: "Ada",
+  });
+  await expect(ada!.game.action("Suggest")).toBeVisible();
+  await expect(ada!.game.action("Roll dice")).toBeVisible();
+  await ada!.game.suggest("Prof. Purple", "Wrench");
+  await expect(ada!.game.action("Roll dice")).toHaveCount(0);
+});
