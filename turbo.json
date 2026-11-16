@@ -3,6 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "env": ["GIT_SHA"],
       "outputs": ["dist/**"]
     },
     "dev": {
