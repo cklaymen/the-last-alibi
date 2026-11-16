@@ -1,3 +1,5 @@
+> **Archived – not current.** Kept for history only. Current state: [`docs/README.md`](../../README.md). Do not use this file as a source of requirements or tasks.
+
 # Gameplay implementation plan – vertical slices
 
 This document is the **main plan** for the implementation. `implementation-plan.md` is a historical document (the state of the foundations); the game rules are described in `cluedo-rules.md` (the "Implementation clarifications" section is binding).

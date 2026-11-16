@@ -9,7 +9,7 @@ An online deduction board game for 2–6 players (a "who, with what, and where" 
 - player presence: after 30 s of absence a player in the lobby leaves the room; during a game their turns are skipped and the server shows cards on their behalf;
 - after a game ends, everyone returns to the lobby of the same room with a summary of the last match.
 
-Game rules: [`docs/cluedo-rules.md`](docs/cluedo-rules.md) (the "Implementation clarifications" section is binding). Plan and architecture: [`docs/game-screens-plan.md`](docs/game-screens-plan.md).
+Documentation: [`docs/README.md`](docs/README.md) – features ([`docs/product/features.md`](docs/product/features.md)), game rules ([`docs/product/game-rules.md`](docs/product/game-rules.md), the "Implementation clarifications" section is binding), decisions, architecture, protocol and testing.
 
 ## Technologies
 
@@ -40,7 +40,7 @@ apps/e2e             Playwright tests (multi-player fixtures, Page Objects)
 
 ## Room settings
 
-The host sets house rules in the lobby (visible to everyone, kept between games): accusation location (any room / the named room), accusing after a suggestion in the same turn, suggesting after staying in a room, turn time limit (none–180 s, default 90 s), time to show a card (none–60 s, default 30 s), face-down cards in rooms (0–8) and automatic notes. Details: `docs/cluedo-rules.md` → "Implementation clarifications".
+The host sets house rules in the lobby (visible to everyone, kept between games): accusation location (any room / the named room), accusing after a suggestion in the same turn, suggesting after staying in a room, turn time limit (none–180 s, default 90 s), time to show a card (none–60 s, default 30 s), face-down cards in rooms (0–8) and automatic notes. Details: [`docs/product/features.md`](docs/product/features.md) §4.1 and `docs/product/game-rules.md` → "Implementation clarifications".
 
 ## Running locally (dev)
 
@@ -102,5 +102,5 @@ packages/
   game/       src/{lobby,setup,board,movement,suggestion,accusation,turn-flow,presence,shared}
   contracts/  src/{session,rooms,game,testing}, errors.ts, events.ts
 docker/       nginx configuration
-docs/         rules, implementation plan, design references
+docs/         product/ (features, rules, decisions), technical/ (architecture, protocol, ADRs, testing), todo.md, history/
 ```

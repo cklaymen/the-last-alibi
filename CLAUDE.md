@@ -3,7 +3,8 @@
 Online deduction board game ("The Last Alibi") for 2–6 players: pnpm/Turborepo monorepo, TypeScript strict, NestJS + Socket.IO API, React 19 + Vite + Tailwind 4 web, Vitest, Playwright.
 
 - Talk to the user in **Polish**. Write code, comments, commit messages and docs in **English**. Exception: `docs/todo.md` is in Polish.
-- Read before larger work: `docs/game-screens-plan.md` §2 Architecture, §3 Testing, §4 Definition of Done. Game rules: `docs/cluedo-rules.md` (the "Implementation clarifications" section is binding). Current backlog: `docs/todo.md`, broken into agent tasks in `docs/todo-implementation-plan.md`.
+- Docs index: `docs/README.md`. Read before larger work: `docs/technical/architecture.md` and `docs/technical/testing.md` (Definition of Done). What the app does today: `docs/product/features.md`; why: `docs/product/decisions.md`, `docs/technical/adr.md`. Game rules: `docs/product/game-rules.md` (the "Implementation clarifications" section is binding). Wire protocol: `docs/technical/protocol.md`. Backlog: `docs/todo.md`. `docs/history/` is archived – never a source of requirements.
+- Keep docs current: every change to behaviour, rules, contracts or decisions updates the matching doc in the same commit (mapping table in `docs/README.md` → "Work lifecycle", step 4). A todo batch is done only after the docs describe it and it is archived to `docs/history/NN-<topic>/` (step 5).
 
 ## Commands
 
@@ -47,8 +48,9 @@ apps/e2e             black-box Playwright (may import only contracts)
 
 ## Working on plan tasks (agents)
 
-- One task = one worktree + branch `todo/<ID>-<short-name>` off the current `main`. Do only that task. If you need to change a file owned by another task (see "Hot files" in the plan) beyond appending, stop and report.
-- Steps: read the task + Global Constraints + Review Focus → failing test → implement → green → run the full Done commands → tick `[x]` in `docs/todo-implementation-plan.md` (and the item in `docs/todo.md`) → commit.
+- When a batch of todo items is split into agent tasks, the plan goes to `docs/todo-plan.md` (template: `docs/history/03-house-rules-and-game-ux/plan.md`); its last task is always the docs update + archiving.
+- One task = one worktree + branch `todo/<ID>-<short-name>` off the current `main`. Do only that task. If you need to change a file owned by another task beyond appending, stop and report.
+- Steps: read the task + the plan's Global Constraints + Review Focus → failing test → implement → green → run the full Done commands → tick `[x]` in the plan → update docs → commit.
 - Hot files are append-only, and merge conflicts in them are resolved by keeping both entries: `apps/api/src/modules/game/commands/index.ts`, `apps/api/src/modules/testing/scenario.ts`, `packages/contracts/src/testing/index.ts`, `packages/game/src/index.ts`, `apps/web/src/features/game/ActionSection.tsx`, `apps/e2e/pages/GamePage.ts`.
 - Commit messages: Conventional Commits (`feat(scope): …`, `fix: …`, `docs: …`). Commit only when the task asks or the user says so; never push without being asked.
 

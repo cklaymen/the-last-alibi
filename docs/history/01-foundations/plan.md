@@ -1,3 +1,5 @@
+> **Archived – not current.** Kept for history only. Current state: [`docs/README.md`](../../README.md). Do not use this file as a source of requirements or tasks.
+
 > **Historical document.** The current implementation plan is [`game-screens-plan.md`](game-screens-plan.md); binding game rules are in [`cluedo-rules.md`](cluedo-rules.md).
 
 Players enter with a nickname and a private room code. There are no accounts, bots, public matchmaking, chat, ranking, or offline play in the first release.

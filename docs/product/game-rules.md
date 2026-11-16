@@ -79,7 +79,7 @@ Official variants (not implemented)
 
 ## Implementation clarifications (binding for this project)
 
-The rules above leave several points open or are deliberately changed for the online game. The game implements them as follows. Character names below refer to the original game for clarity only; the app uses its own character names (see slice F5 in `game-screens-plan.md`). The board follows the classic layout with the **Hall** (the 2020 edition replaces it with a Bathroom).
+The rules above leave several points open or are deliberately changed for the online game. The game implements them as follows. Character names below refer to the original game for clarity only; the app uses its own character names (see PD-12 in [`decisions.md`](decisions.md)). The board follows the classic layout with the **Hall** (the 2020 edition replaces it with a Bathroom).
 
 Players and setup
 - 2–6 players. All six character tokens start on the board, including those nobody plays (they can still be moved by suggestions).

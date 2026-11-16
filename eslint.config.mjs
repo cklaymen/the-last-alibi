@@ -1,5 +1,5 @@
 // @ts-check
-// Architecture lint: layer direction and feature boundaries (docs/game-screens-plan.md §2.1–§2.2).
+// Architecture lint: layer direction and feature boundaries (docs/technical/architecture.md §2).
 // Run with `pnpm lint`. Only architectural rules live here; style/quality rules are out of scope.
 import boundaries from "eslint-plugin-boundaries";
 import tseslint from "typescript-eslint";
@@ -153,7 +153,7 @@ export default tseslint.config(
           default: "disallow",
           policies,
           message:
-            "Architecture boundary violated (see docs/game-screens-plan.md §2.1–2.2): import another feature/module only through its index.ts and respect the layer direction.",
+            "Architecture boundary violated (see docs/technical/architecture.md §2): import another feature/module only through its index.ts and respect the layer direction.",
         },
       ],
     },
