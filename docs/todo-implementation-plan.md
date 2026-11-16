@@ -26,7 +26,7 @@
 - Defaults (verbatim from spec): accusation place `any_room`; accuse after suggestion **on**; suggest after staying **off**; turn limit **90 s** (options none/30/60/90/120/180); disprove limit **30 s** (options none/15/30/45/60); room cards **0** (0–8); automatic notes **on**.
 - Settings: changed by the host only, only in `LOBBY`; visible to all players; preserved on room restart (return to lobby).
 - No migration of old notebook storage: new key prefix, old entries are ignored.
-- Definition of Done per task: `pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` green; EN+PL texts; both themes; both viewports; docs updated only where the task says so (rules doc is updated centrally in `D1`).
+- Definition of Done per task: `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` green (lint = layer/feature boundaries, `eslint.config.mjs`); EN+PL texts; both themes; both viewports; docs updated only where the task says so (rules doc is updated centrally in `D1`).
 
 ## Review Focus
 
@@ -139,7 +139,7 @@ export type RoomSettings; export type UpdateSettingsRequest;
   - `game:state contains settings, timer null, roomsWithCards []`; `game:private contains roomCards []`
   - `game:state contains the full event history` – produce > 50 events (e.g. 30 × roll+end_turn via scenario dice) and assert `events.length === play.events.length` and `events[0].seq === 0`
 - [ ] **Step 6:** Implement contracts, `settings.handler.ts` (`event: "room:settings"`, `schema: updateSettingsSchema`, `execute: (g, p, payload) => updateSettings(g, p, payload)`), register it, projector fields. Web: add EN/PL error texts for the 5 codes, `describe.ts` cases (`turn_timed_out`: "{name}'s time ran out" / "Czas gracza {name} minął"; `disprove_timed_out`: "{name} did not choose in time – a random card was shown" / "{name} nie wybrał na czas – pokazano losową kartę"), fixtures get the new fields.
-- [ ] **Step 7:** `pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green.
+- [ ] **Step 7:** `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green.
 - [ ] **Step 8:** Commit `feat(settings): room settings, new error codes/events and projection fields`.
 
 ## Task V1: App version on the home screen

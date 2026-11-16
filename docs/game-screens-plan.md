@@ -176,7 +176,8 @@ Layer legend: **Game** `packages/game` · **Contracts** `packages/contracts` · 
 #### F1 – Tooling and architecture framework
 Depends on: — · Goal: every following slice has a place and tools to write code and tests according to section 2.
 
-- [ ] **Repo:** ESLint (flat config, typescript-eslint) + `eslint-plugin-boundaries` with the rules from 2.1/2.2; Prettier; `lint` script in every package
+- [x] **Repo:** ESLint (flat config `eslint.config.mjs`, typescript-eslint parser) + `eslint-plugin-boundaries` with the rules from 2.1/2.2; root `pnpm lint`; web may import only static data from `game` (whitelist)
+- [ ] **Repo:** Prettier
 - [x] **Contracts:** split into `session/`, `rooms/`, `game/`, `errors.ts` (`errorCodeSchema`), `events.ts` (typed `ClientToServerEvents`/`ServerToClientEvents`, `CommandResult`); `characterIds` (and other ids) imported from `@mystery-game/game` instead of a duplicate
 - [x] **API:** move to `modules/rooms`; `shared/` with Zod validation for WS, an error filter mapping to codes, an ack helper; existing lobby commands respond via ack with an error code
 - [x] **API:** Vitest + `@nestjs/testing` + `socket.io-client`; tests of the existing lobby (create, join, choose, start, errors)

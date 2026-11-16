@@ -9,14 +9,18 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
-    "lint": "turbo run lint",
+    "lint": "pnpm --filter @mystery-game/game --filter @mystery-game/contracts build && eslint --cache --cache-location node_modules/.cache/eslint .",
     "test": "turbo run test",
     "test:e2e": "pnpm --filter @mystery-game/game --filter @mystery-game/contracts build && pnpm --filter @mystery-game/e2e e2e",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "eslint": "10.14.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.4.0",
     "turbo": "^2.6.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "typescript-eslint": "8.72.1"
   }
 }

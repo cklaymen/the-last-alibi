@@ -11,7 +11,7 @@ export function useNotebook(key: string, known: readonly CardId[]) {
 
   useEffect(() => {
     updateNotebook(key, (s) => autoMark(s, known));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- knownKey tracks `known`
+    // Deliberately keyed by `knownKey` (a stable string) instead of the `known` array.
   }, [key, knownKey]);
 
   const toggle = useCallback((card: CardId) => updateNotebook(key, (s) => cycle(s, card)), [key]);
