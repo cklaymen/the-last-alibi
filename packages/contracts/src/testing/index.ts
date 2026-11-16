@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { cardIdSchema, characterIdSchema, roomIdSchema, weaponIdSchema } from "../ids.js";
 import { locationSchema, tripleSchema } from "../game/index.js";
+import { updateSettingsSchema } from "../settings/index.js";
 
 /**
  * Body of POST /testing/rooms/:code/scenario (only when ENABLE_TEST_API=1).
@@ -19,5 +20,7 @@ export const scenarioSchema = z.object({
   summonedTo: z.record(z.string(), roomIdSchema).optional(),
   /** Face-down room cards; replaces the dealt ones entirely (hands are not adjusted). */
   roomCards: z.partialRecord(roomIdSchema, cardIdSchema).optional(),
+  /** House-rule overrides for the running game (only the given fields change). */
+  settings: updateSettingsSchema.optional(),
 });
 export type Scenario = z.infer<typeof scenarioSchema>;

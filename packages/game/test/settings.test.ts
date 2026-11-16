@@ -14,7 +14,7 @@ import {
   updateSettings,
   type RoomSettings,
 } from "../src/index.js";
-import { codeOf, constRng, lobbyWith, pid, started, unwrap } from "./helpers.js";
+import { codeOf, constRng, lobbyWith, pid, room, started, unwrap, withState } from "./helpers.js";
 
 describe("room settings", () => {
   it("createGame uses DEFAULT_ROOM_SETTINGS", () => {
@@ -97,7 +97,8 @@ describe("room settings", () => {
   it("settings survive returnToLobby", () => {
     const lobby = unwrap(updateSettings(lobbyWith(["red", "blue"]), pid("red"), { roomCards: 3 }));
     const s = unwrap(startGame(lobby, lobby.hostId, constRng(0)));
-    const finished = unwrap(makeAccusation(s, pid("red"), s.play!.envelope));
+    const inRoom = withState(s, { pawns: { red: room("kitchen") } });
+    const finished = unwrap(makeAccusation(inRoom, pid("red"), s.play!.envelope));
     const r = unwrap(returnToLobby(finished, gameId("g2")));
     expect(r.settings).toEqual({ ...DEFAULT_ROOM_SETTINGS, roomCards: 3 });
   });

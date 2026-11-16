@@ -24,6 +24,8 @@ type Props<T extends CardId> = {
   onChange: (id: T) => void;
   /** Optional per-card hints (in my hand / notebook mark) shown on each option. */
   annotate?: (id: T) => CardAnnotation;
+  /** Locks the choice (e.g. a room fixed by the house rules). */
+  disabled?: boolean;
 };
 
 /** Single-choice grid of cards (role="radiogroup" / role="radio", named by the card). */
@@ -33,6 +35,7 @@ export function CardSelectGrid<T extends CardId>({
   value,
   onChange,
   annotate,
+  disabled = false,
 }: Props<T>) {
   const t = useT(cardMessages);
   return (
@@ -45,11 +48,12 @@ export function CardSelectGrid<T extends CardId>({
             type="button"
             role="radio"
             aria-checked={value === id}
+            disabled={disabled}
             aria-label={t(id)}
             onClick={() => onChange(id)}
             className={`flex flex-col gap-1 rounded p-0 text-left ${
               value === id ? "outline-2 outline-brand" : ""
-            }`}
+            } ${disabled && value !== id ? "opacity-50" : ""}`}
           >
             <CardTile id={id} compact />
             {note && (note.inHand || note.mark !== "empty") ? (

@@ -200,7 +200,11 @@ describe("suggestion, disprove, accusation, return to lobby (privacy)", () => {
   it("a wrong accusation shows the envelope only to the accuser", async () => {
     const { code, clients } = await startedRoom(app, ["Alice", "Bob", "Carol"]);
     const [alice, bob, carol] = track(clients) as [Client, Client, Client];
-    await applyScenario(app, code, { envelope: ENVELOPE, activePlayer: "Alice" });
+    await applyScenario(app, code, {
+      envelope: ENVELOPE,
+      activePlayer: "Alice",
+      pawns: { red: { kind: "room", roomId: "kitchen" } },
+    });
     expect(
       await alice.send("turn:accuse", { suspect: "red", weapon: "rope", room: "study" }),
     ).toEqual({ ok: true });

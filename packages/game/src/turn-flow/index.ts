@@ -1,3 +1,4 @@
+import { accusationError } from "../accusation/index.js";
 import { passageTarget, reachableFor, rollError } from "../movement/index.js";
 import { requireActivePlayer } from "../shared/guards.js";
 import { passTurn, withPlay } from "../shared/play.js";
@@ -22,6 +23,7 @@ export function availableActions(game: Game, playerId: PlayerId): ActionId[] {
   if (!("code" in passageTarget(ctx))) actions.push("passage");
   if (reachableFor(game, playerId).length > 0) actions.push("move");
   if (!("code" in suggestionRoomFor(ctx))) actions.push("suggest");
-  actions.push("accuse", "end_turn");
+  if (accusationError(ctx) === null) actions.push("accuse");
+  actions.push("end_turn");
   return actions;
 }

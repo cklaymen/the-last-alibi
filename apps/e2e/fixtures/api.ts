@@ -15,6 +15,7 @@ export interface Scenario {
   dice?: [number, number][];
   activePlayer?: string;
   summonedTo?: Record<string, string>;
+  settings?: Record<string, unknown>;
 }
 
 /** Sets up game state through the test-only API (ENABLE_TEST_API=1). */

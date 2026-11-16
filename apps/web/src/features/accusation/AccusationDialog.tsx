@@ -20,14 +20,16 @@ type Props = {
   onClose: () => void;
   busy?: boolean;
   error?: string | null;
+  /** House rule "named_room": the accused room is the current one and cannot be changed. */
+  lockedRoom?: RoomId | undefined;
 };
 
-export function AccusationDialog({ onSubmit, onClose, busy = false, error = null }: Props) {
+export function AccusationDialog({ onSubmit, onClose, busy = false, error = null, lockedRoom }: Props) {
   const t = useT(accusationMessages);
   const annotate = useCardAnnotations();
   const [suspect, setSuspect] = useState<CharacterId | null>(null);
   const [weapon, setWeapon] = useState<WeaponId | null>(null);
-  const [room, setRoom] = useState<RoomId | null>(null);
+  const [room, setRoom] = useState<RoomId | null>(lockedRoom ?? null);
 
   return (
     <ModalDialog
@@ -60,7 +62,14 @@ export function AccusationDialog({ onSubmit, onClose, busy = false, error = null
         <CardSelectGrid label={t("weapon")} options={weaponIds} value={weapon} onChange={setWeapon} annotate={annotate} />
       </Group>
       <Group title={t("room")}>
-        <CardSelectGrid label={t("room")} options={roomIds} value={room} onChange={setRoom} annotate={annotate} />
+        <CardSelectGrid
+          label={t("room")}
+          options={roomIds}
+          value={room}
+          onChange={setRoom}
+          annotate={annotate}
+          disabled={lockedRoom !== undefined}
+        />
       </Group>
       {error && (
         <p role="alert" className="m-0 text-sm text-danger">
