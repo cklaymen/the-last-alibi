@@ -34,21 +34,21 @@ describe("GameScreen", () => {
     const players = within(screen.getByRole("region", { name: "Players" })).getAllByRole("listitem");
     expect(players).toHaveLength(3);
     expect(players[0]).toHaveAttribute("aria-current", "true");
-    const notebook = screen.getByRole("region", { name: "Notebook" });
+    const notebook = screen.getByRole("region", { name: "Cards" });
     const hand = [...notebook.querySelectorAll("tr[data-in-hand] th")].map((th) => th.textContent);
-    expect(hand).toEqual(["Mr. Green(in hand)", "Rope(in hand)", "Hall(in hand)"]);
+    expect(hand).toEqual(["Mr. GreenIn hand", "RopeIn hand", "HallIn hand"]);
     expect(screen.getByRole("region", { name: "Event log" })).toBeInTheDocument();
     expect(screen.queryByText(/You are out/)).toBeNull();
   });
 
-  it("renders Actions, Event log and Notebook in this DOM order", () => {
+  it("renders Actions, Event log and Cards in this DOM order", () => {
     renderScreen();
     const regions = screen
       .getAllByRole("region")
       .map((el) => el.getAttribute("aria-label"))
-      .filter((name) => name === "Actions" || name === "Event log" || name === "Notebook");
-    expect(regions).toEqual(["Actions", "Event log", "Notebook"]);
-    expect(screen.queryByRole("button", { name: "Notebook" })).toBeNull();
+      .filter((name) => name === "Actions" || name === "Event log" || name === "Cards");
+    expect(regions).toEqual(["Actions", "Event log", "Cards"]);
+    expect(screen.queryByRole("button", { name: "Cards" })).toBeNull();
   });
 
   it("Actions has data-attention=\"action\" on my turn", () => {

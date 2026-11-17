@@ -6,13 +6,13 @@ export const gameScreenMessages = defineMessages({
     eliminated: "You are out – you still have to show cards.",
     actions: "Actions",
     log: "Event log",
-    notebook: "Notebook",
+    notebook: "Cards",
   },
   pl: {
     loading: "Wczytywanie gry…",
     eliminated: "Odpadasz z gry – nadal musisz pokazywać karty.",
     actions: "Akcje",
     log: "Dziennik zdarzeń",
-    notebook: "Notatnik",
+    notebook: "Karty",
   },
 });

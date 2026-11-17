@@ -4,7 +4,7 @@ import { expect, test } from "../fixtures/players.js";
 
 /** The notebook section is expanded by default on every viewport. */
 async function openNotebook(page: Page): Promise<void> {
-  await expect(page.getByRole("region", { name: "Notebook" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Cards" })).toBeVisible();
 }
 
 test("the suggestion dialog marks cards in my hand and my notebook notes", async ({ table, request }) => {
@@ -20,7 +20,7 @@ test("the suggestion dialog marks cards in my hand and my notebook notes", async
   });
   await expect(ada.game.hand().getByText("Candlestick")).toBeVisible();
   await openNotebook(ada.page);
-  const notebook = ada.page.getByRole("region", { name: "Notebook" });
+  const notebook = ada.page.getByRole("region", { name: "Cards" });
   await notebook.getByRole("button", { name: "Dagger – Overall – empty (automatic)" }).click();
   await expect(notebook.getByRole("button", { name: "Dagger – Overall – has (manual)" })).toBeVisible();
 
@@ -28,5 +28,5 @@ test("the suggestion dialog marks cards in my hand and my notebook notes", async
   const dialog = ada.page.getByRole("dialog", { name: "Make a suggestion" });
   await expect(dialog.getByRole("radio", { name: "Candlestick" })).toContainText("In your hand");
   await expect(dialog.getByRole("radio", { name: "Rope" })).not.toContainText("In your hand");
-  await expect(dialog.getByRole("radio", { name: "Dagger" })).toContainText("Notebook:");
+  await expect(dialog.getByRole("radio", { name: "Dagger" })).toContainText("Notes:");
 });

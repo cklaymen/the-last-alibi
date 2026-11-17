@@ -8,7 +8,7 @@ export class GamePage {
   }
 
   notebook() {
-    return this.page.getByRole("region", { name: "Notebook" });
+    return this.page.getByRole("region", { name: "Cards" });
   }
 
   /** Rows of my own cards in the notebook table. */
@@ -62,12 +62,12 @@ export class GamePage {
     return this.page.getByRole("region", { name: "Actions" });
   }
 
-  /** A section of the game screen by its accessible name (e.g. "Event log", "Notebook"). */
+  /** A section of the game screen by its accessible name (e.g. "Event log", "Cards"). */
   section(name: string) {
     return this.page.getByRole("region", { name, exact: true });
   }
 
-  /** The clickable header that collapses / expands a section ("Event log", "Notebook"). */
+  /** The clickable header that collapses / expands a section ("Event log", "Cards"). */
   sectionToggle(title: string) {
     return this.page.locator("summary").filter({ hasText: title });
   }

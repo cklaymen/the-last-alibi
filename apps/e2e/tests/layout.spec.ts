@@ -29,7 +29,7 @@ test("event log collapses and stays collapsed after reload", async ({ table }) =
   await ada.page.reload();
   await expect(ada.game.board()).toBeVisible();
   await expect(ada.game.log()).toBeHidden();
-  await expect(ada.game.section("Notebook")).toBeVisible();
+  await expect(ada.game.section("Cards")).toBeVisible();
 
   await ada.game.sectionToggle("Event log").click();
   await expect(ada.game.log()).toBeVisible();

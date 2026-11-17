@@ -17,17 +17,17 @@ describe("card picker annotations", () => {
     const dialog = screen.getByRole("dialog", { name: "Make a suggestion" });
     const red = within(dialog).getByRole("radio", { name: "Ms. Red" });
     expect(within(red).getByText("In your hand")).toBeInTheDocument();
-    expect(within(red).getByTitle("Notebook: has")).toHaveTextContent("✓");
+    expect(within(red).getByTitle("Notes: has")).toHaveTextContent("✓");
     const green = within(dialog).getByRole("radio", { name: "Mr. Green" });
     expect(within(green).queryByText("In your hand")).toBeNull();
-    expect(within(green).queryByTitle(/^Notebook:/)).toBeNull();
+    expect(within(green).queryByTitle(/^Notes:/)).toBeNull();
 
-    const notebook = screen.getByRole("region", { name: "Notebook" });
+    const notebook = screen.getByRole("region", { name: "Cards" });
     await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – empty (automatic)" }));
     await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – has (manual)" }));
-    expect(within(green).getByTitle("Notebook: not")).toHaveTextContent("✗");
+    expect(within(green).getByTitle("Notes: not")).toHaveTextContent("✗");
     await userEvent.click(within(notebook).getByRole("button", { name: "Mr. Green – Overall – not (manual)" }));
-    expect(within(green).getByTitle("Notebook: maybe")).toHaveTextContent("?");
+    expect(within(green).getByTitle("Notes: maybe")).toHaveTextContent("?");
   });
 
   it("suggestion: shows \"In your hand\" for the room when I hold it", () => {
@@ -46,9 +46,9 @@ describe("card picker annotations", () => {
       </>,
     );
     const dialog = screen.getByRole("dialog", { name: "Make a suggestion" });
-    expect(within(dialog).getAllByTitle(/^Notebook:/)).toHaveLength(2); // Ms. Red, Rope
+    expect(within(dialog).getAllByTitle(/^Notes:/)).toHaveLength(2); // Ms. Red, Rope
     await userEvent.click(screen.getByRole("button", { name: "Hall – Overall – empty (automatic)" }));
-    expect(within(dialog).getAllByTitle(/^Notebook:/)).toHaveLength(3);
+    expect(within(dialog).getAllByTitle(/^Notes:/)).toHaveLength(3);
   });
 
   it("accusation: annotates all three groups", () => {

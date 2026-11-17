@@ -2,7 +2,7 @@ import { defineMessages } from "../../shared/i18n/index.js";
 
 export const notebookMessages = defineMessages({
   en: {
-    notebook: "Notebook",
+    notebook: "Cards",
     general: "Overall",
     card: "Card",
     cell: "{card} – {player} – {state} ({source})",
@@ -21,7 +21,7 @@ export const notebookMessages = defineMessages({
     hint: "Tap a cell to cycle: auto → ✓ has → ✗ not → ? maybe → auto. Lighter marks are automatic.",
   },
   pl: {
-    notebook: "Notatnik",
+    notebook: "Karty",
     general: "Ogólnie",
     card: "Karta",
     cell: "{card} – {player} – {state} ({source})",

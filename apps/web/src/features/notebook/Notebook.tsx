@@ -22,7 +22,7 @@ const sections = [
 
 export const SHOW_PLAYERS_KEY = "notebook:showPlayers";
 
-/** Detective notebook (region "Notebook"), merged with my cards. Renders nothing until the game state arrives. */
+/** Detective notebook (region "Cards"), merged with my cards. Renders nothing until the game state arrives. */
 export function Notebook() {
   const { game, me, myId } = useGame();
   if (!game) return null;

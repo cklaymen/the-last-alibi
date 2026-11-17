@@ -14,7 +14,7 @@ function MarksProbe() {
   return <output aria-label="probe">{`${markOf("hall")},${markOf("red")}`}</output>;
 }
 
-const region = () => screen.getByRole("region", { name: "Notebook" });
+const region = () => screen.getByRole("region", { name: "Cards" });
 const cell = (name: string | RegExp) => within(region()).getByRole("button", { name });
 const events = (list: GameEvent[]) => list.map((event, seq) => ({ seq, event }));
 
