@@ -73,8 +73,8 @@ Every rule function is **pure and immutable**: `(game, …args) → GameResult` 
 ### `apps/web/src`
 
 - `app/` – `App`, `AppHeader`, `screens.tsx` (chooses Join / Lobby / Game by state), version.
-- `features/` – `join`, `session`, `lobby`, `game` (provider, context, selectors, `GameScreen`, `ActionSection`), `board`, `players`, `turn` (`TurnPanel`, action registry `actions.ts`, `useCommand`), `suggestion`, `accusation`, `disprove`, `room-cards`, `timer`, `event-log`, `notebook`, `cards` (`CardTile`, `CardSelectGrid`, avatars, `cardArt.ts`), `nickname`, `theme`, `locale`.
-- `shared/` – `ui/` (Button, ModalDialog, Collapsible, ToggleGroup…), `i18n/`, `errors/`, `lib/` (router, storage).
+- `features/` – `join`, `session`, `lobby`, `game` (provider, context, selectors, `GameScreen`, `ActionSection`), `board`, `players`, `turn` (`TurnPanel`, action registry `actions.ts`, `useCommand`), `suggestion`, `accusation`, `disprove`, `room-cards`, `timer`, `event-log`, `notebook` (UI section "Cards"), `cards` (`CardTile`, `CardSelectGrid`, `CardHint`, avatars, `cardArt.ts`), `room-settings` (`RoomSettingsView`, shared by lobby and game), `rules-help` (header rules summary), `nickname`, `theme`, `locale`.
+- `shared/` – `ui/` (Button, ModalDialog, Collapsible, Tooltip, ToggleGroup…), `i18n/`, `errors/`, `lib/` (router, storage).
 
 ## 4. Runtime data flow
 

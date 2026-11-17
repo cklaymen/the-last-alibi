@@ -11,12 +11,14 @@ Code locations are given as hints (`feature folder` or file) so a reader – hum
 | Id | Requirement | Where |
 |---|---|---|
 | FR-APP-1 | Two URLs only: `/` (home) and `/room/<code>` (room). History API router, no routing library. | `web/shared/lib/router` |
-| FR-APP-2 | Header with theme switch (**Light / Dark / System**, default System), language switch (**EN / PL**, default from `navigator.language`), and – inside a room – the nickname button. | `web/app/AppHeader.tsx`, `features/theme`, `features/locale`, `features/nickname` |
+| FR-APP-2 | Header with the rules button (FR-APP-8), theme switch (**Light / Dark / System**, default System), language switch (**EN / PL**, default from `navigator.language`), and – inside a room – the nickname button. | `web/app/AppHeader.tsx`, `features/theme`, `features/locale`, `features/nickname` |
 | FR-APP-3 | Theme choice is stored in `localStorage` (`theme`) and applied before first paint by an inline script in `index.html` (no flash). The user's choice overrides the system preference. | `features/theme` |
 | FR-APP-4 | Language is stored in `localStorage`; `<html lang>` follows it. All UI text exists in EN and PL. | `features/locale`, per-feature `i18n.ts` |
 | FR-APP-5 | Server errors arrive as codes and are shown translated (EN/PL). | `web/shared/errors` |
 | FR-APP-6 | The app keeps working when `localStorage`/`sessionStorage` throws (private mode etc.); only persistence is lost. | `web/shared/lib/storage.ts` and every store |
 | FR-APP-7 | Animations run only under `prefers-reduced-motion: no-preference`; otherwise static colours/borders remain. | `web/src/styles.css` |
+| FR-APP-8 | **Rules** button in the header (every screen) opens "How to play": five one-line base rules, then "In this room" lines generated from the current room settings, each marked with a "Room setting" chip. Outside a room one line says the host can change some rules. | `features/rules-help` (`rulesItems.ts`) |
+| FR-APP-9 | **One tooltip behaviour** in the HTML UI (`shared/ui/Tooltip.tsx`): hover shows / leave hides (mouse), click or tap pins it, a second click, `Escape` or a press outside closes it; the bubble is linked with `aria-describedby`. Used by the Cards table headers and hand marker and by the room-setting explanations; the board's SVG tooltips follow the same rules. | `web/shared/ui/Tooltip.tsx` |
 
 ## 2. Home screen (join / create)
 
@@ -48,7 +50,7 @@ Code locations are given as hints (`feature folder` or file) so a reader – hum
 | FR-LOBBY-2 | **Character picker**: six character cards; available / selected / taken states. A character can be changed until the game starts; a taken one is rejected (`CHARACTER_TAKEN`). |
 | FR-LOBBY-3 | **Start game** (host only) is enabled with ≥ 2 players who have all chosen a character; others see "Waiting for host" and a hint. |
 | FR-LOBBY-4 | The host can **remove a player** (not themselves). The removed player's sockets get `room:kicked` and are disconnected. |
-| FR-LOBBY-5 | **Room settings panel**: the host edits, everyone else sees the values read-only. Changes are allowed only in the lobby (`GAME_NOT_IN_LOBBY`) and only by the host (`NOT_HOST`). Settings survive returning to the lobby after a game. See §4.1. |
+| FR-LOBBY-5 | **Room settings panel**: the host edits, everyone else sees the values read-only. Every setting has an info button ("About: {setting}") with a one- or two-sentence explanation of its effect in play, available to everyone (also when the controls are disabled). Changes are allowed only in the lobby (`GAME_NOT_IN_LOBBY`) and only by the host (`NOT_HOST`). Settings survive returning to the lobby after a game. See §4.1. |
 | FR-LOBBY-6 | **Last game** summary after a finished game: winner ("You win!" / "{name} wins!"), "Last detective standing" when won by elimination, and the envelope solution. |
 | FR-LOBBY-7 | If the host leaves the lobby (or is removed by the presence timeout), the next player becomes host. When the last player leaves, the room is deleted. |
 
@@ -64,17 +66,20 @@ Defined in `packages/game/src/shared/types.ts` (`DEFAULT_ROOM_SETTINGS`, option 
 | Turn time limit | `turnTimeLimitSec` | none / 30 / 60 / 90 / 120 / 180 s | 90 s | Server ends the turn when it runs out. |
 | Time to show a card | `disproveTimeLimitSec` | none / 15 / 30 / 45 / 60 s | 30 s | Server shows a random matching card when it runs out. |
 | Face-down cards in rooms | `roomCards` | 0–8 | 0 | That many cards are placed face down in different rooms instead of being dealt. |
-| Automatic notes | `autoNotes` | on / off | on | Notebook deductions on/off (facts always shown). |
+| Automatic notes | `autoNotes` | on / off | on | Cards-table deductions on/off (facts always shown). |
+
+The controls and explanations live in `web/features/room-settings` (`RoomSettingsView`), shared by the lobby panel and the read-only in-game section (FR-LAYOUT-6).
 
 ## 5. Game screen – layout
 
 | Id | Requirement |
 |---|---|
-| FR-LAYOUT-1 | **Desktop:** board on the left; right column with, in order: action section (sticky at the top), event log, notebook. |
-| FR-LAYOUT-2 | **Mobile:** board on top, then action section, event log, notebook. The action section is a direct child of `<main>` and uses `position: sticky; top: 0; bottom: 0` – it sticks to the bottom while the board fills the screen and to the top after scrolling past it (pure CSS, no scroll listeners). It has its own background and shadow. |
-| FR-LAYOUT-3 | Event log and notebook are **collapsible** (expanded by default); the state is remembered per browser (`localStorage` `ui:collapsed:<id>`). |
+| FR-LAYOUT-1 | **Desktop:** board on the left; right column with, in order: action section (sticky at the top), event log, **Cards** (the notebook), **Room settings**. |
+| FR-LAYOUT-2 | **Mobile:** board on top, then action section, event log, Cards, Room settings. The action section is a direct child of `<main>` and uses `position: sticky; top: 0; bottom: 0` – it sticks to the bottom while the board fills the screen and to the top after scrolling past it (pure CSS, no scroll listeners). It has its own background and shadow. |
+| FR-LAYOUT-3 | Event log, Cards and Room settings are **collapsible** (the first two expanded by default, Room settings collapsed); the state is remembered per browser (`localStorage` `ui:collapsed:<id>`). |
 | FR-LAYOUT-4 | Below the board, in one line: the **players bar** (left, scrolls horizontally if needed) and the **map controls** + / − / reset (right, always visible). |
-| FR-LAYOUT-5 | With 6 players the whole screen, including the notebook, fits 360 px width without horizontal page scrolling. |
+| FR-LAYOUT-5 | With 6 players the whole screen, including the Cards table, fits 360 px width without horizontal page scrolling. |
+| FR-LAYOUT-6 | **Room settings** (last section, collapsed by default, `ui:collapsed:settings`): the game's settings, read-only, with the same explanations as in the lobby. |
 
 ## 6. Board
 
@@ -86,7 +91,7 @@ Defined in `packages/game/src/shared/types.ts` (`DEFAULT_ROOM_SETTINGS`, option 
 | FR-BOARD-4 | **Reachable squares/rooms** (from `me.reachable`) are highlighted and clickable ("Move to row r, column c", "Enter {room}"); clicking moves the pawn. Movement is animated (reduced-motion aware). | |
 | FR-BOARD-5 | **My pawn** has a ring; the **active player's pawn** has a distinct (pulsing/accent) highlight. | |
 | FR-BOARD-6 | During a suggestion (until the turn ends) the suggested **suspect's pawn** and **weapon** are framed. | `board/selectors.ts` |
-| FR-BOARD-7 | **Tooltips** on pawns and weapons: tap/click or long-press (and hover on desktop). Pawn: character name + player nickname if played; weapon: name. A tooltip opens only on a click without drag, so panning, zooming and moving to adjacent squares keep working. | |
+| FR-BOARD-7 | **Tooltips** on pawns and weapons: tap/click or long-press (and hover on desktop). Pawn: character name + player nickname if played; weapon: name. A tooltip opens only on a click without drag, so panning, zooming and moving to adjacent squares keep working. The text is clamped to the visible view (also when zoomed) and moves below the token at the top edge (`tooltipAnchor` in `geometry.ts`). | |
 | FR-BOARD-8 | Rooms holding a **face-down room card** show a marker ("Face-down card") to everyone. | |
 
 ## 7. Players bar
@@ -117,9 +122,9 @@ The sticky panel that always says what is going on and what I can do. Components
 
 | Id | Requirement |
 |---|---|
-| FR-DLG-1 | **Suggestion dialog:** choose suspect and weapon on card grids; the room is fixed to the current room ("You suggest the room you are in"). |
+| FR-DLG-1 | **Suggestion dialog:** choose suspect and weapon on card grids; the room is fixed to the current room ("You suggest the room you are in") and shows the same hints as the other cards (FR-DLG-3). |
 | FR-DLG-2 | **Accusation dialog:** suspect, weapon, room grids and a warning that a wrong accusation eliminates you. With `named_room` the room is preset to the current room and locked. |
-| FR-DLG-3 | In both dialogs each card shows hints: "in hand" and my current notebook mark (live). |
+| FR-DLG-3 | In both dialogs each card – including the fixed room of a suggestion – shows hints: "In your hand" chip and my current Cards-table mark (live). Shared component `cards/CardHint.tsx`. |
 | FR-DLG-4 | Dialogs are modal with focus handling and Cancel. |
 
 ## 10. Event log
@@ -129,17 +134,18 @@ The sticky panel that always says what is going on and what I can do. Components
 | FR-LOG-1 | Human-readable, translated log of all public events: game start, rolls, moves/room entries, passages, suggestions, "cannot disprove", "X showed a card to Y", "Nobody could disprove", accusations (correct / wrong + elimination), turn end, turn skipped (away), turn timed out, disprove timed out (random card shown), win. |
 | FR-LOG-2 | The **full** history is sent by the server (no window) so the log and notebook deductions are identical after refresh or on another device. |
 | FR-LOG-3 | The log never contains hidden information (no shown card ids, no room card ids). |
+| FR-LOG-4 | Suggestion and accusation entries start with icons of the three named cards (suspect, weapon, room; decorative, `aria-hidden`), followed by the unchanged sentence. |
 
-## 11. Detective notebook
+## 11. Cards (detective notebook)
 
-One table that replaces the former "My cards", "Notebook" and "Seen cards" panels. Code: `web/features/notebook` (`deduction.ts` – pure deduction, `notebookModel.ts` – marks, `notebookStore.ts` – storage).
+The section is titled **Cards** (PL "Karty"); code, storage keys and docs still call it the notebook. One table that replaces the former "My cards", "Notebook" and "Seen cards" panels. Code: `web/features/notebook` (`deduction.ts` – pure deduction, `notebookModel.ts` – marks, `notebookStore.ts` – storage).
 
 | Id | Requirement |
 |---|---|
 | FR-NB-1 | One row per card, in three sections: suspects / weapons / rooms, with icon + name (truncates on narrow screens). |
 | FR-NB-2 | Columns: card | **Overall** mark | one narrow column per **other** player in turn order (no column for me). |
-| FR-NB-3 | Player column header: dot in the character colour with the nickname's initial; tooltip with the full nickname (hover + tap). Eliminated players keep their column (they still disprove), greyed out. |
-| FR-NB-4 | **My cards:** distinct background/border, ✓ overall and ✗ in every player column; locked (not editable). |
+| FR-NB-3 | Player column header: dot in the character colour with the nickname's initial; tooltip with the full nickname (FR-APP-9). Eliminated players keep their column (they still disprove), greyed out. |
+| FR-NB-4 | **My cards:** distinct background/border, a hand marker ("In hand" chip, only the hand icon when the column is narrow; tooltip "In your hand"), ✓ overall and ✗ in every player column; locked (not editable). |
 | FR-NB-5 | Every cell (player × card) and every overall mark cycles on click: **auto → ✓ → ✗ → ? → auto**. "auto" shows the computed value (or nothing). |
 | FR-NB-6 | **Manual always wins** over automatic. Automatic marks are rendered lighter, manual ones normal. |
 | FR-NB-7 | Only **manual** marks are stored, in `localStorage` per game and player (`notebook:v2:<gameId>:<playerId>`). Automatic marks are recomputed live, never stored. Older notebook formats are ignored (no migration). Open dialogs see changes immediately. |

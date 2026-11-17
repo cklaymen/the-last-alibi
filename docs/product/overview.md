@@ -40,5 +40,5 @@ Accounts and login, public room search / matchmaking, spectators, chat, bots/AI 
 | **Summoned** | A player whose pawn was moved into a room by someone else's suggestion. |
 | **Presence** | `online` / `offline` (disconnected < grace period) / `away` (longer). |
 | **Action section** | The sticky panel on the game screen showing what is happening and what I can do now. |
-| **Notebook** | The merged "my cards + notes" table with manual and automatic marks. |
+| **Notebook** (UI section "Cards") | The merged "my cards + notes" table with manual and automatic marks. |
 | **Projection** | The server-built view of the game for everybody (public) or for one player (private). |

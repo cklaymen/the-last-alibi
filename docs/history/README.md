@@ -9,5 +9,6 @@ One folder per batch: `NN-<short-topic>/` with `todo.md` (the original requireme
 | 01 | [foundations](01-foundations/) | 2026-11-15 | – | Monorepo, realtime lobby, room codes, character choice | `features.md` §2–4 |
 | 02 | [mvp-vertical-slices](02-mvp-vertical-slices/) | 2026-11-15 | – | Sessions, themes, PL/EN, own identity, board, full gameplay, notebook, presence, Docker | `features.md` §1–12, 14–15; ADR-1…10 |
 | 03 | [house-rules-and-game-ux](03-house-rules-and-game-ux/) | 2026-11-16 | `aaa098e` | House-rule options, turn/disprove timers, room cards, sticky action section, merged notebook with deductions, board highlights/tooltips, build version | `features.md` §4.1, 5–8, 11, 13; PD-3…6, 10, 13–25; ADR-11…16 |
+| 04 | [ui-polish](04-ui-polish/) | 2026-11-17 | – | Shared tooltip + map edge clamp, card hints (suggestion room, hand marker), "Notebook" → "Cards", log icons, rules summary, room-setting explanations, in-game settings section | `features.md` FR-APP-8/9, FR-LOBBY-5, FR-LAYOUT-1…6, FR-BOARD-7, FR-DLG-1/3, FR-LOG-4, FR-NB-3/4, §4.1 |
 
 Note: batch 02's plan has a few unticked items; those still relevant are listed in [`../todo.md`](../todo.md).

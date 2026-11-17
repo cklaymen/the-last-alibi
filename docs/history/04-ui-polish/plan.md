@@ -1,6 +1,8 @@
+> **Archived – not current.** Kept for history only. Current state: [`docs/README.md`](../../README.md). Do not use this file as a source of requirements or tasks.
+
 # TODO Implementation Plan (UI polish: tooltips, card hints, rules summary, log icons)
 
-> **For agentic workers:** execute inline with superpowers:executing-plans, task by task, in the order below. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** execute inline with superpowers:executing-plans, task by task, in the order below. Steps use checkbox (`- [x]`) syntax for tracking.
 >
 > **Execution mode (lean):** every task is small and web-only, so there is **no parallelism and no worktree per task**. Work on one branch `todo/04-ui-polish` off `main`, one Conventional Commit per task. Per task run only `pnpm --filter @mystery-game/web test`, `pnpm lint`, `pnpm typecheck` and the **targeted** Playwright spec(s) named in the task. The full Done (`pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`) runs once, in task `D1`.
 
@@ -72,10 +74,10 @@ export function tooltipAnchor(point: Point, text: string, view: ViewBox): { x: n
 ```
 Notebook player header: replace the hand-made `headerTip` state + `title` with `<Tooltip label={p.name} content={p.name} align="end">initial</Tooltip>` (last columns sit at the right edge, so `end`). Board: keep the SVG `<text>` (`textAnchor="middle"`), only take `x`/`y` from `tooltipAnchor(tip.point, tip.text, view)`.
 
-- [ ] **Step 1: Failing tests:** `Tooltip.test.tsx` – `hover shows and leave hides`, `click pins, second click closes`, `Escape closes`, `click outside closes`, `trigger has aria-describedby while open`. `geometry.test.ts` – `tooltipAnchor keeps a long text inside the left edge`, `…right edge`, `goes below the token at the top edge`, `unchanged in the middle`, `respects a zoomed view`.
-- [ ] **Step 2–4:** FAIL → implement → PASS (`Notebook.test.tsx` / `Board.test.tsx` updated if they relied on `title` or the old state).
-- [ ] **Step 5: E2E** (`apps/e2e/tests/notebook.spec.ts`, desktop project): `hovering a player header shows the player's name in a tooltip`.
-- [ ] **Step 6:** Commit `feat(web): shared tooltip, map tooltip stays inside the view`.
+- [x] **Step 1: Failing tests:** `Tooltip.test.tsx` – `hover shows and leave hides`, `click pins, second click closes`, `Escape closes`, `click outside closes`, `trigger has aria-describedby while open`. `geometry.test.ts` – `tooltipAnchor keeps a long text inside the left edge`, `…right edge`, `goes below the token at the top edge`, `unchanged in the middle`, `respects a zoomed view`.
+- [x] **Step 2–4:** FAIL → implement → PASS (`Notebook.test.tsx` / `Board.test.tsx` updated if they relied on `title` or the old state).
+- [x] **Step 5: E2E** (`apps/e2e/tests/notebook.spec.ts`, desktop project): `hovering a player header shows the player's name in a tooltip`.
+- [x] **Step 6:** Commit `feat(web): shared tooltip, map tooltip stays inside the view`.
 
 ## Task PB: Player ring not clipped (item 5)
 
@@ -83,9 +85,9 @@ Notebook player header: replace the hand-made `headerTip` state + `title` with `
 
 Cause: the `<ul>` has `overflow-x-auto` (which forces `overflow-y` to clip too) and only `py-1`, while the active chip draws `ring-2` outside its border. Fix: give the scrolling list enough padding for the ring (`p-1`, compensate with `-mx-1` on the list if the alignment shifts) – no change of the ring itself.
 
-- [ ] **Step 1:** Reproduce in the dev app (active player first / last in the bar, mobile + desktop).
-- [ ] **Step 2:** Fix; check both themes and both viewports. Existing `PlayersBar.test.tsx` and `game-start.spec.ts` stay green (no new test – pure styling).
-- [ ] **Step 3:** Commit `fix(web): active player ring no longer clipped in the players bar`.
+- [x] **Step 1:** Reproduce in the dev app (active player first / last in the bar, mobile + desktop).
+- [x] **Step 2:** Fix; check both themes and both viewports. Existing `PlayersBar.test.tsx` and `game-start.spec.ts` stay green (no new test – pure styling).
+- [x] **Step 3:** Commit `fix(web): active player ring no longer clipped in the players bar`.
 
 ## Task CH: Card hints – suggestion room and notebook hand (items 1, 6)
 
@@ -101,10 +103,10 @@ export function CardHint({ note }: { note: CardAnnotation }): JSX.Element | null
 - `SuggestionDialog`: under the fixed room `CardTile` render `<CardHint note={annotate(room)} />` – same hint as for suspects and weapons.
 - Notebook row header of a card in my hand: replace the `sr-only` "(In hand)" with a `Tooltip` (label/content "In your hand" / "Na Twojej ręce") whose trigger is the `Hand` icon + a text "In hand" hidden when narrow – Tailwind 4 container query: name `<span>` gets `@container`, text `hidden @[9rem]:inline`. Keep `data-in-hand` on the row (used by `GamePage.hand()`).
 
-- [ ] **Step 1: Failing tests:** `SuggestionDialog shows "In hand" for the room when I hold it`; `…shows the notebook mark of the room`; `Notebook: hand row has an "In your hand" button with a tooltip`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** (`suggestion.spec.ts`): scenario gives the suggester the room card → dialog shows "In hand" under the room.
-- [ ] **Step 6:** Commit `feat(web): room hint in the suggestion dialog, hand marker in the notebook`.
+- [x] **Step 1: Failing tests:** `SuggestionDialog shows "In hand" for the room when I hold it`; `…shows the notebook mark of the room`; `Notebook: hand row has an "In your hand" button with a tooltip`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** (`suggestion.spec.ts`): scenario gives the suggester the room card → dialog shows "In hand" under the room.
+- [x] **Step 6:** Commit `feat(web): room hint in the suggestion dialog, hand marker in the notebook`.
 
 ## Task RN: Rename "Notebook" → "Cards" (item 7)
 
@@ -112,8 +114,8 @@ export function CardHint({ note }: { note: CardAnnotation }): JSX.Element | null
 
 Only user-visible names change. Folder/identifier names (`features/notebook`, `notebookKey`, storage keys `notebook:*`, `ui:collapsed:notebook`) stay, so stored marks and the collapsed state survive.
 
-- [ ] **Step 1:** Update tests to `"Cards"` → FAIL. **Step 2:** Change texts → PASS. `grep -rn '"Notebook"' apps/` returns nothing user-facing.
-- [ ] **Step 3:** Commit `feat(web): rename the notebook section to Cards`.
+- [x] **Step 1:** Update tests to `"Cards"` → FAIL. **Step 2:** Change texts → PASS. `grep -rn '"Notebook"' apps/` returns nothing user-facing.
+- [x] **Step 3:** Commit `feat(web): rename the notebook section to Cards`.
 
 ## Task LG: Event log icons (item 8)
 
@@ -121,9 +123,9 @@ Only user-visible names change. Folder/identifier names (`features/notebook`, `n
 
 For `suggested` and `accused` events, the entry starts with an `aria-hidden` group of three `CardIcon`s (suspect, weapon, room, size 16) followed by the unchanged sentence. Text and i18n keys stay, so screen readers and the existing e2e text assertions are unaffected. Small helper in `EventLog.tsx`: `triple(event): CardId[] | null`.
 
-- [ ] **Step 1: Failing test:** `suggested entry shows icons of the three cards` (3 `svg`/icons inside the `li`, text unchanged).
-- [ ] **Step 2–4:** FAIL → implement → PASS. Check mobile width: icons `shrink-0`, text wraps.
-- [ ] **Step 5:** Commit `feat(web): card icons in suggestion and accusation log entries`.
+- [x] **Step 1: Failing test:** `suggested entry shows icons of the three cards` (3 `svg`/icons inside the `li`, text unchanged).
+- [x] **Step 2–4:** FAIL → implement → PASS. Check mobile width: icons `shrink-0`, text wraps.
+- [x] **Step 5:** Commit `feat(web): card icons in suggestion and accusation log entries`.
 
 ## Task RS: Rules summary in the header (item 2)
 
@@ -142,10 +144,10 @@ export function rulesItems(settings: RoomSettings | null): RulesItem[];
 - Settings come from `useContext(GameContext)?.room.settings` (the header is inside `GameProvider` in a room); outside a room (`null`) the room-setting lines are replaced by one line "The host can change some rules in the room settings." (`optional: true`).
 - Optional lines are visually marked: a small chip "Room setting" / "Ustawienie pokoju" (existing tokens, e.g. `bg-surface-2 text-brand-strong`), grouped under a sub-heading "In this room" / "W tym pokoju". The chip text is part of the line's accessible text.
 
-- [ ] **Step 1: Failing tests:** `rulesItems.test.ts` – `null settings → base rules + one host note`; `defaults → one optional line per setting except disabled ones (suggest after staying off, 0 room cards)`; `values are reflected (turn limit 30 → n=30, named_room, accuse-after-suggestion off)`; every base item `optional: false`, every setting item `optional: true`. `RulesButton.test.tsx` – `opens and closes the dialog`; `optional lines carry the "Room setting" chip`; `PL text when locale is pl`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E:** `rules button opens "How to play" on the home screen`; `in the lobby, after the host sets the turn limit to 30 s, a guest sees "30 s" marked as a room setting`.
-- [ ] **Step 6:** Commit `feat(web): short rules summary in the header`.
+- [x] **Step 1: Failing tests:** `rulesItems.test.ts` – `null settings → base rules + one host note`; `defaults → one optional line per setting except disabled ones (suggest after staying off, 0 room cards)`; `values are reflected (turn limit 30 → n=30, named_room, accuse-after-suggestion off)`; every base item `optional: false`, every setting item `optional: true`. `RulesButton.test.tsx` – `opens and closes the dialog`; `optional lines carry the "Room setting" chip`; `PL text when locale is pl`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E:** `rules button opens "How to play" on the home screen`; `in the lobby, after the host sets the turn limit to 30 s, a guest sees "30 s" marked as a room setting`.
+- [x] **Step 6:** Commit `feat(web): short rules summary in the header`.
 
 ## Task RV: Room settings view, read-only section in the game (item 10)
 
@@ -164,10 +166,10 @@ export function RoomSettingsView(props: {
 - `lobby/RoomSettingsPanel` keeps the heading, `send("room:settings")` and the error message; renders `<RoomSettingsView settings={room.settings} onChange={isHost ? change : undefined} />`. Setting texts move from `lobby/i18n.ts` to `room-settings/i18n.ts` (keys unchanged).
 - `GameScreen`: last item of the right column, after "Cards": `<Collapsible id="settings" title={t("settings")} defaultOpen={false}><RoomSettingsView settings={game.settings} /></Collapsible>` – EN "Room settings", PL "Ustawienia pokoju". Collapsed state persisted like the other sections (`ui:collapsed:settings`).
 
-- [ ] **Step 1: Failing tests:** `RoomSettingsView` – `without onChange all controls are disabled`; `with onChange a change sends a one-field patch` (moved from the lobby test). `GameScreen` – `"Room settings" is the last section and collapsed by default`; `expanded it shows the game's settings read-only`. Existing `RoomSettingsPanel.test.tsx` stays green.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** (`settings.spec.ts`): `host sets turn limit 30 s, after start a guest expands "Room settings" and sees 30 s (disabled)`.
-- [ ] **Step 6:** Commit `feat(web): read-only room settings section in the game`.
+- [x] **Step 1: Failing tests:** `RoomSettingsView` – `without onChange all controls are disabled`; `with onChange a change sends a one-field patch` (moved from the lobby test). `GameScreen` – `"Room settings" is the last section and collapsed by default`; `expanded it shows the game's settings read-only`. Existing `RoomSettingsPanel.test.tsx` stays green.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** (`settings.spec.ts`): `host sets turn limit 30 s, after start a guest expands "Room settings" and sees 30 s (disabled)`.
+- [x] **Step 6:** Commit `feat(web): read-only room settings section in the game`.
 
 ## Task SI: Room setting explanations (item 9)
 
@@ -175,19 +177,19 @@ export function RoomSettingsView(props: {
 
 `SelectRow` / `CheckRow` get a required `info: string` prop rendered as `<Tooltip label={t("about", { setting: label })} content={info} align="end"><Info …/></Tooltip>` next to the label (EN "About: {setting}", PL "Więcej: {setting}"). Visible to host and guests (also when the controls are disabled). One or two sentences per setting, EN+PL, describing the effect in play (e.g. room cards: "Cards placed face down in random rooms instead of being dealt. Anyone who has stood in the room may look at its card; they are never used to disprove.").
 
-- [ ] **Step 1: Failing tests:** `every setting has an info button`; `clicking info shows the explanation`; `guest can open info although controls are disabled`.
-- [ ] **Step 2–4:** FAIL → implement → PASS.
-- [ ] **Step 5: E2E** (`settings.spec.ts`): `guest opens the explanation of "Face-down cards in rooms"`.
-- [ ] **Step 6:** Commit `feat(lobby): explanations for room settings`.
+- [x] **Step 1: Failing tests:** `every setting has an info button`; `clicking info shows the explanation`; `guest can open info although controls are disabled`.
+- [x] **Step 2–4:** FAIL → implement → PASS.
+- [x] **Step 5: E2E** (`settings.spec.ts`): `guest opens the explanation of "Face-down cards in rooms"`.
+- [x] **Step 6:** Commit `feat(lobby): explanations for room settings`.
 
 ## Task D1: Docs, full Done, archive
 
 **Files:** `docs/product/features.md` (tooltips, card hints, Cards section name, log icons, rules summary, setting explanations, in-game "Room settings" section – new `FR-*` ids where they are new behaviour), `docs/product/overview.md` / `decisions.md` / `docs/technical/adr.md` (rename "Notebook" → "Cards" where it names the UI section), `docs/technical/architecture.md` (only if it lists shared UI: add `Tooltip`, `CardHint`, feature `room-settings`), `docs/todo.md`, `docs/history/`.
 
-- [ ] **Step 1:** Update the docs above (state, not history).
-- [ ] **Step 2:** Run `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green (report failures with output).
-- [ ] **Step 3:** Archive: move the done items of `docs/todo.md` and this plan to `docs/history/04-ui-polish/{todo.md,plan.md}` with the archive banner, add a row to `docs/history/README.md`, leave only open items in `docs/todo.md`.
-- [ ] **Step 4:** Commit `docs: describe UI polish batch and archive it`.
+- [x] **Step 1:** Update the docs above (state, not history).
+- [x] **Step 2:** Run `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green (report failures with output).
+- [x] **Step 3:** Archive: move the done items of `docs/todo.md` and this plan to `docs/history/04-ui-polish/{todo.md,plan.md}` with the archive banner, add a row to `docs/history/README.md`, leave only open items in `docs/todo.md`.
+- [x] **Step 4:** Commit `docs: describe UI polish batch and archive it`.
 
 ---
 
