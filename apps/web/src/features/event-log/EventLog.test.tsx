@@ -46,6 +46,15 @@ describe("EventLog", () => {
     expect(items.map((li) => li.textContent)).toEqual(cases.map(([, text]) => text));
   });
 
+  it("suggested entry shows icons of the three cards", () => {
+    const game = makeGame({ events: [{ seq: 0, event: { type: "suggested", playerId: "p1", suggestion: triple } }] });
+    render(<EventLog game={game} />);
+    const li = within(screen.getByRole("region", { name: "Event log" })).getByRole("listitem");
+    const icons = [...li.querySelectorAll("[data-card-icon]")].map((el) => el.getAttribute("data-card-icon"));
+    expect(icons).toEqual(["red", "rope", "kitchen"]);
+    expect(li).toHaveTextContent("Alice suggests Ms. Red with the Rope in the Kitchen.");
+  });
+
   it("describeEvent resolves names and cards", () => {
     const d = describeEvent(
       { type: "card_shown", playerId: "a", toPlayerId: "b" },

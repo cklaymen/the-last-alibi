@@ -1,10 +1,17 @@
 import { useEffect, useRef } from "react";
-import type { PublicGameState } from "@mystery-game/contracts";
-import { cardMessages } from "../cards/index.js";
+import type { GameEvent, PublicGameState } from "@mystery-game/contracts";
+import type { CardId } from "@mystery-game/game";
+import { CardIcon, cardMessages } from "../cards/index.js";
 import { playerName } from "../players/index.js";
 import { useT } from "../../shared/i18n/index.js";
 import { describeEvent } from "./describe.js";
 import { eventLogMessages } from "./i18n.js";
+
+/** Cards named by a suggestion / accusation entry (shown as icons before the sentence). */
+function triple(event: GameEvent): CardId[] | null {
+  const t = event.type === "suggested" ? event.suggestion : event.type === "accused" ? event.accusation : null;
+  return t ? [t.suspect, t.weapon, t.room] : null;
+}
 
 /**
  * Public event log, oldest first; scrolls to the newest entry.
@@ -32,9 +39,17 @@ export function EventLog({ game }: { game: PublicGameState }) {
           <ol className="m-0 flex list-none flex-col p-0 text-sm">
             {game.events.map(({ seq, event }) => {
               const { key, params } = describeEvent(event, ctx);
+              const cards = triple(event);
               return (
-                <li key={seq} className="border-b border-line px-3 py-2 last:border-b-0">
-                  {t(key, params)}
+                <li key={seq} className="flex items-start gap-2 border-b border-line px-3 py-2 last:border-b-0">
+                  {cards && (
+                    <span aria-hidden="true" className="flex shrink-0 items-center gap-0.5 pt-0.5">
+                      {cards.map((id) => (
+                        <CardIcon key={id} id={id} size={16} />
+                      ))}
+                    </span>
+                  )}
+                  <span className="min-w-0">{t(key, params)}</span>
                 </li>
               );
             })}
