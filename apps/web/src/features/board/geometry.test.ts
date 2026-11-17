@@ -11,6 +11,7 @@ import {
   isZoomed,
   panView,
   roomSlot,
+  tooltipAnchor,
   zoomView,
 } from "./geometry.js";
 
@@ -52,5 +53,28 @@ describe("board geometry", () => {
     expect(far.x + far.width).toBe(BOARD_WIDTH);
     expect(far.y + far.height).toBeCloseTo(BOARD_HEIGHT);
     expect(clampView({ x: -5, y: -5, width: 1e6, height: 1 })).toEqual(FULL_VIEW);
+  });
+});
+
+describe("tooltipAnchor", () => {
+  const text = "Mrs. Peacock (Alexandra)"; // 24 chars ≈ 168 units wide
+  const half = (24 * 7) / 2 + 4;
+  it("keeps a long text inside the left edge", () => {
+    expect(tooltipAnchor({ x: 10, y: 200 }, text, FULL_VIEW).x).toBe(half);
+  });
+  it("keeps a long text inside the right edge", () => {
+    expect(tooltipAnchor({ x: BOARD_WIDTH - 5, y: 200 }, text, FULL_VIEW).x).toBe(BOARD_WIDTH - half);
+  });
+  it("goes below the token at the top edge", () => {
+    expect(tooltipAnchor({ x: 200, y: 10 }, "Rope", FULL_VIEW).y).toBeGreaterThan(10);
+  });
+  it("unchanged in the middle", () => {
+    expect(tooltipAnchor({ x: 200, y: 200 }, "Rope", FULL_VIEW)).toEqual({ x: 200, y: 185 });
+  });
+  it("respects a zoomed view", () => {
+    const view = { x: 100, y: 100, width: 120, height: 120 };
+    const a = tooltipAnchor({ x: 105, y: 105 }, "Rope", view);
+    expect(a.x).toBe(100 + (4 * 7) / 2 + 4);
+    expect(a.y).toBeGreaterThan(105);
   });
 });

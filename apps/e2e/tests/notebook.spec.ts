@@ -48,3 +48,11 @@ test("6-player notebook table fits 360 px", async ({ table }) => {
   const box = (await notebook.boundingBox())!;
   expect(box.x + box.width).toBeLessThanOrEqual(360);
 });
+
+test("hovering a player header shows the player's name in a tooltip", async ({ table }) => {
+  const t = await table(2);
+  await t.start();
+  const ada = t.players[0]!;
+  await ada.game.notebook().getByRole("button", { name: "Bob", exact: true }).first().hover();
+  await expect(ada.game.notebook().getByRole("tooltip")).toHaveText("Bob");
+});

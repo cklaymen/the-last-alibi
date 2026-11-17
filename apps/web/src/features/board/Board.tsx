@@ -24,6 +24,7 @@ import {
   doorSegment,
   rectBox,
   roomSlot,
+  tooltipAnchor,
   viewBoxAttr,
 } from "./geometry.js";
 import { boardMessages } from "./i18n.js";
@@ -333,8 +334,7 @@ export function Board({ game, me, myId, onMove, toolbarStart }: Props) {
         {tip && (
           <g role="tooltip" pointerEvents="none">
             <text
-              x={tip.point.x}
-              y={tip.point.y - PAWN_R - 8}
+              {...tooltipAnchor(tip.point, tip.text, view)}
               textAnchor="middle"
               fontSize={12}
               fontWeight={700}

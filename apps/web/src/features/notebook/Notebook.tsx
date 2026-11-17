@@ -4,6 +4,7 @@ import { characterIds, roomIds, weaponIds } from "@mystery-game/game";
 import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
 import { useT } from "../../shared/i18n/index.js";
 import { readFlag, writeFlag } from "../../shared/lib/storage.js";
+import { Tooltip } from "../../shared/ui/Tooltip.js";
 import { CardIcon, cardMessages, characterColorVar } from "../cards/index.js";
 import { useGame } from "../game/index.js";
 import { notebookMessages } from "./i18n.js";
@@ -36,7 +37,6 @@ function NotebookTable({ storageKey, game, me, myId }: TableProps) {
   const manual = useManualMarks(storageKey);
   const d = useDeduction(game, me, myId);
   const [showPlayers, setShowPlayers] = useState(() => readFlag(SHOW_PLAYERS_KEY) ?? true);
-  const [headerTip, setHeaderTip] = useState<string | null>(null);
   const hand: readonly CardId[] = me?.hand ?? [];
   const others = showPlayers
     ? game.turnOrder.flatMap((id) => (id === myId ? [] : game.players.filter((p) => p.id === id)))
@@ -76,26 +76,17 @@ function NotebookTable({ storageKey, game, me, myId }: TableProps) {
                 {t("general")}
               </th>
               {others.map((p) => (
-                <th key={p.id} scope="col" className={`relative p-0 ${p.eliminated ? "opacity-50" : ""}`}>
-                  <button
-                    type="button"
-                    aria-label={p.name}
-                    title={p.name}
-                    data-eliminated={p.eliminated || undefined}
-                    onClick={() => setHeaderTip(headerTip === p.id ? null : p.id)}
+                <th key={p.id} scope="col" className={`p-0 ${p.eliminated ? "opacity-50" : ""}`}>
+                  <Tooltip
+                    label={p.name}
+                    content={p.name}
+                    align="end"
                     className="mx-auto flex size-6 items-center justify-center rounded-full border-[3px] bg-surface text-xs font-bold text-fg"
                     style={{ borderColor: characterColorVar[p.characterId] }}
+                    data-eliminated={p.eliminated || undefined}
                   >
                     {p.name.slice(0, 1).toUpperCase()}
-                  </button>
-                  {headerTip === p.id && (
-                    <span
-                      role="tooltip"
-                      className="absolute top-full right-0 z-10 rounded border border-line bg-surface px-2 py-0.5 text-xs whitespace-nowrap shadow-sm"
-                    >
-                      {p.name}
-                    </span>
-                  )}
+                  </Tooltip>
                 </th>
               ))}
             </tr>

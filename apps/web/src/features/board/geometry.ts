@@ -110,3 +110,19 @@ export function isZoomed(v: Box): boolean {
 }
 
 export const viewBoxAttr = (v: Box): string => `${v.x} ${v.y} ${v.width} ${v.height}`;
+
+const TIP_CHAR_W = 7; // estimated width of one character at font 12, bold
+const TIP_MARGIN = 4;
+const TIP_OFFSET = 15; // pawn radius + gap
+const TIP_LINE = 14;
+
+/** Position of a token's tooltip text (`textAnchor="middle"`), kept inside the visible view. */
+export function tooltipAnchor(point: Point, text: string, view: Box): Point {
+  const half = (text.length * TIP_CHAR_W) / 2 + TIP_MARGIN;
+  const minX = view.x + half;
+  const maxX = view.x + view.width - half;
+  const x = minX > maxX ? view.x + view.width / 2 : Math.min(maxX, Math.max(minX, point.x));
+  const above = point.y - TIP_OFFSET;
+  const y = above < view.y + TIP_LINE ? point.y + TIP_OFFSET + TIP_LINE / 2 + 2 : above;
+  return { x, y };
+}
