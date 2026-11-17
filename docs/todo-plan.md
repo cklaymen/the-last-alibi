@@ -4,7 +4,7 @@
 >
 > **Execution mode (lean):** every task is small and web-only, so there is **no parallelism and no worktree per task**. Work on one branch `todo/04-ui-polish` off `main`, one Conventional Commit per task. Per task run only `pnpm --filter @mystery-game/web test`, `pnpm lint`, `pnpm typecheck` and the **targeted** Playwright spec(s) named in the task. The full Done (`pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`) runs once, in task `D1`.
 
-**Goal:** Implement every item of `docs/todo.md` → "Do zrobienia" (9 items).
+**Goal:** Implement every item of `docs/todo.md` → "Do zrobienia" (10 items).
 
 **Architecture:** Everything lives in `apps/web`. No domain rules, contracts, socket commands, error codes or projections change. Two small shared pieces are introduced first and reused by later tasks: `shared/ui/Tooltip.tsx` (one tooltip behaviour for the whole HTML UI) and `cards/CardHint.tsx` (the "in hand" chip + notebook mark extracted from `CardSelectGrid`).
 
@@ -40,8 +40,9 @@
 | 4 | **RN** "Notebook" → "Cards" | 7 | CH (same files) |
 | 5 | **LG** Event log icons | 8 | – |
 | 6 | **RS** Rules summary in the header | 2 | – |
-| 7 | **SI** Room setting explanations | 9 | TT |
-| 8 | **D1** Docs, full Done, archive | – | all |
+| 7 | **RV** Room settings view + in-game section | 10 | – |
+| 8 | **SI** Room setting explanations | 9 (+10) | TT, RV |
+| 9 | **D1** Docs, full Done, archive | – | all |
 
 ---
 
@@ -146,9 +147,31 @@ export function rulesItems(settings: RoomSettings | null): RulesItem[];
 - [ ] **Step 5: E2E:** `rules button opens "How to play" on the home screen`; `in the lobby, after the host sets the turn limit to 30 s, a guest sees "30 s" marked as a room setting`.
 - [ ] **Step 6:** Commit `feat(web): short rules summary in the header`.
 
+## Task RV: Room settings view, read-only section in the game (item 10)
+
+**Files:** Create `features/room-settings/{RoomSettingsView.tsx,RoomSettingsView.test.tsx,i18n.ts,index.ts}`; Modify `features/lobby/{RoomSettingsPanel.tsx,i18n.ts,RoomSettingsPanel.test.tsx}`, `features/game/{GameScreen.tsx,i18n.ts,GameScreen.test.tsx}`, `apps/e2e/pages/GamePage.ts` (append), `apps/e2e/tests/settings.spec.ts`.
+
+Why a new feature folder: `lobby` already imports `game` (`useGame`), so the game screen importing the lobby panel would create a cycle. The presentational part moves out, both screens use it.
+
+**Interfaces – Produces:**
+```ts
+// room-settings/RoomSettingsView.tsx – the rows moved unchanged from RoomSettingsPanel (SelectRow, CheckRow, labels, option lists)
+export function RoomSettingsView(props: {
+  settings: RoomSettings;
+  onChange?: (patch: UpdateSettingsRequest) => void; // missing = read-only (all controls disabled)
+}): JSX.Element;
+```
+- `lobby/RoomSettingsPanel` keeps the heading, `send("room:settings")` and the error message; renders `<RoomSettingsView settings={room.settings} onChange={isHost ? change : undefined} />`. Setting texts move from `lobby/i18n.ts` to `room-settings/i18n.ts` (keys unchanged).
+- `GameScreen`: last item of the right column, after "Cards": `<Collapsible id="settings" title={t("settings")} defaultOpen={false}><RoomSettingsView settings={game.settings} /></Collapsible>` – EN "Room settings", PL "Ustawienia pokoju". Collapsed state persisted like the other sections (`ui:collapsed:settings`).
+
+- [ ] **Step 1: Failing tests:** `RoomSettingsView` – `without onChange all controls are disabled`; `with onChange a change sends a one-field patch` (moved from the lobby test). `GameScreen` – `"Room settings" is the last section and collapsed by default`; `expanded it shows the game's settings read-only`. Existing `RoomSettingsPanel.test.tsx` stays green.
+- [ ] **Step 2–4:** FAIL → implement → PASS.
+- [ ] **Step 5: E2E** (`settings.spec.ts`): `host sets turn limit 30 s, after start a guest expands "Room settings" and sees 30 s (disabled)`.
+- [ ] **Step 6:** Commit `feat(web): read-only room settings section in the game`.
+
 ## Task SI: Room setting explanations (item 9)
 
-**Files:** Modify `features/lobby/{RoomSettingsPanel.tsx,i18n.ts,RoomSettingsPanel.test.tsx}`, `apps/e2e/tests/settings.spec.ts`.
+**Files:** Modify `features/room-settings/{RoomSettingsView.tsx,i18n.ts,RoomSettingsView.test.tsx}`, `apps/e2e/tests/settings.spec.ts`. (Lives in the shared view, so the explanations show both in the lobby and in the in-game section.)
 
 `SelectRow` / `CheckRow` get a required `info: string` prop rendered as `<Tooltip label={t("about", { setting: label })} content={info} align="end"><Info …/></Tooltip>` next to the label (EN "About: {setting}", PL "Więcej: {setting}"). Visible to host and guests (also when the controls are disabled). One or two sentences per setting, EN+PL, describing the effect in play (e.g. room cards: "Cards placed face down in random rooms instead of being dealt. Anyone who has stood in the room may look at its card; they are never used to disprove.").
 
@@ -159,7 +182,7 @@ export function rulesItems(settings: RoomSettings | null): RulesItem[];
 
 ## Task D1: Docs, full Done, archive
 
-**Files:** `docs/product/features.md` (tooltips, card hints, Cards section name, log icons, rules summary, setting explanations – new `FR-*` ids where they are new behaviour), `docs/product/overview.md` / `decisions.md` / `docs/technical/adr.md` (rename "Notebook" → "Cards" where it names the UI section), `docs/technical/architecture.md` (only if it lists shared UI: add `Tooltip`, `CardHint`), `docs/todo.md`, `docs/history/`.
+**Files:** `docs/product/features.md` (tooltips, card hints, Cards section name, log icons, rules summary, setting explanations, in-game "Room settings" section – new `FR-*` ids where they are new behaviour), `docs/product/overview.md` / `decisions.md` / `docs/technical/adr.md` (rename "Notebook" → "Cards" where it names the UI section), `docs/technical/architecture.md` (only if it lists shared UI: add `Tooltip`, `CardHint`, feature `room-settings`), `docs/todo.md`, `docs/history/`.
 
 - [ ] **Step 1:** Update the docs above (state, not history).
 - [ ] **Step 2:** Run `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e` → all green (report failures with output).
@@ -181,3 +204,4 @@ export function rulesItems(settings: RoomSettings | null): RulesItem[];
 | Zmiana nazwy sekcji | RN (+ D1 docs) |
 | Dziennik – ikonki | LG |
 | Konfiguracja pokoju – wyjaśnienia | SI |
+| Podgląd ustawień pokoju w trakcie gry | RV (+ SI) |

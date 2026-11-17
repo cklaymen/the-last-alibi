@@ -13,6 +13,7 @@ Otwarty backlog / wymagania bieżącej partii prac. Cykl życia (todo → plan �
 - [ ] **Zmiana nazwy sekcji:** sekcja „Notatnik” → „Karty” (EN: „Notebook” → „Cards”; i18n, testy e2e korzystające z nazwy, dokumentacja).
 - [ ] **Dziennik – ikonki:** przy wpisach o podejrzeniach używać ikonek (postać, narzędzie, pomieszczenie), żeby log był czytelniejszy.
 - [ ] **Konfiguracja pokoju – wyjaśnienia ustawień:** przy każdym ustawieniu pokoju przycisk (np. ikonka „i”/„?”) pokazujący dokładniejsze wyjaśnienie, co dane ustawienie zmienia w rozgrywce – obecnie nie jest to intuicyjne.
+- [ ] **Podgląd ustawień pokoju w trakcie gry:** na ekranie gry, na samym końcu, zwinięta (domyślnie) sekcja „Ustawienia pokoju” z bieżącymi ustawieniami – tylko do odczytu, z tymi samymi wyjaśnieniami co w lobby.
 
 ## Otwarte z wcześniejszych planów (nieprzypisane, do decyzji)
 
