@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Hand } from "lucide-react";
 import type { CardId } from "@mystery-game/game";
 import { characterIds, roomIds, weaponIds } from "@mystery-game/game";
 import type { PrivateGameState, PublicGameState } from "@mystery-game/contracts";
@@ -107,12 +108,24 @@ function NotebookTable({ storageKey, game, me, myId }: TableProps) {
                   }`}
                 >
                   <th scope="row" className="py-0 pr-1 pl-1.5 text-left font-normal">
-                    <span className="flex min-w-0 items-center gap-1.5">
+                    <span className="@container flex min-w-0 items-center gap-1.5">
                       <CardIcon id={card} size={16} />
                       <span className={`truncate ${general.mark === "not" && !mine ? "text-muted line-through" : ""}`}>
                         {name}
                       </span>
-                      {mine && <span className="sr-only">({t("inHand")})</span>}
+                      {mine && (
+                        <Tooltip
+                          label={t("inYourHand")}
+                          content={t("inYourHand")}
+                          align="start"
+                          className="ml-auto inline-flex shrink-0 items-center gap-1 rounded bg-surface-2 px-1 py-0.5 text-xs font-bold text-brand-strong"
+                        >
+                          <Hand aria-hidden="true" className="size-3.5" />
+                          <span aria-hidden="true" className="hidden @[11rem]:inline">
+                            {t("inHandShort")}
+                          </span>
+                        </Tooltip>
+                      )}
                       {envelope && <span className="sr-only">({t("inEnvelope")})</span>}
                     </span>
                   </th>

@@ -21,6 +21,14 @@ const events = (list: GameEvent[]) => list.map((event, seq) => ({ seq, event }))
 afterEach(() => vi.restoreAllMocks());
 
 describe("Notebook", () => {
+  it("hand row has an \"In your hand\" button with a tooltip", async () => {
+    renderWithGame(<Notebook />);
+    const buttons = within(region()).getAllByRole("button", { name: "In your hand" });
+    expect(buttons).toHaveLength(2);
+    await userEvent.click(buttons[0]!);
+    expect(within(region()).getByRole("tooltip")).toHaveTextContent("In your hand");
+  });
+
   it("hand rows are locked and ✓, other players ✗", () => {
     renderWithGame(<Notebook />);
     expect(within(region()).getByRole("img", { name: "Rope – Overall – has (in hand)" })).toBeInTheDocument();

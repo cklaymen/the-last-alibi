@@ -139,3 +139,18 @@ test("with the option on, a player starting in a room sees Suggest before rollin
   await ada!.game.suggest("Prof. Purple", "Wrench");
   await expect(ada!.game.action("Roll dice")).toHaveCount(0);
 });
+
+test("suggestion dialog shows 'In your hand' under the room I hold", async ({ table, request }) => {
+  const t = await table(3);
+  await t.start();
+  const ada = t.players[0]!;
+  await applyScenario(request, t.code, {
+    ...setup,
+    pawns: { red: room("kitchen") },
+    summonedTo: { Ada: "kitchen" },
+    activePlayer: "Ada",
+  });
+  await ada.game.action("Suggest").click();
+  const dialog = ada.page.getByRole("dialog", { name: "Make a suggestion" });
+  await expect(dialog.getByRole("group", { name: "Room" }).getByText("In your hand")).toBeVisible();
+});

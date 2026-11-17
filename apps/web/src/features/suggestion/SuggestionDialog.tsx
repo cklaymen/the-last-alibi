@@ -7,7 +7,7 @@ import {
   type RoomId,
   type WeaponId,
 } from "@mystery-game/game";
-import { CardSelectGrid, CardTile, cardMessages } from "../cards/index.js";
+import { CardHint, CardSelectGrid, CardTile, cardMessages } from "../cards/index.js";
 import { useT } from "../../shared/i18n/index.js";
 import { suggestionMessages } from "./i18n.js";
 import { useCardAnnotations } from "./useCardAnnotations.js";
@@ -59,8 +59,9 @@ export function SuggestionDialog({ room, onSubmit, onClose, busy = false, error 
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="m-0 text-sm font-bold text-muted">{t("roomLabel")}</h3>
-        <div className="max-w-60">
+        <div role="group" aria-label={t("roomLabel")} className="flex max-w-60 flex-col gap-1">
           <CardTile id={room} />
+          <CardHint note={annotate(room)} />
         </div>
         <p className="m-0 text-sm text-muted">{t("roomHint", { room: card(room) })}</p>
       </div>
