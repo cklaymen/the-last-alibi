@@ -18,7 +18,7 @@ export function PlayersBar({ game, myId }: Props) {
   const locale = useLocale();
   return (
     <section aria-label={t("region")} className="min-w-0">
-      <ul className="m-0 flex list-none gap-1.5 overflow-x-auto p-0 py-1">
+      <ul className="-mx-1 my-0 flex list-none gap-1.5 overflow-x-auto p-1">
         {orderedPlayers(game).map((p) => {
           const active =
             game.turn.playerId === p.id && game.status === "IN_PROGRESS";
