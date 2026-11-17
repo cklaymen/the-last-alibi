@@ -1,3 +1,4 @@
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { GameContext, type GameContextValue } from "./GameContext.js";
@@ -49,6 +50,18 @@ describe("GameScreen", () => {
       .filter((name) => name === "Actions" || name === "Event log" || name === "Cards");
     expect(regions).toEqual(["Actions", "Event log", "Cards"]);
     expect(screen.queryByRole("button", { name: "Cards" })).toBeNull();
+  });
+
+  it("\"Room settings\" is the last section, collapsed by default, read-only when expanded", async () => {
+    renderScreen();
+    const summaries = [...document.querySelectorAll("summary")].map((el) => el.textContent);
+    expect(summaries.at(-1)).toBe("Room settings");
+    const details = document.querySelectorAll("details");
+    const last = details[details.length - 1]!;
+    expect(last.open).toBe(false);
+    await userEvent.click(screen.getByText("Room settings"));
+    expect(last.open).toBe(true);
+    expect(screen.getByRole("combobox", { name: "Turn time limit" })).toBeDisabled();
   });
 
   it("Actions has data-attention=\"action\" on my turn", () => {

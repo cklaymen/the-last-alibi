@@ -4,6 +4,7 @@ import { Board } from "../board/index.js";
 import { EnvelopeCards } from "../cards/index.js";
 import { EventLog } from "../event-log/index.js";
 import { Notebook } from "../notebook/index.js";
+import { RoomSettingsView } from "../room-settings/index.js";
 import { PlayersBar, myPlayer } from "../players/index.js";
 import { CommandError, useCommand, type Send } from "../turn/index.js";
 import { useT } from "../../shared/i18n/index.js";
@@ -71,6 +72,10 @@ export function GameLayout({ game, me, myId, send }: LayoutProps) {
 
         <Collapsible id="notebook" title={t("notebook")}>
           <Notebook />
+        </Collapsible>
+
+        <Collapsible id="settings" title={t("settings")} defaultOpen={false}>
+          <RoomSettingsView settings={game.settings} />
         </Collapsible>
       </div>
     </main>

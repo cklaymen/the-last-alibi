@@ -40,3 +40,22 @@ test("settings survive a finished game", async ({ table, request }) => {
   await expect(ada!.lobby.setting("Time to show a card")).toBeEnabled();
   await expect(bob!.lobby.setting("Time to show a card")).toBeDisabled();
 });
+
+test("after start a guest expands \"Room settings\" and sees the host's turn limit read-only", async ({ table }) => {
+  const t = await table(2);
+  const [ada, bob] = t.players;
+  await ada!.lobby.setting("Turn time limit").selectOption({ label: "30 s" });
+  await expect(bob!.lobby.selected("Turn time limit")).toHaveText("30 s");
+  await t.start();
+  await bob!.game.sectionToggle("Room settings").click();
+  const turn = bob!.page.getByLabel("Turn time limit", { exact: true });
+  await expect(turn).toBeDisabled();
+  await expect(turn.locator("option:checked")).toHaveText("30 s");
+});
+
+test("guest opens the explanation of \"Face-down cards in rooms\"", async ({ table }) => {
+  const t = await table(2);
+  const bob = t.players[1]!;
+  await bob.page.getByRole("button", { name: "About: Face-down cards in rooms" }).click();
+  await expect(bob.page.getByRole("tooltip")).toContainText("never used to disprove");
+});

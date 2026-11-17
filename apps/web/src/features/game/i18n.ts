@@ -7,6 +7,7 @@ export const gameScreenMessages = defineMessages({
     actions: "Actions",
     log: "Event log",
     notebook: "Cards",
+    settings: "Room settings",
   },
   pl: {
     loading: "Wczytywanie gry…",
@@ -14,5 +15,6 @@ export const gameScreenMessages = defineMessages({
     actions: "Akcje",
     log: "Dziennik zdarzeń",
     notebook: "Karty",
+    settings: "Ustawienia pokoju",
   },
 });
