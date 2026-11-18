@@ -80,6 +80,18 @@ The home screen shows the build version (UTC build time, e.g. `2026-11-16T14:32Z
 
 No ports are exposed to the outside world; `web` is bound to `127.0.0.1` only.
 
+### Automatic deployment on push to `main`
+
+`.github/workflows/deploy.yml` runs lint, typecheck and unit tests on GitHub-hosted runners, then rebuilds and restarts the stack on the server through a self-hosted runner (`docker compose -p cluedo --env-file /srv/cluedo/.env --profile tunnel up -d --build --wait`). It can also be started by hand from the Actions tab. Every deployment restarts the API, so games in progress are lost.
+
+One-time server setup:
+
+1. Create a user for the runner and give it Docker access: `sudo useradd -m github-runner && sudo usermod -aG docker github-runner`.
+2. Install the runner in `/opt/actions-runner` (Settings → Actions → Runners → New self-hosted runner), configure it as `github-runner` with `--labels cluedo`, then install it as a service: `sudo ./svc.sh install github-runner && sudo ./svc.sh start`.
+3. Put the env file at `/srv/cluedo/.env` (from `.env.docker.example`), owned by `github-runner`, mode `600`.
+4. Stop any stack started by hand from another directory (`docker compose down` there), otherwise both compete for the port.
+5. **The repository is public:** in Settings → Actions → General set fork pull request workflows to *Require approval for all external contributors*, and never approve workflow runs of foreign PRs. Otherwise a fork PR could run its own workflow on the self-hosted runner.
+
 ## Tests and quality
 
 ```bash

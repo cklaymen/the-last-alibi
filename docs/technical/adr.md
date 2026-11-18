@@ -88,3 +88,8 @@ Short ADRs: **Context → Decision → Consequences**. Status is *Accepted* unle
 **Context:** e2e tests need deterministic hands, dice and positions without reaching into server internals.
 **Decision:** Playwright tests import only contracts; deterministic setup through `POST /testing/rooms/:code/scenario`, enabled only by `ENABLE_TEST_API=1`.
 **Consequences:** the scenario schema grows append-only with each feature; it must never be enabled in production.
+
+### ADR-18 – Continuous deployment through a self-hosted runner
+**Context:** the app runs on the owner's own server behind a Cloudflare Tunnel (no inbound ports); a push to `main` should rebuild and restart it. The repository is public.
+**Decision:** GitHub Actions: checks on GitHub-hosted runners, then `docker compose up -d --build` on a self-hosted runner on the server. Fork PR workflows require approval for all external contributors. Rejected: a server-side polling timer (equally safe, but no deploy history/logs in GitHub) and an inbound webhook (needs an exposed endpoint).
+**Consequences:** the runner user is in the `docker` group (root-equivalent), so foreign PR workflow runs must never be approved. Each deploy restarts the API and drops in-memory games.

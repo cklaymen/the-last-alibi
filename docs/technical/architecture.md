@@ -166,3 +166,5 @@ All rooms, games and sessions live **in memory** behind repository interfaces (`
 | `WEB_PORT`, `TUNNEL_TOKEN` | `8080`, – | compose | Exposed port; Cloudflare Tunnel token (`--profile tunnel`) |
 
 Docker: `docker compose up --build` → nginx serves the web build and proxies `/api/*` and `/socket.io/*` to the api container (single origin). See the root `README.md` for local dev and tunnel setup.
+
+Continuous deployment: `.github/workflows/deploy.yml` – on push to `main`, a `checks` job (lint, typecheck, unit tests) runs on GitHub-hosted runners; when it passes, a `deploy` job on the self-hosted runner (label `cluedo`) runs `docker compose -p cluedo --env-file /srv/cluedo/.env --profile tunnel up -d --build --wait`. Deploys never overlap (`concurrency: deploy`). E2E tests are not part of the pipeline. Server setup and the required fork-PR approval setting are in the root `README.md`.

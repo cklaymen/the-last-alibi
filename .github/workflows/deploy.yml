@@ -1,0 +1,49 @@
+# Push to main → checks on GitHub-hosted runners → rebuild and restart on the server.
+# The deploy job runs on a self-hosted runner (label `cluedo`). The repository is public,
+# so Settings → Actions → General must require approval for all external contributors:
+# otherwise a fork PR could add its own workflow targeting the self-hosted runner.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never build two deployments at once; a newer push waits for the running one.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @mystery-game/game --filter @mystery-game/contracts build
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  deploy:
+    needs: checks
+    runs-on: [self-hosted, cluedo]
+    steps:
+      - uses: actions/checkout@v4
+      # Fixed project name so every checkout manages the same containers;
+      # the env file lives outside the checkout and survives `git clean`.
+      - name: Rebuild and restart
+        run: >
+          GIT_SHA="${GITHUB_SHA::7}"
+          docker compose -p cluedo --env-file /srv/cluedo/.env --profile tunnel
+          up -d --build --wait --remove-orphans
+      - name: Remove dangling images
+        run: docker image prune -f
